@@ -63,7 +63,7 @@ bool PlantNode::CheckCollision(Vector2 playerPosition, float interactionRadius) 
 }
 
 HarvestQuality PlantNode::Harvest(Core::Planet dayRuler, Core::Planet hourRuler) {
-    if (m_harvested) return HarvestQuality::Standard; // Should not happen if CheckCollision is used
+    if (m_harvested) return HarvestQuality::Standard;
 
     m_harvested = true;
     m_respawnTimer = m_maxRespawnTime;
@@ -85,6 +85,9 @@ HarvestQuality PlantNode::Harvest(Core::Planet dayRuler, Core::Planet hourRuler)
 }
 
 Core::Planet PlantNode::GetOppositePlanet(Core::Planet planet) {
+    // Classical astrological oppositions:
+    // Sun opposes Saturn, Moon opposes Mars,
+    // Mercury opposes Jupiter, Venus opposes Mars (secondary)
     switch (planet) {
         case Core::Planet::Sun:     return Core::Planet::Saturn;
         case Core::Planet::Saturn:  return Core::Planet::Sun;
@@ -92,7 +95,7 @@ Core::Planet PlantNode::GetOppositePlanet(Core::Planet planet) {
         case Core::Planet::Mars:    return Core::Planet::Moon;
         case Core::Planet::Mercury: return Core::Planet::Jupiter;
         case Core::Planet::Jupiter: return Core::Planet::Mercury;
-        case Core::Planet::Venus:   return Core::Planet::Mars; // Venus vs Mars is a classic opposition
+        case Core::Planet::Venus:   return Core::Planet::Mars;
         default:                    return Core::Planet::Saturn;
     }
 }

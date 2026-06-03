@@ -32,7 +32,7 @@ void Player::Update(float deltaTime, bool joystickActive, Vector2 joystickDirect
         Move(joystickDirection, deltaTime);
         m_hasDestination = false; // Intercept and cancel any active tap-to-move path
     }
-    else if (m_hasDestination && m_currentPathIndex < m_path.size()) {
+    else if (m_hasDestination && m_currentPathIndex < (int)m_path.size()) {
         // Path following logic
         Vector2 target = m_path[m_currentPathIndex];
         Vector2 toTarget = Vector2Subtract(target, m_position);
@@ -41,7 +41,7 @@ void Player::Update(float deltaTime, bool joystickActive, Vector2 joystickDirect
         if (distance <= 2.5f) {
             // Target waypoint reached
             m_currentPathIndex++;
-            if (m_currentPathIndex >= m_path.size()) {
+            if (m_currentPathIndex >= (int)m_path.size()) {
                 m_hasDestination = false;
             }
         } else {

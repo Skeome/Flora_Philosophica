@@ -303,32 +303,27 @@ PlanetaryHourInfo AstrologicalClock::CalculatePlanetaryHour(double latitude, dou
     Planet rulingPlanet = static_cast<Planet>(planetIndex);
 
     // 8. Calculate the absolute Unix timestamps for the start and end of the current hour.
-    // These are used by the UI countdown timer and the Consecration mechanic (checking
-    // whether the player is combining a preparation during the correct planetary window).
-    //
-    // segmentDuration is already computed above, but we need it here regardless of path.
-    // relativeHour is the 0-11 index within the current day or night block.
+    // These are used by the UI countdown timer and the Consecration mechanic.
     double segmentDurationFinal = isPolarActive
-        ? 3600.0                        // polar fallback: fixed 60-minute segments
-        : (totalDuration / 12.0);       // normal: unequal segments divided from day/night length
+        ? 3600.0
+        : (totalDuration / 12.0);
 
-    // For the polar path, hourIndex is already 0-23 from midnight.
-    // For the normal path, relativeHour is hourIndex minus the day/night offset (0 or 12).
     int relativeHourFinal = isPolarActive
-        ? hourIndex                     // polar: hour index is already absolute from midnight
-        : (hourIndex - hourOffset);     // normal: strip the day/night offset to get 0-11
+        ? hourIndex
+        : (hourIndex - hourOffset);
 
     long long hourStartUtc = activeStart + static_cast<long long>(relativeHourFinal * segmentDurationFinal);
     long long hourEndUtc   = activeStart + static_cast<long long>((relativeHourFinal + 1) * segmentDurationFinal);
 
     // 9. Construct response payload
     PlanetaryHourInfo info;
-    info.rulingPlanet    = rulingPlanet;
-    info.hourIndex       = hourIndex;
+    info.rulingPlanet     = rulingPlanet;
+    info.dayRuler         = dayRuler;       // Exposed so harvest quality can check day+hour match
+    info.hourIndex        = hourIndex;
     info.minutesRemaining = minutesRemaining;
-    info.planetName      = GetPlanetName(rulingPlanet);
-    info.hourStartUtc    = hourStartUtc;
-    info.hourEndUtc      = hourEndUtc;
+    info.planetName       = GetPlanetName(rulingPlanet);
+    info.hourStartUtc     = hourStartUtc;
+    info.hourEndUtc       = hourEndUtc;
 
     return info;
 }

@@ -27,9 +27,10 @@ int main() {
 
     // Astrological engine setup
     AstrologicalClock clock;
-    // Base test coordinates: Portland, Oregon (approx. 45.5152 N, -122.6784 W)
-    const double observerLat = 45.5152;
-    const double observerLon = -122.6784;
+    // TODO: Replace with device GPS coordinates at runtime
+    // Test coordinates: Medford, Oregon (approx. 42.3265 N, -122.8756 W)
+    const double observerLat = 42.3265;
+    const double observerLon = -122.8756;
 
     // 3. Configure Camera2D (for smooth scrolling behavior)
     Camera2D camera = { 0 };
@@ -43,10 +44,14 @@ int main() {
     Vector2 joystickAnchor = { 0.0f, 0.0f };
     Vector2 joystickDirection = { 0.0f, 0.0f };
     const float joystickMaxRadius = 60.0f;
-    
+
     float clickHoldTimer = 0.0f;
-    const float joystickHoldThreshold = 0.2f; // Seconds to hold before joystick activates
+    const float joystickHoldThreshold = 0.2f; // Seconds of hold before joystick activates
     bool isHolding = false;
+
+    // Planetary glyph lookup — matches Planet enum order (Saturn=0 ... Moon=6)
+    // Used for the astrological clock HUD display
+    const char* PLANET_GLYPHS[7] = { "♄", "♃", "♂", "☉", "♀", "☿", "☽" };
 
     // Main game loop
     while (!WindowShouldClose()) {
@@ -58,7 +63,7 @@ int main() {
         bool leftClickPressed = IsMouseButtonPressed(MOUSE_BUTTON_LEFT);
         bool leftClickReleased = IsMouseButtonReleased(MOUSE_BUTTON_LEFT);
 
-        // Reset joystick direction
+        // Reset joystick direction each frame
         joystickDirection = { 0.0f, 0.0f };
 
         if (leftClickPressed) {
@@ -69,64 +74,54 @@ int main() {
 
         if (isHolding) {
             clickHoldTimer += deltaTime;
-            
+
             if (clickHoldTimer >= joystickHoldThreshold && !joystickActive) {
-                // Long press threshold met, activate joystick
+                // Long press threshold met: activate floating joystick
                 joystickActive = true;
             }
-            
+
             if (leftClickReleased) {
                 if (!joystickActive) {
-                    // Tap detected (released before threshold)
+                    // Short tap: trigger A* pathfinding to tapped world position
                     Vector2 worldClickPos = GetScreenToWorld2D(mousePos, camera);
                     auto path = gameMap.FindPath(player.GetPosition(), worldClickPos);
                     player.SetPath(path);
                 }
-                
-                // Cleanup
+
+                // Reset hold state
                 isHolding = false;
                 joystickActive = false;
                 clickHoldTimer = 0.0f;
             }
         }
 
-        if (joystickActive) {
-            if (isLeftClickDown) {
-                // Dragging the joystick
-                Vector2 offset = Vector2Subtract(mousePos, joystickAnchor);
-                float distance = Vector2Length(offset);
+        if (joystickActive && isLeftClickDown) {
+            // Compute normalised joystick direction from anchor drag
+            Vector2 offset = Vector2Subtract(mousePos, joystickAnchor);
+            float distance = Vector2Length(offset);
 
-                if (distance > 0.0f) {
-                    // Compute normalized direction
-                    Vector2 normalizedDir = Vector2Scale(offset, 1.0f / distance);
-                    
-                    // Clamp joystick knob visual inside boundaries
-                    if (distance > joystickMaxRadius) {
-                        offset = Vector2Scale(normalizedDir, joystickMaxRadius);
-                    }
-                    
-                    // Apply direction to movement vector
-                    joystickDirection = normalizedDir;
+            if (distance > 0.0f) {
+                Vector2 normalizedDir = Vector2Scale(offset, 1.0f / distance);
+                if (distance > joystickMaxRadius) {
+                    offset = Vector2Scale(normalizedDir, joystickMaxRadius);
                 }
+                joystickDirection = normalizedDir;
             }
         }
 
         // --- Core Updates ---
-        // Save current position for slide collision resolution
         Vector2 oldPos = player.GetPosition();
-
-        // Update player movements
         player.Update(deltaTime, joystickActive, joystickDirection);
 
-        // Constrain player position to collide with walls and map edges
+        // Constrain player position against walls and map edges
         Vector2 proposedPos = player.GetPosition();
         Vector2 resolvedPos = gameMap.ConstrainPosition(oldPos, proposedPos, 15.0f);
         player.SetPosition(resolvedPos);
 
-        // Update map (plant respawns)
+        // Update map (plant respawn timers)
         gameMap.Update(deltaTime);
 
-        // Update camera position to follow the player smoothly
+        // Smooth camera follow
         camera.target = player.GetPosition();
 
         // --- Calculate Astrological State ---
@@ -135,7 +130,6 @@ int main() {
             std::chrono::system_clock::now().time_since_epoch()
         ).count();
 
-        // Update planetary hour display data
         PlanetaryHourInfo clockInfo = clock.CalculatePlanetaryHour(observerLat, observerLon, currentUnixTime);
 
         // --- Interaction Logic ---
@@ -147,14 +141,9 @@ int main() {
         if (IsKeyPressed(KEY_E)) {
             PlantNode* node = gameMap.CheckPlantInteraction(player.GetPosition(), 20.0f);
             if (node) {
-                // Calculate matching day ruler (simplification for prototype: weekday)
-                // Real implementation would calculate sunrise ruler.
-                // For now, let's just use the current clockInfo.rulingPlanet as both for testing matching state.
-                // To get actual day ruler, we need more from AstrologicalClock.
-                // Let's assume day ruler is currently Sun for testing.
-                Planet dayRuler = Planet::Sun; 
-                
-                HarvestQuality quality = node->Harvest(dayRuler, clockInfo.rulingPlanet);
+                // Use the real day ruler and hour ruler from the clock engine.
+                // Pristine quality requires BOTH to match the plant's ruling planet.
+                HarvestQuality quality = node->Harvest(clockInfo.dayRuler, clockInfo.rulingPlanet);
                 lastHarvestLog = "Harvested " + node->GetName() + ": " + PlantNode::GetQualityName(quality);
                 logTimer = 3.0f;
             }
@@ -164,76 +153,76 @@ int main() {
         BeginDrawing();
             ClearBackground(DARKGRAY);
 
-            // Render world components relative to the scrolling camera
             BeginMode2D(camera);
                 gameMap.Draw();
-                
-                // Draw path debug lines
+
+                // Draw A* path debug visualisation
                 if (player.HasActivePath()) {
                     const auto& path = player.GetPath();
                     for (size_t i = player.GetCurrentPathIndex(); i < path.size(); ++i) {
                         DrawCircleV(path[i], 3, Fade(GOLD, 0.5f));
-                        if (i > player.GetCurrentPathIndex()) {
+                        if (i > (size_t)player.GetCurrentPathIndex()) {
                             DrawLineV(path[i-1], path[i], Fade(GOLD, 0.3f));
                         } else {
                             DrawLineV(player.GetPosition(), path[i], Fade(GOLD, 0.3f));
                         }
                     }
                 }
-                
+
                 player.Draw();
             EndMode2D();
 
-            // Render UI overlays (Absolute screen coordinate space)
-            
-            // 1. Draw Virtual Joystick (if active)
+            // --- UI Overlays ---
+
+            // 1. Virtual Joystick
             if (joystickActive) {
-                // Draw base circle
                 DrawCircleV(joystickAnchor, joystickMaxRadius, Fade(GRAY, 0.4f));
                 DrawCircleLinesV(joystickAnchor, joystickMaxRadius, Fade(LIGHTGRAY, 0.6f));
-                
-                // Draw center knob
                 Vector2 knobPos = Vector2Add(joystickAnchor, Vector2Scale(joystickDirection, joystickMaxRadius * 0.6f));
                 DrawCircleV(knobPos, 22, Fade(SKYBLUE, 0.8f));
                 DrawCircleLinesV(knobPos, 22, BLUE);
             }
 
-            // 2. Draw Astrological Engine HUD overlay (Top-Left corner)
+            // 2. Astrological Clock HUD (top-left)
             DrawRectangle(15, 15, 340, 115, Fade(BLACK, 0.7f));
-            DrawRectangleLines(15, 15, 340, 115, Color{ 140, 100, 70, 255 }); // Dark brown border
+            DrawRectangleLines(15, 15, 340, 115, Color{ 140, 100, 70, 255 });
 
-            std::string timeStr = "Planetary Hour: " + clockInfo.planetName;
-            std::string cycleStr = clockInfo.hourIndex < 12 ? "Day Hour (Segment " : "Night Hour (Segment ";
+            std::string timeStr     = "Planetary Hour: " + clockInfo.planetName;
+            std::string cycleStr    = clockInfo.hourIndex < 12
+                                    ? "Day Hour (Segment "
+                                    : "Night Hour (Segment ";
             cycleStr += std::to_string(clockInfo.hourIndex % 12 + 1) + "/12)";
             std::string remainingStr = "Time remaining: " + std::to_string(static_cast<int>(clockInfo.minutesRemaining)) + "m";
 
-            // Draw astrological glyph placeholder
+            // Planetary glyph circle — uses real glyph for the ruling planet
+            int planetEnumIndex = static_cast<int>(clockInfo.rulingPlanet);
+            const char* glyph = PLANET_GLYPHS[planetEnumIndex];
             DrawCircle(40, 50, 18, Color{ 160, 100, 40, 255 });
-            DrawText("H", 34, 42, 20, RAYWHITE); // Astro placeholder symbol
+            DrawText(glyph, 30, 42, 20, RAYWHITE);
 
             DrawText("ASTROLOGICAL CLOCK", 75, 25, 12, GOLD);
             DrawText(timeStr.c_str(), 75, 42, 16, RAYWHITE);
             DrawText(cycleStr.c_str(), 75, 63, 13, LIGHTGRAY);
             DrawText(remainingStr.c_str(), 75, 80, 13, LIGHTGRAY);
-            DrawText("Portland: 45.5N, -122.6W", 75, 100, 11, GRAY);
+            DrawText("Medford: 42.3N, -122.8W", 75, 100, 11, GRAY);
 
-            // 3. Draw Controls Legend Overlay (Bottom-Left corner)
+            // 3. Controls Legend (bottom-left)
             DrawRectangle(15, screenHeight - 115, 400, 100, Fade(BLACK, 0.7f));
             DrawRectangleLines(15, screenHeight - 115, 400, 100, Color{ 110, 110, 120, 255 });
             DrawText("CONTROLS:", 30, screenHeight - 105, 12, GOLD);
             DrawText("- Desktop: Use WASD / Arrow Keys to move", 30, screenHeight - 87, 14, RAYWHITE);
-            DrawText("- Mobile/Mouse: Drag on LEFT side for Joystick", 30, screenHeight - 69, 14, RAYWHITE);
-            DrawText("- Mobile/Mouse: Click/Tap on RIGHT side to pathfind", 30, screenHeight - 51, 14, RAYWHITE);
+            DrawText("- Hold click/tap anywhere to activate Joystick", 30, screenHeight - 69, 14, RAYWHITE);
+            DrawText("- Tap anywhere to pathfind", 30, screenHeight - 51, 14, RAYWHITE);
 
-            // 4. Draw Harvest Log
+            // 4. Harvest Log (top-center)
             DrawRectangle(screenWidth / 2 - 200, 20, 400, 40, Fade(BLACK, 0.6f));
-            DrawText(lastHarvestLog.c_str(), screenWidth / 2 - MeasureText(lastHarvestLog.c_str(), 16) / 2, 32, 16, GOLD);
+            DrawText(lastHarvestLog.c_str(),
+                     screenWidth / 2 - MeasureText(lastHarvestLog.c_str(), 16) / 2,
+                     32, 16, GOLD);
 
         EndDrawing();
     }
 
-    // De-initialization
     CloseWindow();
-
     return 0;
 }

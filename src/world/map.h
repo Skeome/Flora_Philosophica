@@ -35,7 +35,7 @@ public:
     void Draw() const;
 
     // Checks if a proposed player movement collides with boundaries or obstacles.
-    // If a collision occurs, resolves the position.
+    // If a collision occurs, resolves the position using sliding collision.
     Vector2 ConstrainPosition(Vector2 oldPosition, Vector2 newPosition, float playerRadius) const;
 
     // Interaction check for the player

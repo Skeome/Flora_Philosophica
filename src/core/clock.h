@@ -22,6 +22,7 @@ enum class Planet {
 // Represents the calculated planetary hour state for a given timestamp.
 struct PlanetaryHourInfo {
     Planet rulingPlanet;        // Ruling planet of the current hour
+    Planet dayRuler;            // Ruling planet of the current weekday (for Pristine harvest check)
     int hourIndex;              // 0 to 11 for day hours, 12 to 23 for night hours
     double minutesRemaining;    // Minutes remaining in the current planetary hour
     std::string planetName;     // String representation of the ruling planet
