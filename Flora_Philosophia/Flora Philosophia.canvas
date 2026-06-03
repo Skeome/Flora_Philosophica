@@ -1,0 +1,20 @@
+{
+	"nodes":[
+		{"id":"990f67b6a6651f59","type":"file","file":"Flora_Philosophia_GDD.md","x":-200,"y":-1900,"width":400,"height":400},
+		{"id":"a9445934f1561d00","type":"file","file":"The Cabin/Laboratory.md","x":197,"y":120,"width":400,"height":400},
+		{"id":"98ba47168b5b8323","type":"file","file":"The Ternary Alchemical Order/The Ternary Alchemical Order.md","x":-200,"y":-880,"width":400,"height":400},
+		{"id":"977467cfc133bb45","type":"file","file":"The Cabin/Cabin.md","x":197,"y":-400,"width":400,"height":400},
+		{"id":"57201e83fc2a02e8","type":"text","text":"Watches Over","x":321,"y":-706,"width":153,"height":53},
+		{"id":"f0d3e432e1e194b7","type":"file","file":"The Cabin/Storefront.md","x":-603,"y":-400,"width":400,"height":400},
+		{"id":"15bcaf7beba1063b","type":"text","text":"Leaves Notes","x":-479,"y":-705,"width":153,"height":50}
+	],
+	"edges":[
+		{"id":"3348c264c6d32da0","fromNode":"57201e83fc2a02e8","fromSide":"bottom","toNode":"977467cfc133bb45","toSide":"top"},
+		{"id":"a526a63b7333c582","fromNode":"15bcaf7beba1063b","fromSide":"bottom","toNode":"f0d3e432e1e194b7","toSide":"top"},
+		{"id":"5af120f7affbb184","fromNode":"98ba47168b5b8323","fromSide":"right","toNode":"57201e83fc2a02e8","toSide":"top"},
+		{"id":"d32fd48380a1d82a","fromNode":"98ba47168b5b8323","fromSide":"left","toNode":"15bcaf7beba1063b","toSide":"top"},
+		{"id":"0ba1a88664279299","fromNode":"a9445934f1561d00","fromSide":"top","toNode":"977467cfc133bb45","toSide":"bottom"},
+		{"id":"cbfa51ea1de96657","fromNode":"f0d3e432e1e194b7","fromSide":"right","toNode":"977467cfc133bb45","toSide":"left"},
+		{"id":"f41ee84ac1e82c82","fromNode":"990f67b6a6651f59","fromSide":"bottom","toNode":"98ba47168b5b8323","toSide":"top"}
+	]
+}
