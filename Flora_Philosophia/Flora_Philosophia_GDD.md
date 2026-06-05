@@ -63,10 +63,10 @@ The game achieves this not through text explanations or tutorials but through th
 
 ### 2.1 Perspective & Controls
 
-- **3/4 top-down perspective** — the spatial freedom of *Chrono Trigger* rendered in the hand-painted aesthetic of *Another Eden* (or *Sword × Staff*)
+- **3/4 top-down perspective** — the spatial freedom of *Chrono Trigger* rendered in the hand-painted aesthetic of *Another Eden* (or *Sword × Staff*). This is essentially a Stardew Valley clone
 - The world is a 2D plane with depth (X and Y movement), built from high-end layered hand-painted assets
 - **Tap-to-Move:** Player taps a tile or area; the character pathfinds automatically around obstacles
-- **Virtual Joystick:** Floats wherever the player touches the left side of the screen; enables precise manual movement and enemy dodging
+- **Virtual Joystick:** Floats wherever the player holds their finger on the screen; enables precise manual movement and enemy dodging
 - Players can walk behind trees, cross stone bridges, and discover hidden clearings off the main path
 
 ### 2.2 Atmospheric Overlays
@@ -110,7 +110,7 @@ The HUD and inventory UI will follow a *Stardew Valley*-inspired layout as devel
 
 ## 3. The Real-Time Astrological Engine
 
-Flora Philosophia synchronises its internal clock entirely to the player's real world. There is no accelerated game calendar. This is the game's most significant design decision — it transforms the app from an entertainment product into a functional lifestyle companion for the operative spagyrist.
+Flora Philosophia synchronizes its internal clock entirely to the player's real world. There is no accelerated game calendar. This is the game's most significant design decision — it transforms the app from an entertainment product into a functional lifestyle companion for the operative spagyrist.
 
 ### 3.1 Planetary Hour Calculation
 
@@ -171,12 +171,12 @@ The laboratory operates as a true sandbox. There are no recipe locks graying out
 
 ### 4.3 The Compost Bin Trap
 
-The compost bin is positioned outside the cabin and presented early as a natural destination for Spent Plant material. The game subtly encourages its use — it generates basic fertiliser for a small garden plot.
+The compost bin is positioned outside the cabin and presented early as a natural destination for Spent Plant material. The game subtly encourages its use — it generates basic fertilizer for a small garden plot.
 
 - Once any material touches the compost, it is **irretrievable** — effectively a thematic trash system
 - There is no visible trash can, no explicit "delete item" button. The compost is the only disposal route for most players in the early game
 - The revelation arrives via the Ternary Order letter system: *"The spent plant is not waste, marry it with fire and water until it is pure."*
-- Players who have been faithfully composting experience the intended **"Aha!" moment** — recognising that they have been discarding the Salt principle, the physical Body of the plant, for hours
+- Players who have been faithfully composting experience the intended **"Aha!" moment** — recognizing that they have been discarding the Salt principle, the physical Body of the plant, for hours
 
 ### 4.4 Failure States
 
@@ -203,7 +203,7 @@ The laboratory enforces physics-based consequences. There is no generic "Craft F
 
 ## 5. The Residue Purification Pipeline
 
-The Ternary system — Mercurius (Spirit), Sulphur (Soul), and Sal (Body) — is the educational core of Flora Philosophia. The residue pipeline teaches the player to process the physical Body of the plant rather than discard it, completing the spagyric triad.
+The Tria Prima — Mercurius (Spirit), Sulphur (Soul), and Sal (Body) — are the educational core of Flora Philosophia. The residue pipeline teaches the player to process the physical Body of the plant rather than discard it, completing the spagyric triad.
 
 Item names update dynamically as the material changes state. The player's inventory is itself a progress tracker.
 
