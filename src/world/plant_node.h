@@ -1,5 +1,5 @@
-#ifndef FLORA_PHILOSOPHIA_WORLD_PLANT_NODE_H
-#define FLORA_PHILOSOPHIA_WORLD_PLANT_NODE_H
+#ifndef FLORA_PHILOSOPHICA_WORLD_PLANT_NODE_H
+#define FLORA_PHILOSOPHICA_WORLD_PLANT_NODE_H
 
 #include "raylib.h"
 #include "core/clock.h"
@@ -7,7 +7,7 @@
 #include "world/item.h"
 #include <string>
 
-namespace FloraPhilosophia {
+namespace FloraPhilosophica {
 namespace World {
 
 enum class HarvestQuality {
@@ -59,6 +59,6 @@ private:
 };
 
 } // namespace World
-} // namespace FloraPhilosophia
+} // namespace FloraPhilosophica
 
-#endif // FLORA_PHILOSOPHIA_WORLD_PLANT_NODE_H
+#endif // FLORA_PHILOSOPHICA_WORLD_PLANT_NODE_H

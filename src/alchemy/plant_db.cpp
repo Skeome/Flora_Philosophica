@@ -1,7 +1,7 @@
 #include "plant_db.h"
 #include <algorithm>
 
-namespace FloraPhilosophia {
+namespace FloraPhilosophica {
 namespace Alchemy {
 
 namespace {
@@ -71,4 +71,4 @@ std::vector<PlantData> PlantDatabase::GetAllPlants() {
 }
 
 } // namespace Alchemy
-} // namespace FloraPhilosophia
+} // namespace FloraPhilosophica

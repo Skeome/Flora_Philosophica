@@ -1,11 +1,11 @@
-#ifndef FLORA_PHILOSOPHIA_WORLD_INVENTORY_H
-#define FLORA_PHILOSOPHIA_WORLD_INVENTORY_H
+#ifndef FLORA_PHILOSOPHICA_WORLD_INVENTORY_H
+#define FLORA_PHILOSOPHICA_WORLD_INVENTORY_H
 
 #include "item.h"
 #include <vector>
 #include <string>
 
-namespace FloraPhilosophia {
+namespace FloraPhilosophica {
 namespace World {
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -62,6 +62,6 @@ private:
 };
 
 } // namespace World
-} // namespace FloraPhilosophia
+} // namespace FloraPhilosophica
 
-#endif // FLORA_PHILOSOPHIA_WORLD_INVENTORY_H
+#endif // FLORA_PHILOSOPHICA_WORLD_INVENTORY_H

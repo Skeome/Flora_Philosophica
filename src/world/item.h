@@ -1,9 +1,9 @@
-#ifndef FLORA_PHILOSOPHIA_WORLD_ITEM_H
-#define FLORA_PHILOSOPHIA_WORLD_ITEM_H
+#ifndef FLORA_PHILOSOPHICA_WORLD_ITEM_H
+#define FLORA_PHILOSOPHICA_WORLD_ITEM_H
 
 #include <string>
 
-namespace FloraPhilosophia {
+namespace FloraPhilosophica {
 namespace World {
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -93,6 +93,6 @@ struct ItemDefinition {
 const ItemDefinition& GetItemDefinition(ItemType type);
 
 } // namespace World
-} // namespace FloraPhilosophia
+} // namespace FloraPhilosophica
 
-#endif // FLORA_PHILOSOPHIA_WORLD_ITEM_H
+#endif // FLORA_PHILOSOPHICA_WORLD_ITEM_H

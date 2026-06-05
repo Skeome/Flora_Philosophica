@@ -1,11 +1,11 @@
-#ifndef FLORA_PHILOSOPHIA_ALCHEMY_PLANT_DB_H
-#define FLORA_PHILOSOPHIA_ALCHEMY_PLANT_DB_H
+#ifndef FLORA_PHILOSOPHICA_ALCHEMY_PLANT_DB_H
+#define FLORA_PHILOSOPHICA_ALCHEMY_PLANT_DB_H
 
 #include "core/clock.h"
 #include <string>
 #include <vector>
 
-namespace FloraPhilosophia {
+namespace FloraPhilosophica {
 namespace Alchemy {
 
 // Holds alchemical data and Culpeper attributions for a botanical species.
@@ -26,6 +26,6 @@ public:
 };
 
 } // namespace Alchemy
-} // namespace FloraPhilosophia
+} // namespace FloraPhilosophica
 
-#endif // FLORA_PHILOSOPHIA_ALCHEMY_PLANT_DB_H
+#endif // FLORA_PHILOSOPHICA_ALCHEMY_PLANT_DB_H

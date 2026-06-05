@@ -23,7 +23,7 @@ namespace {
     }
 }
 
-namespace FloraPhilosophia {
+namespace FloraPhilosophica {
 namespace Core {
 
 // Constructor
@@ -344,4 +344,4 @@ std::string AstrologicalClock::GetPlanetName(Planet planet) {
 }
 
 } // namespace Core
-} // namespace FloraPhilosophia
+} // namespace FloraPhilosophica

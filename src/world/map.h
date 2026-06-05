@@ -1,19 +1,28 @@
-#ifndef FLORA_PHILOSOPHIA_WORLD_MAP_H
-#define FLORA_PHILOSOPHIA_WORLD_MAP_H
+#ifndef FLORA_PHILOSOPHICA_WORLD_MAP_H
+#define FLORA_PHILOSOPHICA_WORLD_MAP_H
 
 #include "raylib.h"
 #include "plant_node.h"
 #include <vector>
 #include <memory>
 
-namespace FloraPhilosophia {
+namespace FloraPhilosophica {
 namespace World {
 
 enum class TileType {
     Grass,
     Cobblestone,
+    WoodFloor,      // Interior cabin floor
     Water,
     ObstacleWall
+};
+
+// Which type of map to initialize — determines floor tiles, obstacles, and plant nodes
+enum class MapType {
+    Exterior,       // Outdoor world: grass, cobblestone paths, plant nodes, cabin walls
+    CabinInterior,  // Indoor cabin: wood floor tiles, no plant nodes
+    Garden,         // Cultivated outdoor plot: grass, soil patches
+    Loft            // Upper floor: wood floor, minimal obstacles
 };
 
 struct MapObstacle {
@@ -25,8 +34,8 @@ class TileMap {
 public:
     TileMap(int width, int height, int tileSize);
 
-    // Initialise map tiles and place layout elements
-    void Initialize();
+    // Initialise map tiles and place layout elements based on map type
+    void Initialize(MapType type = MapType::Exterior);
 
     // Update the map state (including plant respawns)
     void Update(float deltaTime);
@@ -57,9 +66,14 @@ private:
     std::vector<TileType> m_tiles;       // Flattened grid array representing layout
     std::vector<MapObstacle> m_obstacles;// Static physical obstacles (walls, logs, trees)
     std::vector<std::unique_ptr<PlantNode>> m_plants; // Harvestable plant nodes
+
+    // Layout initializers — called by Initialize() based on MapType
+    void InitializeExterior();      // Grass, cobblestone paths, cabin walls, plant nodes
+    void InitializeCabinInterior(); // Wood floor, no obstacles, no plant nodes
+    void InitializeGarden();        // Grass placeholder, soil patches added later
 };
 
 } // namespace World
-} // namespace FloraPhilosophia
+} // namespace FloraPhilosophica
 
-#endif // FLORA_PHILOSOPHIA_WORLD_MAP_H
+#endif // FLORA_PHILOSOPHICA_WORLD_MAP_H

@@ -1,5 +1,5 @@
 #!/bin/bash
-# Flora Philosophia - Android Build Helper Script
+# Flora Philosophica - Android Build Helper Script
 # Compiles the C++ core and packages the Android APK using the Android NDK and Gradle.
 
 set -e
@@ -8,7 +8,7 @@ set -e
 BUILD_DIR="build-android"
 
 echo "========================================================="
-echo "Building Flora Philosophia for Android"
+echo "Building Flora Philosophica for Android"
 echo "========================================================="
 
 # Check for required SDK/NDK variables

@@ -1,11 +1,11 @@
-#ifndef FLORA_PHILOSOPHIA_UI_INVENTORY_UI_H
-#define FLORA_PHILOSOPHIA_UI_INVENTORY_UI_H
+#ifndef FLORA_PHILOSOPHICA_UI_INVENTORY_UI_H
+#define FLORA_PHILOSOPHICA_UI_INVENTORY_UI_H
 
 #include "world/inventory.h"
 #include "world/room_manager.h"
 #include "raylib.h"
 
-namespace FloraPhilosophia {
+namespace FloraPhilosophica {
 namespace UI {
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -49,6 +49,6 @@ private:
 };
 
 } // namespace UI
-} // namespace FloraPhilosophia
+} // namespace FloraPhilosophica
 
-#endif // FLORA_PHILOSOPHIA_UI_INVENTORY_UI_H
+#endif // FLORA_PHILOSOPHICA_UI_INVENTORY_UI_H

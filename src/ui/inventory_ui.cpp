@@ -2,7 +2,7 @@
 #include "world/item.h"
 #include <string>
 
-namespace FloraPhilosophia {
+namespace FloraPhilosophica {
 namespace UI {
 
 InventoryUI::InventoryUI()
@@ -93,4 +93,4 @@ World::ItemType InventoryUI::HandleClick(Vector2 mouseScreenPos,
 }
 
 } // namespace UI
-} // namespace FloraPhilosophia
+} // namespace FloraPhilosophica

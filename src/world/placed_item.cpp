@@ -4,7 +4,7 @@
 #include "nlohmann/json.hpp"
 #include <cmath>
 
-namespace FloraPhilosophia {
+namespace FloraPhilosophica {
 namespace World {
 
 PlacedItem::PlacedItem(ItemType type, int tileX, int tileY, int tileSize)
@@ -156,6 +156,42 @@ InteractionResult PlacedItem::Interact() {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
+// GetInspectionMessage
+// Returns the flavour text shown when the player first inspects this item.
+// Each inspectable item has its own message rooted in the game's lore.
+// ─────────────────────────────────────────────────────────────────────────────
+std::string PlacedItem::GetInspectionMessage() const {
+    switch (m_type) {
+        case ItemType::Fireplace:
+            // The discovery moment — the player realises this is a furnace
+            return "This fireplace... the heat is controllable. The previous herbalist "
+                   "used this as a calcination furnace. It's a furnace!";
+
+        case ItemType::Bookshelf:
+            return "The shelves are packed with dog-eared herbals and loose manuscript "
+                   "pages. Culpeper's Complete Herbal sits open to the chapter on "
+                   "Solar herbs. A handwritten note reads: \"Begin with what the Sun gives freely.\"";
+
+        case ItemType::WorkBench:
+            return "A worn but sturdy preparation table. Dried plant stalks and a faint "
+                   "smell of alcohol linger in the wood grain. Whoever worked here last "
+                   "was methodical.";
+
+        case ItemType::StorageChest:
+            return "A lockable chest. The lock is broken — forced open from the outside, "
+                   "or the previous herbalist left in a hurry. Whatever was stored here "
+                   "is gone.";
+
+        case ItemType::MailboxPost:
+            return "A weathered post box. The slot is empty, but the inside smells faintly "
+                   "of sealed wax and old paper.";
+
+        default:
+            return "Nothing of note.";
+    }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
 // Serialise
 // Saves the item's grid position and discovered state.
 // The type is stored as its integer enum value.
@@ -171,4 +207,4 @@ std::string PlacedItem::Serialise() const {
 }
 
 } // namespace World
-} // namespace FloraPhilosophia
+} // namespace FloraPhilosophica

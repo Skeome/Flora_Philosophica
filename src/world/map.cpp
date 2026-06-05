@@ -5,7 +5,7 @@
 #include <unordered_map>
 #include <algorithm>
 
-namespace FloraPhilosophia {
+namespace FloraPhilosophica {
 namespace World {
 
 TileMap::TileMap(int width, int height, int tileSize)
@@ -16,20 +16,41 @@ TileMap::TileMap(int width, int height, int tileSize)
     m_tiles.resize(width * height, TileType::Grass);
 }
 
-void TileMap::Initialize() {
-    // 1. Draw a cobblestone path going from left to right through the middle
-    int pathRow = m_height / 2;
-    for (int x = 0; x < m_width; ++x) {
-        m_tiles[pathRow * m_width + x] = TileType::Cobblestone;
-        if (pathRow + 1 < m_height) {
-            m_tiles[(pathRow + 1) * m_width + x] = TileType::Cobblestone;
-        }
+void TileMap::Initialize(MapType type) {
+    // Clear any existing state (safe to call Initialize multiple times)
+    m_tiles.assign(m_width * m_height, TileType::Grass);
+    m_obstacles.clear();
+    m_plants.clear();
+
+    if (type == MapType::CabinInterior || type == MapType::Loft) {
+        InitializeCabinInterior();
+        return;
     }
 
-    // Draw a path leading branch upwards (towards where a cabin might stand)
+    if (type == MapType::Garden) {
+        InitializeGarden();
+        return;
+    }
+
+    // Default: Exterior map
+    InitializeExterior();
+}
+
+void TileMap::InitializeExterior() {
+    // 1. Draw cobblestone paths
+    int pathRow  = m_height / 2;
     int cabinCol = m_width / 2;
+
+    // Horizontal path through the middle
+    for (int x = 0; x < m_width; ++x) {
+        m_tiles[pathRow * m_width + x] = TileType::Cobblestone;
+        if (pathRow + 1 < m_height)
+            m_tiles[(pathRow + 1) * m_width + x] = TileType::Cobblestone;
+    }
+
+    // Vertical branch up to the cabin door
     for (int y = 2; y <= pathRow; ++y) {
-        m_tiles[y * m_width + cabinCol] = TileType::Cobblestone;
+        m_tiles[y * m_width + cabinCol]     = TileType::Cobblestone;
         m_tiles[y * m_width + cabinCol + 1] = TileType::Cobblestone;
     }
 
@@ -101,6 +122,36 @@ void TileMap::Initialize() {
     m_plants.push_back(std::make_unique<PlantNode>("Comfrey", Vector2{ 1000, 600 }));
 }
 
+// ─────────────────────────────────────────────────────────────────────────────
+// InitializeCabinInterior
+// Fills the map with warm wood-plank floor tiles.
+// No plant nodes — plants don't grow indoors.
+// No structural obstacles — placed items (PlacedItem) act as the furniture
+// and are managed by RoomManager, not TileMap.
+// ─────────────────────────────────────────────────────────────────────────────
+void TileMap::InitializeCabinInterior() {
+    // Fill every tile with WoodFloor
+    // Alternate between two tones for a plank pattern
+    for (int y = 0; y < m_height; ++y) {
+        for (int x = 0; x < m_width; ++x) {
+            m_tiles[y * m_width + x] = TileType::WoodFloor;
+        }
+    }
+    // No obstacles or plant nodes — the cabin interior is open space
+    // Placed items (fireplace, workbench, etc.) are drawn by RoomManager
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// InitializeGarden
+// Outdoor cultivated plot — grass with a few soil patches.
+// Placeholder until the garden system is fully designed.
+// ─────────────────────────────────────────────────────────────────────────────
+void TileMap::InitializeGarden() {
+    // Default to grass — soil tile patches will be added when
+    // the cultivation system is implemented in a future step
+    m_tiles.assign(m_width * m_height, TileType::Grass);
+}
+
 void TileMap::Update(float deltaTime) {
     for (auto& plant : m_plants) {
         plant->Update(deltaTime);
@@ -122,16 +173,35 @@ void TileMap::Draw() const {
             Color tileColor = GREEN;
 
             if (type == TileType::Grass) {
-                if ((x + y) % 2 == 0) {
-                    tileColor = Color{ 40, 130, 60, 255 };
-                } else {
-                    tileColor = Color{ 35, 120, 55, 255 };
-                }
+                // Checkerboard pattern for visual texture
+                tileColor = ((x + y) % 2 == 0)
+                    ? Color{ 40, 130,  60, 255 }
+                    : Color{ 35, 120,  55, 255 };
             } else if (type == TileType::Cobblestone) {
                 tileColor = Color{ 160, 160, 170, 255 };
+            } else if (type == TileType::WoodFloor) {
+                // Alternating plank rows — every 2 rows shifts to a slightly
+                // darker tone to suggest horizontal floor boards
+                tileColor = ((y / 2) % 2 == 0)
+                    ? Color{ 160, 110,  65, 255 }  // lighter plank
+                    : Color{ 140,  95,  55, 255 };  // darker plank
             }
 
             DrawRectangleRec(tileRect, tileColor);
+
+            // Draw plank divider lines on wood floor tiles
+            if (type == TileType::WoodFloor) {
+                // Horizontal line every 2 tile rows to suggest board edges
+                if (y % 2 == 0) {
+                    DrawLine(
+                        static_cast<int>(tileRect.x),
+                        static_cast<int>(tileRect.y),
+                        static_cast<int>(tileRect.x + tileRect.width),
+                        static_cast<int>(tileRect.y),
+                        Color{ 100, 65, 35, 80 }
+                    );
+                }
+            }
 
             if (type == TileType::Cobblestone) {
                 DrawRectangleLines(
@@ -423,4 +493,4 @@ std::vector<Vector2> TileMap::FindPath(Vector2 startWorld, Vector2 endWorld) con
 }
 
 } // namespace World
-} // namespace FloraPhilosophia
+} // namespace FloraPhilosophica

@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.20)
 set(CMAKE_POLICY_VERSION_MINIMUM 3.5)
-project(FloraPhilosophia)
+project(FloraPhilosophica)
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -38,13 +38,13 @@ file(GLOB_RECURSE CORE_SOURCES
     "src/ui/*.cpp"
 )
 
-add_library(FloraPhilosophiaCore STATIC ${CORE_SOURCES})
-target_link_libraries(FloraPhilosophiaCore PUBLIC raylib nlohmann_json::nlohmann_json)
-target_include_directories(FloraPhilosophiaCore PUBLIC src)
+add_library(FloraPhilosophicaCore STATIC ${CORE_SOURCES})
+target_link_libraries(FloraPhilosophicaCore PUBLIC raylib nlohmann_json::nlohmann_json)
+target_include_directories(FloraPhilosophicaCore PUBLIC src)
 
 # --- Executable Target ---
-add_executable(FloraPhilosophia src/main.cpp)
-target_link_libraries(FloraPhilosophia PRIVATE FloraPhilosophiaCore)
+add_executable(FloraPhilosophica src/main.cpp)
+target_link_libraries(FloraPhilosophica PRIVATE FloraPhilosophicaCore)
 
 # --- Testing ---
 option(BUILD_TESTING "Build the test suite" ON)
@@ -59,9 +59,9 @@ if(BUILD_TESTING)
 
   file(GLOB_RECURSE TEST_SOURCES "tests/*.cpp")
 
-  add_executable(FloraPhilosophiaTests ${TEST_SOURCES})
-  target_link_libraries(FloraPhilosophiaTests PRIVATE FloraPhilosophiaCore doctest::doctest)
-  target_include_directories(FloraPhilosophiaTests PRIVATE tests)
+  add_executable(FloraPhilosophicaTests ${TEST_SOURCES})
+  target_link_libraries(FloraPhilosophicaTests PRIVATE FloraPhilosophicaCore doctest::doctest)
+  target_include_directories(FloraPhilosophicaTests PRIVATE tests)
 
-  add_test(NAME CoreTests COMMAND FloraPhilosophiaTests)
+  add_test(NAME CoreTests COMMAND FloraPhilosophicaTests)
 endif()

@@ -1,11 +1,11 @@
-#ifndef FLORA_PHILOSOPHIA_WORLD_PLACED_ITEM_H
-#define FLORA_PHILOSOPHIA_WORLD_PLACED_ITEM_H
+#ifndef FLORA_PHILOSOPHICA_WORLD_PLACED_ITEM_H
+#define FLORA_PHILOSOPHICA_WORLD_PLACED_ITEM_H
 
 #include "item.h"
 #include "raylib.h"
 #include <string>
 
-namespace FloraPhilosophia {
+namespace FloraPhilosophica {
 namespace World {
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -47,6 +47,10 @@ public:
     // Returns what action the game loop should take
     InteractionResult Interact();
 
+    // Returns the flavour text shown when an item is inspected.
+    // Only meaningful when Interact() returns InspectDecoration.
+    std::string GetInspectionMessage() const;
+
     // Getters
     ItemType GetType()  const { return m_type; }
     int      GetTileX() const { return m_tileX; }
@@ -78,6 +82,6 @@ private:
 };
 
 } // namespace World
-} // namespace FloraPhilosophia
+} // namespace FloraPhilosophica
 
-#endif // FLORA_PHILOSOPHIA_WORLD_PLACED_ITEM_H
+#endif // FLORA_PHILOSOPHICA_WORLD_PLACED_ITEM_H

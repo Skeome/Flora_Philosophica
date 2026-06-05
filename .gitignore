@@ -42,3 +42,12 @@ _deps/
 .DS_Store
 CMakeSettings.json
 CMakeUserPresets.json
+
+# Obsidian Vault files (keep .obsidian/ but ignore workspace.json which contains recent file history)
+Flora_Philosophica/.obsidian/workspace.json
+
+# .antigravity CLI
+.antigravitycli1/
+
+# GEMINI.md
+GEMINI.md

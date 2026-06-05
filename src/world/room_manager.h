@@ -1,5 +1,5 @@
-#ifndef FLORA_PHILOSOPHIA_WORLD_ROOM_MANAGER_H
-#define FLORA_PHILOSOPHIA_WORLD_ROOM_MANAGER_H
+#ifndef FLORA_PHILOSOPHICA_WORLD_ROOM_MANAGER_H
+#define FLORA_PHILOSOPHICA_WORLD_ROOM_MANAGER_H
 
 #include "map.h"
 #include "placed_item.h"
@@ -9,7 +9,7 @@
 #include <memory>
 #include <string>
 
-namespace FloraPhilosophia {
+namespace FloraPhilosophica {
 namespace World {
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -79,7 +79,9 @@ public:
 
     // Attempt to interact with the nearest placed item in the active room.
     // Returns the result so main.cpp can dispatch to the correct UI.
-    InteractionResult TryInteract(Vector2 playerPos);
+    // If the result is InspectDecoration, outMessage is populated with
+    // the item's flavour text.
+    InteractionResult TryInteract(Vector2 playerPos, std::string& outMessage);
 
     // ── Placement mode ────────────────────────────────────────────────────
     // Begin placing an item from inventory
@@ -146,6 +148,6 @@ private:
 };
 
 } // namespace World
-} // namespace FloraPhilosophia
+} // namespace FloraPhilosophica
 
-#endif // FLORA_PHILOSOPHIA_WORLD_ROOM_MANAGER_H
+#endif // FLORA_PHILOSOPHICA_WORLD_ROOM_MANAGER_H

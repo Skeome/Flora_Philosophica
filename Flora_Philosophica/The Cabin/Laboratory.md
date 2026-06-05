@@ -46,7 +46,7 @@ The laboratory enforces physics-based consequences. There is no generic "Craft F
 
 ### The Residue Purification Pipeline
 
-The Ternary system — Mercurius (Spirit), Sulphur (Soul), and Sal (Body) — is the educational core of Flora Philosophia. The residue pipeline teaches the player to process the physical Body of the plant rather than discard it, completing the spagyric triad.
+The Ternary system — Mercurius (Spirit), Sulphur (Soul), and Sal (Body) — is the educational core of Flora Philosophica. The residue pipeline teaches the player to process the physical Body of the plant rather than discard it, completing the spagyric triad.
 
 Item names update dynamically as the material changes state. The player's inventory is itself a progress tracker.
 

@@ -1,4 +1,4 @@
-# Flora Philosophia
+# Flora Philosophica
 ## Game Design Document — Version 0.2 — June 2026
 
 *The Ternary Alchemical Order · Solve Et Coagula · Mercurius · Sulphur · Sal · Operative Spagyrica*
@@ -29,13 +29,13 @@
 
 ## 1. Core Concept
 
-Flora Philosophia is a mobile RPG that functions as a stealth-educational tool for real-world plant alchemy. What presents itself as a cozy fantasy apothecary simulator is, in practice, a technically accurate guide to operative spagyrics. A player who follows the in-game processes — maceration, calcination of the residue, leaching and precipitation of salts, and recombination — will successfully produce real herbal spagyric preparations.
+Flora Philosophica is a mobile RPG that functions as a stealth-educational tool for real-world plant alchemy. What presents itself as a cozy fantasy apothecary simulator is, in practice, a technically accurate guide to operative spagyrics. A player who follows the in-game processes — maceration, calcination of the residue, leaching and precipitation of salts, and recombination — will successfully produce real herbal spagyric preparations.
 
 The game does not condescend to the player. There are no recipe locks, no tutorial pop-ups demanding completion before progression, and no premium speed-ups. Real-world knowledge is rewarded with immediate mechanical advantage.
 
 ### 1.1 Title
 
-- Working title: **Flora Philosophia**
+- Working title: **Flora Philosophica**
 - Considered alternatives: *Alchemilla's Hearth*, *Solve & Sprout*, *The Hermetic Herbalist*
 - **Spagyricus** and **Spagyria** are reserved — both are chosen *nomina* of practising spagyrists (Robert Allen Bartlett and John H. Reid III respectively) and must not be used
 
@@ -83,7 +83,7 @@ The world's lighting and weather dynamically reflect the real-time Planetary Hou
 | **Mercury ☿** | Quicksilver shimmer on water surfaces; fast-moving environmental particles |
 | **Jupiter ♃** | Deep indigo sky tint; rare plant nodes have increased spawn chance |
 
-### 2.3 Botanical Illustrations
+### 2.4 Botanical Illustrations
 
 - Harvesting a plant triggers a full-screen pop-up styled as a historical grimoire page, influenced by Culpeper's *Complete Herbal*
 - Each illustration details the plant's planetary ruler, elemental associations, and Culpeper's documented medicinal properties
@@ -110,7 +110,7 @@ The HUD and inventory UI will follow a *Stardew Valley*-inspired layout as devel
 
 ## 3. The Real-Time Astrological Engine
 
-Flora Philosophia synchronizes its internal clock entirely to the player's real world. There is no accelerated game calendar. This is the game's most significant design decision — it transforms the app from an entertainment product into a functional lifestyle companion for the operative spagyrist.
+Flora Philosophica synchronizes its internal clock entirely to the player's real world. There is no accelerated game calendar. This is the game's most significant design decision — it transforms the app from an entertainment product into a functional lifestyle companion for the operative spagyrist.
 
 ### 3.1 Planetary Hour Calculation
 
@@ -203,7 +203,7 @@ The laboratory enforces physics-based consequences. There is no generic "Craft F
 
 ## 5. The Residue Purification Pipeline
 
-The Tria Prima — Mercurius (Spirit), Sulphur (Soul), and Sal (Body) — are the educational core of Flora Philosophia. The residue pipeline teaches the player to process the physical Body of the plant rather than discard it, completing the spagyric triad.
+The Tria Prima — Mercurius (Spirit), Sulphur (Soul), and Sal (Body) — are the educational core of Flora Philosophica. The residue pipeline teaches the player to process the physical Body of the plant rather than discard it, completing the spagyric triad.
 
 Item names update dynamically as the material changes state. The player's inventory is itself a progress tracker.
 
@@ -243,7 +243,7 @@ The Plant Stone is the endgame masterwork for each individual plant. It is achie
 
 ## 7. Character Progression: The Seven Oblations
 
-Flora Philosophia has no experience point bar. Character stats are increased exclusively through an internal alchemy system called the **Seven Oblations**. The player selects one plant for each of the Seven Planetary Rulers and refines that plant to its Plant Stone via the full spagyric pipeline, including cohobation. Consuming the masterwork product permanently increases the corresponding stat.
+Flora Philosophica has no experience point bar. Character stats are increased exclusively through an internal alchemy system called the **Seven Oblations**. The player selects one plant for each of the Seven Planetary Rulers and refines that plant to its Plant Stone via the full spagyric pipeline, including cohobation. Consuming the masterwork product permanently increases the corresponding stat.
 
 The plant chosen for each Oblation is **permanent** — it cannot be changed once work has begun. This forces a meaningful early-game decision and gives each player's character a unique botanical identity.
 
@@ -303,7 +303,7 @@ There are no Attack / Magic menu buttons. To act in combat, the player manually 
 
 ## 9. Idle Mechanics & Passive Generation
 
-Flora Philosophia does not use an away-grinding system for the player character. The idle layer is entirely contained within the Sanctuary (the mountain cabin and its grounds).
+Flora Philosophica does not use an away-grinding system for the player character. The idle layer is entirely contained within the Sanctuary (the mountain cabin and its grounds).
 
 ### 9.1 Enchanted Terrariums
 
@@ -346,18 +346,18 @@ The laboratory continues processing any active preparations whether the app is o
 | **Wizards** | Ens Tinctures and Plant Stones | Massive payouts |
 | **Ternary Order** (mail only) | No gold — deliver cryptic lore hints sealed with the Order's wax seal | Lore progression |
 
+### 10.2 Revenue & Spending
+
+- Gold is earned through customer sales and order fulfilment
+- Gold is spent on: laboratory equipment, weapons, armour, raw materials (glassware if not blown, alcohol supply), and access to new map biomes
+- Gold **never** functions as a time-skip mechanism — no premium speed-ups exist
+
 ### 10.3 Menstruum (Alcohol) Sourcing
 
 The menstruum — the alcoholic solvent used for maceration and tincture preparation — can be obtained in two ways, reflecting short-term and long-term play strategies.
 
 - **Purchase from vendors (short-term):** Basic spirits are available for purchase from town vendors. This allows new players to begin laboratory work immediately without an agriculture prerequisite. Vendor spirits are of Standard quality and carry no special properties.
 - **Home fermentation and distillation (long-term):** Players can invest in Grape Vine or Wheat seeds, cultivate a small plot on the cabin grounds, ferment the harvest, and distill their own menstruum using in-lab apparatus. Home-distilled spirits are of higher quality, carry a celestial stamp if produced under the correct Planetary Hours, and cost only time and labour after the initial seed investment. This is the authentic operative path and is rewarded with better final product quality and customer pricing.
-
-### 10.2 Revenue & Spending
-
-- Gold is earned through customer sales and order fulfilment
-- Gold is spent on: laboratory equipment, weapons, armour, raw materials (glassware if not blown, alcohol supply), and access to new map biomes
-- Gold **never** functions as a time-skip mechanism — no premium speed-ups exist
 
 ---
 
@@ -407,7 +407,7 @@ The Order serves as the primary lore-delivery mechanism for players who do not a
 
 ### 13.1 Language & Philosophy
 
-Flora Philosophia is written in **C++**. This choice serves two purposes: performance for a real-time game with physics-based laboratory simulation, and as a deliberate learning vehicle — the project is developed in parallel with formal C++ study (*C++ All-In-One for Dummies*) so that theory and practice reinforce each other directly.
+Flora Philosophica is written in **C++**. This choice serves two purposes: performance for a real-time game with physics-based laboratory simulation, and as a deliberate learning vehicle — the project is developed in parallel with formal C++ study (*C++ All-In-One for Dummies*) so that theory and practice reinforce each other directly.
 
 All source files must follow these conventions:
 
@@ -446,7 +446,7 @@ All source files must follow these conventions:
 A suggested top-level directory layout, designed for clarity during learning:
 
 ```
-flora_philosophia/
+flora_philosophica/
 ├── src/
 │   ├── main.cpp                  // Entry point
 │   ├── core/

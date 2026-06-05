@@ -3,8 +3,7 @@
 #include "nlohmann/json.hpp"
 #include <cmath>
 #include <stdexcept>
-
-namespace FloraPhilosophia {
+namespace FloraPhilosophica {
 namespace World {
 
 RoomManager::RoomManager(int tileSize)
@@ -23,22 +22,22 @@ void RoomManager::Initialize() {
     // Exterior: 20x15 tiles (matches current prototype map)
     m_rooms[static_cast<int>(RoomID::Exterior)] =
         std::make_unique<TileMap>(20, 15, m_tileSize);
-    m_rooms[static_cast<int>(RoomID::Exterior)]->Initialize();
+    m_rooms[static_cast<int>(RoomID::Exterior)]->Initialize(MapType::Exterior);
 
     // CabinMain: 12x10 tiles — cozy interior space
     m_rooms[static_cast<int>(RoomID::CabinMain)] =
         std::make_unique<TileMap>(12, 10, m_tileSize);
-    m_rooms[static_cast<int>(RoomID::CabinMain)]->Initialize();
+    m_rooms[static_cast<int>(RoomID::CabinMain)]->Initialize(MapType::CabinInterior);
 
     // CabinLoft: 10x6 tiles — smaller upper floor (future expansion)
     m_rooms[static_cast<int>(RoomID::CabinLoft)] =
         std::make_unique<TileMap>(10, 6, m_tileSize);
-    m_rooms[static_cast<int>(RoomID::CabinLoft)]->Initialize();
+    m_rooms[static_cast<int>(RoomID::CabinLoft)]->Initialize(MapType::Loft);
 
     // Garden: 15x10 tiles — outdoor cultivated plot
     m_rooms[static_cast<int>(RoomID::Garden)] =
         std::make_unique<TileMap>(15, 10, m_tileSize);
-    m_rooms[static_cast<int>(RoomID::Garden)]->Initialize();
+    m_rooms[static_cast<int>(RoomID::Garden)]->Initialize(MapType::Garden);
 
     // ── Transition zones ─────────────────────────────────────────────────────
     // Exterior → CabinMain: the cabin front door gap is at x:600-720, y:30-180.
@@ -51,11 +50,12 @@ void RoomManager::Initialize() {
         "Enter Cabin"
     });
 
-    // CabinMain → Exterior: doorway back out
+    // CabinMain → Exterior: doorway back out at the very bottom of the interior map
+    // Interior is 12x10 tiles (720x600). Bottom edge = y:540-600.
     AddTransition(RoomID::CabinMain, {
-        Rectangle{ 300, 480, 120, 60 },         // Bottom edge of cabin map
+        Rectangle{ 240, 555, 240, 45 },         // Wide trigger across the bottom centre
         RoomID::Exterior,
-        Vector2{ 600, 180 },                    // Spawn just outside the cabin door
+        Vector2{ 660, 210 },                    // Spawn just below the cabin door on exterior
         "Exit Cabin"
     });
 
@@ -200,11 +200,15 @@ void RoomManager::DrawPlacementGhost(Vector2 mouseWorldPos) const {
 // Finds the nearest placed item the player can reach and calls Interact() on it.
 // Returns None if nothing is in range.
 // ─────────────────────────────────────────────────────────────────────────────
-InteractionResult RoomManager::TryInteract(Vector2 playerPos) {
+InteractionResult RoomManager::TryInteract(Vector2 playerPos, std::string& outMessage) {
     int roomIdx = static_cast<int>(m_activeRoom);
     for (auto& item : m_placedItems[roomIdx]) {
         if (item.IsPlayerNear(playerPos)) {
-            return item.Interact();
+            InteractionResult result = item.Interact();
+            if (result == InteractionResult::InspectDecoration) {
+                outMessage = item.GetInspectionMessage();
+            }
+            return result;
         }
     }
     return InteractionResult::None;
@@ -366,4 +370,4 @@ void RoomManager::Deserialise(const std::string& jsonStr, int tileSize) {
 }
 
 } // namespace World
-} // namespace FloraPhilosophia
+} // namespace FloraPhilosophica

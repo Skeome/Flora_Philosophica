@@ -1,10 +1,10 @@
-#ifndef FLORA_PHILOSOPHIA_WORLD_PLAYER_H
-#define FLORA_PHILOSOPHIA_WORLD_PLAYER_H
+#ifndef FLORA_PHILOSOPHICA_WORLD_PLAYER_H
+#define FLORA_PHILOSOPHICA_WORLD_PLAYER_H
 
 #include "raylib.h"
 #include <vector>
 
-namespace FloraPhilosophia {
+namespace FloraPhilosophica {
 namespace World {
 
 class Player {
@@ -46,6 +46,6 @@ private:
 };
 
 } // namespace World
-} // namespace FloraPhilosophia
+} // namespace FloraPhilosophica
 
-#endif // FLORA_PHILOSOPHIA_WORLD_PLAYER_H
+#endif // FLORA_PHILOSOPHICA_WORLD_PLAYER_H

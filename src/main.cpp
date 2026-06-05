@@ -12,12 +12,12 @@ int main() {
     // 1. Initialise the Raylib Window
     const int screenWidth  = 1200;
     const int screenHeight = 900;
-    InitWindow(screenWidth, screenHeight, "Flora Philosophia - Apothecary Sanctuary");
+    InitWindow(screenWidth, screenHeight, "Flora Philosophica - Apothecary Sanctuary");
     SetTargetFPS(60);
 
-    using namespace FloraPhilosophia::World;
-    using namespace FloraPhilosophia::Core;
-    using namespace FloraPhilosophia::UI;
+    using namespace FloraPhilosophica::World;
+    using namespace FloraPhilosophica::Core;
+    using namespace FloraPhilosophica::UI;
 
     // 2. Instantiate Game Systems
     const int TILE_SIZE = 60;
@@ -157,12 +157,12 @@ int main() {
         // ── E key: interact with placed items or harvest plants ───────────
         if (IsKeyPressed(KEY_E)) {
             // First try placed item interaction
-            InteractionResult result = roomManager.TryInteract(player.GetPosition());
+            std::string inspectionMessage;
+            InteractionResult result = roomManager.TryInteract(player.GetPosition(), inspectionMessage);
             switch (result) {
                 case InteractionResult::InspectDecoration:
-                    // Fireplace discovery moment
-                    interactionLog = "This fireplace... the heat is controllable. It's a furnace!";
-                    logTimer = 5.0f;
+                    interactionLog = inspectionMessage;
+                    logTimer = 6.0f;
                     break;
                 case InteractionResult::OpenApparatus:
                     interactionLog = "[Apparatus UI — coming in Step 4]";
@@ -331,11 +331,22 @@ int main() {
             DrawText("- [E] Interact / Harvest   [I] Inventory",          30, screenHeight -  38, 13, RAYWHITE);
             DrawText("- [B] Cancel placement",                            30, screenHeight -  20, 13, RAYWHITE);
 
-            // Interaction log (top-centre)
-            DrawRectangle(screenWidth / 2 - 250, 20, 500, 40, Fade(BLACK, 0.6f));
-            DrawText(interactionLog.c_str(),
-                screenWidth / 2 - MeasureText(interactionLog.c_str(), 15) / 2,
-                32, 15, GOLD);
+            // Interaction log (top-centre) — wide enough for inspection messages
+            int logW = 700;
+            int logX = screenWidth / 2 - logW / 2;
+            DrawRectangle(logX, 20, logW, 50, Fade(BLACK, 0.6f));
+            // Word-wrap is not available in Raylib's DrawText, so we truncate
+            // long messages to fit — full messages are readable in a future
+            // dialogue panel (Step 8).
+            std::string displayLog = interactionLog;
+            if (MeasureText(displayLog.c_str(), 15) > logW - 20) {
+                // Truncate to roughly 80 characters with ellipsis
+                while (displayLog.size() > 80) displayLog.pop_back();
+                displayLog += "...";
+            }
+            DrawText(displayLog.c_str(),
+                screenWidth / 2 - MeasureText(displayLog.c_str(), 15) / 2,
+                36, 15, GOLD);
 
         EndDrawing();
     }

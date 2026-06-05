@@ -1,9 +1,9 @@
-#ifndef FLORA_PHILOSOPHIA_CORE_CLOCK_H
-#define FLORA_PHILOSOPHIA_CORE_CLOCK_H
+#ifndef FLORA_PHILOSOPHICA_CORE_CLOCK_H
+#define FLORA_PHILOSOPHICA_CORE_CLOCK_H
 
 #include <string>
 
-namespace FloraPhilosophia {
+namespace FloraPhilosophica {
 namespace Core {
 
 // The Seven Planetary Rulers, ordered precisely according to the Chaldean Sequence.
@@ -64,6 +64,6 @@ private:
 };
 
 } // namespace Core
-} // namespace FloraPhilosophia
+} // namespace FloraPhilosophica
 
-#endif // FLORA_PHILOSOPHIA_CORE_CLOCK_H
+#endif // FLORA_PHILOSOPHICA_CORE_CLOCK_H

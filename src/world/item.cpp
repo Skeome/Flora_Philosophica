@@ -2,7 +2,7 @@
 #include <array>
 #include <stdexcept>
 
-namespace FloraPhilosophia {
+namespace FloraPhilosophica {
 namespace World {
 
 namespace {
@@ -170,4 +170,4 @@ const ItemDefinition& GetItemDefinition(ItemType type) {
 }
 
 } // namespace World
-} // namespace FloraPhilosophia
+} // namespace FloraPhilosophica

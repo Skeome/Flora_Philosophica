@@ -2,7 +2,7 @@
 #include "world/map.h"
 
 TEST_CASE("TileMap collision and sliding resolution") {
-    using namespace FloraPhilosophia::World;
+    using namespace FloraPhilosophica::World;
 
     // Create a 20x15 tile map with 60px tileSize
     TileMap map(20, 15, 60);

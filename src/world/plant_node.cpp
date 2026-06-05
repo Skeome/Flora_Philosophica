@@ -2,7 +2,7 @@
 #include "raymath.h"
 #include <iostream>
 
-namespace FloraPhilosophia {
+namespace FloraPhilosophica {
 namespace World {
 
 PlantNode::PlantNode(std::string plantName, Vector2 position)
@@ -122,4 +122,4 @@ ItemType PlantNode::GetPlantItemType(const std::string& plantName) {
 }
 
 } // namespace World
-} // namespace FloraPhilosophia
+} // namespace FloraPhilosophica

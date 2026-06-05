@@ -1,7 +1,7 @@
 #include "player.h"
 #include "raymath.h"
 
-namespace FloraPhilosophia {
+namespace FloraPhilosophica {
 namespace World {
 
 Player::Player(Vector2 startPosition)
@@ -87,4 +87,4 @@ void Player::Draw() const {
 }
 
 } // namespace World
-} // namespace FloraPhilosophia
+} // namespace FloraPhilosophica

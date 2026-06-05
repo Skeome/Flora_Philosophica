@@ -1,11 +1,11 @@
 #!/bin/bash
-# Flora Philosophia - Wayland/Hyprland Compatibility Wrapper
+# Flora Philosophica - Wayland/Hyprland Compatibility Wrapper
 # Automatically manages Wayland native vs. XWayland fallback launch mechanisms.
 
 set -e
 
 # Path to game binary
-BINARY="./build/FloraPhilosophia"
+BINARY="./build/FloraPhilosophica"
 
 if [ ! -f "$BINARY" ]; then
     echo "Error: Game binary not found at $BINARY. Please run 'cmake --build build' first."
@@ -13,7 +13,7 @@ if [ ! -f "$BINARY" ]; then
 fi
 
 echo "========================================================="
-echo "Launching Flora Philosophia with Hyprland Compatibility..."
+echo "Launching Flora Philosophica with Hyprland Compatibility..."
 echo "========================================================="
 
 # Detect Wayland environment

@@ -3,8 +3,8 @@
 #include "core/clock.h"
 
 TEST_CASE("PlantNode harvest quality calculation") {
-    using namespace FloraPhilosophia::World;
-    using namespace FloraPhilosophia::Core;
+    using namespace FloraPhilosophica::World;
+    using namespace FloraPhilosophica::Core;
 
     // St. John's Wort is ruled by the Sun (☉)
     PlantNode node("St. John's Wort", { 100.0f, 100.0f });
@@ -39,8 +39,8 @@ TEST_CASE("PlantNode harvest quality calculation") {
 }
 
 TEST_CASE("PlantNode respawn mechanics") {
-    using namespace FloraPhilosophia::World;
-    using namespace FloraPhilosophia::Core;
+    using namespace FloraPhilosophica::World;
+    using namespace FloraPhilosophica::Core;
 
     PlantNode node("Nettle", { 0, 0 });
     

@@ -3,7 +3,7 @@
 #include <iostream>
 
 TEST_CASE("AstrologicalClock comprehensive validation") {
-    using namespace FloraPhilosophia::Core;
+    using namespace FloraPhilosophica::Core;
     AstrologicalClock clock;
 
     // Test Coordinates: Portland, Oregon, USA (approx. 45.5152 N, -122.6784 W)

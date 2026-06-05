@@ -2,7 +2,7 @@
 #include "nlohmann/json.hpp"
 #include <stdexcept>
 
-namespace FloraPhilosophia {
+namespace FloraPhilosophica {
 namespace World {
 
 Inventory::Inventory() {}
@@ -100,4 +100,4 @@ void Inventory::Deserialise(const std::string& jsonStr) {
 }
 
 } // namespace World
-} // namespace FloraPhilosophia
+} // namespace FloraPhilosophica

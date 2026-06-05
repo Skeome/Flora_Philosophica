@@ -1,6 +1,6 @@
 {
 	"nodes":[
-		{"id":"990f67b6a6651f59","type":"file","file":"Flora_Philosophia_GDD.md","x":-200,"y":-1900,"width":400,"height":400},
+		{"id":"990f67b6a6651f59","type":"file","file":"Flora_Philosophica_GDD.md","x":-200,"y":-1900,"width":400,"height":400},
 		{"id":"a9445934f1561d00","type":"file","file":"The Cabin/Laboratory.md","x":197,"y":120,"width":400,"height":400},
 		{"id":"98ba47168b5b8323","type":"file","file":"The Ternary Alchemical Order/The Ternary Alchemical Order.md","x":-200,"y":-880,"width":400,"height":400},
 		{"id":"977467cfc133bb45","type":"file","file":"The Cabin/Cabin.md","x":197,"y":-400,"width":400,"height":400},

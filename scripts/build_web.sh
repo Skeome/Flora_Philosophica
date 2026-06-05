@@ -1,5 +1,5 @@
 #!/bin/bash
-# Flora Philosophia - Web Build Helper Script
+# Flora Philosophica - Web Build Helper Script
 # Compiles the C++ application to WebAssembly using Emscripten.
 
 set -e
@@ -9,7 +9,7 @@ BUILD_DIR="build-web"
 CMAKE_TOOLCHAIN_FILE="${EMSDK}/upstream/emscripten/cmake/Modules/Platform/Emscripten.cmake"
 
 echo "========================================================="
-echo "Building Flora Philosophia for Web Assembly (Emscripten)"
+echo "Building Flora Philosophica for Web Assembly (Emscripten)"
 echo "========================================================="
 
 # Check for EMSDK
