@@ -24,6 +24,9 @@ public:
     // Set a pathfinding/movement destination (tap-to-move)
     void SetPath(const std::vector<Vector2>& path);
 
+    // Cancel any active path (used on room transitions)
+    void ClearPath();
+
     // Getter for player position
     Vector2 GetPosition() const { return m_position; }
 

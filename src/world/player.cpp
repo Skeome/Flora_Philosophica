@@ -65,6 +65,12 @@ void Player::SetPath(const std::vector<Vector2>& path) {
     m_hasDestination = true;
 }
 
+void Player::ClearPath() {
+    m_path.clear();
+    m_currentPathIndex = 0;
+    m_hasDestination = false;
+}
+
 void Player::Draw() const {
     // For Step 2, draw the player as a simple, high-visibility circular avatar.
     // In later tiers, this will render the layered sprites.

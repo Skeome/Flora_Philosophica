@@ -3,7 +3,7 @@
 
 *The Ternary Alchemical Order · Solve Et Coagula · Mercurius · Sulphur · Sal · Operative Spagyrica*
 
-☉ ☽ ☿ ♂ ♃ ♀ ♄
+☉ ☽ ♂ ☿ ♃ ♀ ♄
 
 ---
 
@@ -89,7 +89,18 @@ The world's lighting and weather dynamically reflect the real-time Planetary Hou
 - Each illustration details the plant's planetary ruler, elemental associations, and Culpeper's documented medicinal properties
 - These illustrations populate the in-game **Plant Compendium** as discoveries are made
 
-### 2.4 Audio
+### 2.5 UI Design Direction
+
+The HUD and inventory UI will follow a *Stardew Valley*-inspired layout as development matures:
+
+- **Hotbar** along the bottom edge of the screen — quick access to harvested items, tools, and active preparations
+- **Item slots** use simple icon + quantity format; quality tier indicated by a colored border (gold = Pristine, white = Standard, grey = Debased)
+- **Inventory panel** opens as an overlay from the hotbar, not a separate screen
+- **Station interaction** opens a contextual panel near the station rather than a full-screen menu, preserving spatial awareness of the room
+- The astrological clock HUD (top-left) and room indicator are persistent; all other UI is contextual
+- Current placeholder UI (colored rectangles, text panels) will be replaced once the core mechanics are stable
+
+### 2.6 Audio
 
 - Tracker-styled compositions or classic hardware synthesis — a blend of nostalgic sample-based tracker music with modern atmospheric sound design
 - Ambient audio layers shift with Planetary Hours, reinforcing the real-world timing system through sound as well as visuals
@@ -531,6 +542,6 @@ The Ternary system — Mercurius, Sulphur, Sal — is the foundational three-pri
 
 ---
 
-*☉ ☽ ☿ ♂ ♃ ♀ ♄*
+*☉ ☽ ♂ ☿ ♃ ♀ ♄*
 
 *Solve Et Coagula*

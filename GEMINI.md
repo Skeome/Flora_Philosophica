@@ -1,58 +1,91 @@
-# Flora Philosophia: Technical Context
+# Flora Philosophia - Project Overview & Context
 
-## Project Overview
-**Flora Philosophia** is a cross-platform (Web, Android, Desktop) RPG developed in C++. It serves as a stealth-educational tool for real-world plant alchemy (operative spagyrics). The game features a real-time astrological engine that synchronizes in-game quality and processes with the player's local real-world planetary hours.
+This document provides foundational context and instructions for AI agents interacting with the Flora Philosophia codebase.
 
-### Key Technologies
-- **Language:** C++17 (Standardized in `CMakeLists.txt`)
-- **Rendering:** Raylib (2D, 3/4 top-down perspective)
-- **Build System:** CMake (utilizing CPM for dependency management)
-- **Platform Abstraction:** Emscripten (Web), Android NDK (Mobile), GLFW/X11/Wayland (Desktop)
-- **Data Handling:** `nlohmann/json`
-- **Testing:** `doctest`
+## 1. Project Identity
 
-## Building and Running
+Flora Philosophia is a C++17 RPG and alchemy simulator built with Raylib. It functions as a "stealth-educational" tool for real-world operative spagyrics (plant alchemy).
 
-### Prerequisites
-- **Raylib:** Must be installed system-wide (e.g., `libraylib-dev` on Debian/Ubuntu).
-- **CMake:** Version 3.20 or higher.
-- **Compiler:** C++17 compatible (GCC, Clang, or MSVC).
+*   **Core Hook:** In-game processes (maceration, calcination, leaching) accurately reflect real-world herbal spagyric preparation.
+*   **Key Mechanic:** A real-time **Astrological Engine** that synchronizes game events and harvest quality with the player's local real-world planetary hours.
 
-### Core Commands
-- **Configure:** `cmake -B build`
-- **Build:** `cmake --build build`
-- **Run (Desktop):** `./scripts/run_game.sh` (This script handles Wayland/X11 compatibility).
-- **Test:**
-  - Build tests: `cmake --build build --target FloraPhilosophiaTests`
-  - Run tests: `./build/FloraPhilosophiaTests` or `ctest --test-dir build`
+## 2. Technical Stack
 
-### Target-Specific Scripts
-- **Web:** `scripts/build_web.sh` (Requires Emscripten SDK).
-- **Android:** `scripts/build_android.sh` (Requires Android NDK/SDK).
+*   **Language:** C++17 (standardized on clean, readable code for educational purposes).
+*   **Rendering:** [Raylib](https://www.raylib.com/) (cross-platform 2D/3D).
+*   **Build System:** CMake (v3.20+).
+*   **Dependencies:**
+    *   `nlohmann/json` (Data serialization).
+    *   `doctest` (Unit testing).
+    *   `CPM.cmake` (Package management).
+*   **Targets:** Native (Linux/Windows), Web (Emscripten/WebAssembly), Android (NDK).
 
-## Project Architecture
-The codebase is organized into modular components under `src/`:
+## 3. Project Structure
 
-- **`core/`**: Central game loop (`main.cpp`), save system, and the critical **Astrological Clock** (`clock.h/cpp`).
-- **`world/`**: Map logic, player movement, enemy AI, and harvestable plant nodes.
-- **`lab/`**: Alchemy stations, processing timers, and the residue purification state machine.
-- **`alchemy/`**: Plant database, spagyric product definitions, and the "Seven Oblations" progression system.
-- **`combat/`**: Sigil-drawing recognition and on-map combat resolution.
-- **`economy/`**: Customer request generation and town vendor logic.
-- **`ui/`**: HUD, grimoire-style Plant Compendium, and inventory.
+```text
+/
+├── assets/                  # Sprites, backgrounds, audio, and JSON data
+├── Flora_Philosophia/       # Design documents (GDD) and Obsidian vault
+├── scripts/                 # Build and run automation
+├── src/                     # Source code
+│   ├── main.cpp             # Application entry point
+│   ├── core/                # Astrological clock, save systems, engine logic
+│   ├── world/               # Maps, Player, Inventory, Item placement
+│   ├── lab/                 # Laboratory stations and processing timers
+│   ├── alchemy/             # Plant database and spagyric logic
+│   ├── combat/              # Sigil-based combat system
+│   ├── economy/             # Customer requests and mailbox
+│   ├── idle/                # Terrariums and passive generation
+│   └── ui/                  # HUD, inventory panels, and compendium
+├── tests/                   # Unit tests (mirrors src/ structure)
+└── CMakeLists.txt           # Main build configuration
+```
 
-## Development Conventions
+## 4. Development Workflow
 
-### Coding Style & Standards
-- **Standard:** Strictly adhere to **C++17**.
-- **Naming:** Use descriptive variable and function names. Avoid single-letter variables except for loop counters.
-- **Documentation:** Every file should have a clear section header explaining its purpose. Use inline comments for non-obvious logic, particularly for planetary math and alchemical state machines.
-- **Header Guards:** Use `#ifndef FILENAME_H` style guards.
+### Building and Running
 
-### Testing Practices
-- **Framework:** `doctest`.
-- **Location:** All tests are located in the `tests/` directory, mirroring the `src/` structure.
-- **Mandate:** New features should include corresponding unit tests in `tests/`.
+*   **Native Build:**
+    ```bash
+    cmake -B build && cmake --build build
+    ./scripts/run_game.sh
+    ```
+*   **Running Tests:**
+    ```bash
+    cd build
+    ctest --output-on-failure
+    # OR run the binary directly
+    ./FloraPhilosophiaTests
+    ```
+*   **Web Build:** Use `scripts/build_web.sh` (requires Emscripten).
+*   **Android Build:** Use `scripts/build_android.sh` (requires Android NDK).
 
-### Alchemical Integrity
-The game mechanics must align with operative spagyric principles as documented in the GDD (`Flora_Philosophia/Flora_Philosophia_GDD.md`). This includes the Ternary system (Mercurius, Sulphur, Sal) and the specific planetary attributions from Culpeper's Herbal.
+### Coding Standards
+
+*   **Readability:** Prioritize clear, descriptive variable and function names over brevity.
+*   **Documentation:** Every file should have a section header explaining its purpose. Use inline comments for complex alchemical or mathematical logic.
+*   **Modularity:** Keep game systems decoupled. UI should not directly mutate world state; use the `Inventory` and `RoomManager` interfaces.
+*   **Types:** Prefer explicit types over `auto` unless the type is redundant or extremely complex (e.g., iterators).
+
+## 5. Core Systems Context
+
+### The Astrological Engine (`src/core/clock.h`)
+Calculates the current planetary hour based on the player's latitude, longitude, and UTC time. This affects plant harvest quality (Pristine vs. Debased) and lab success rates.
+
+### The Residue Pipeline (`src/lab/`)
+A core educational loop:
+1.  **Spent Plant (Residue)** -> 2. **Caput Mortuum** (Scorched) -> 3. **Calx** (Ash) -> 4. **Alkali** (Leached) -> 5. **Salt** (Purified).
+Players must learn not to discard the "Body" (residue) in the compost bin.
+
+### Item Placement & Interaction (`src/world/`)
+Players can place furniture and lab apparatus in the sanctuary. Interaction is handled via the `E` key near objects, managed by `RoomManager`.
+
+## 6. Current Goals & TODOs
+
+*   [ ] Implement the full Apparatus UI for lab stations.
+*   [ ] Integrate JSON-based plant database for all harvestable nodes.
+*   [ ] Expand the Save/Load system using `nlohmann/json`.
+*   [ ] Implement Sigil drawing recognition for combat.
+
+---
+*Note: This file is a living document. Update it as architectural patterns or major milestones evolve.*

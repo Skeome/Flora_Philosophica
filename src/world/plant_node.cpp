@@ -109,5 +109,17 @@ std::string PlantNode::GetQualityName(HarvestQuality quality) {
     }
 }
 
+ItemType PlantNode::GetPlantItemType(const std::string& plantName) {
+    if (plantName == "St. John's Wort") return ItemType::Plant_StJohnsWort;
+    if (plantName == "Mugwort")         return ItemType::Plant_Mugwort;
+    if (plantName == "Nettle")          return ItemType::Plant_Nettle;
+    if (plantName == "Yarrow")          return ItemType::Plant_Yarrow;
+    if (plantName == "Lavender")        return ItemType::Plant_Lavender;
+    if (plantName == "Dandelion")       return ItemType::Plant_Dandelion;
+    if (plantName == "Comfrey")         return ItemType::Plant_Comfrey;
+    // Unknown plant — return a safe fallback
+    return ItemType::Plant_StJohnsWort;
+}
+
 } // namespace World
 } // namespace FloraPhilosophia

@@ -4,6 +4,7 @@
 #include "raylib.h"
 #include "core/clock.h"
 #include "alchemy/plant_db.h"
+#include "world/item.h"
 #include <string>
 
 namespace FloraPhilosophia {
@@ -36,6 +37,10 @@ public:
 
     // Get string representation of quality
     static std::string GetQualityName(HarvestQuality quality);
+
+    // Returns the ItemType enum value for this plant's harvested material
+    // Used to add the plant to the player's inventory after harvesting
+    static ItemType GetPlantItemType(const std::string& plantName);
 
     // Getters
     std::string GetName() const { return m_plantName; }

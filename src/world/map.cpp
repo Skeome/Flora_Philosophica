@@ -34,15 +34,40 @@ void TileMap::Initialize() {
     }
 
     // 2. Define physical static obstacles
-    // Obstacle 1: The Alchemist's cabin foundation
+    // Obstacle 1a: Cabin left wall (leaves a 2-tile door gap at columns 10-11)
+    // cabinCol=10, so door is at x:600-720. Left wall runs from x:480 to x:600.
     m_obstacles.push_back({
         Rectangle{
-            static_cast<float>((cabinCol - 2) * m_tileSize),
-            static_cast<float>(0.5f * m_tileSize),
-            static_cast<float>(6 * m_tileSize),
-            static_cast<float>(2.5f * m_tileSize)
+            static_cast<float>((cabinCol - 2) * m_tileSize),   // x: 480
+            static_cast<float>(0.5f * m_tileSize),              // y: 30
+            static_cast<float>(2 * m_tileSize),                 // width: 120 (cols 8-9)
+            static_cast<float>(2.5f * m_tileSize)               // height: 150
         },
-        Color{ 140, 100, 70, 255 } // Wood brown
+        Color{ 140, 100, 70, 255 }
+    });
+
+    // Obstacle 1b: Cabin right wall (mirror of left wall, starts after the door gap)
+    // Door gap ends at x:720 (col 12), right wall runs from x:720 to x:840.
+    m_obstacles.push_back({
+        Rectangle{
+            static_cast<float>((cabinCol + 2) * m_tileSize),   // x: 720
+            static_cast<float>(0.5f * m_tileSize),              // y: 30
+            static_cast<float>(2 * m_tileSize),                 // width: 120 (cols 12-13)
+            static_cast<float>(2.5f * m_tileSize)               // height: 150
+        },
+        Color{ 140, 100, 70, 255 }
+    });
+
+    // Obstacle 1c: Cabin back wall (top, full width, above the door gap)
+    // Thin back wall so the cabin reads as a complete structure.
+    m_obstacles.push_back({
+        Rectangle{
+            static_cast<float>((cabinCol - 2) * m_tileSize),   // x: 480
+            static_cast<float>(0.5f * m_tileSize),              // y: 30
+            static_cast<float>(6 * m_tileSize),                 // full width: 360
+            static_cast<float>(0.6f * m_tileSize)               // thin top bar: 36px
+        },
+        Color{ 120, 85, 55, 255 } // slightly darker for roof line
     });
 
     // Obstacle 2: A large fallen log (horizontal wall)
@@ -129,11 +154,13 @@ void TileMap::Draw() const {
         DrawRectangleRec(obstacle.rect, obstacle.color);
         DrawRectangleLinesEx(obstacle.rect, 2.0f, ColorAlpha(WHITE, 0.2f));
 
-        if (obstacle.rect.width > 5.0f * m_tileSize) {
+        // Draw cabin label on the wide back-wall obstacle only
+        if (obstacle.rect.width >= static_cast<float>(6 * m_tileSize) 
+            && obstacle.rect.height < static_cast<float>(m_tileSize)) {
             DrawText("Cabin Sanctuary (Under Construction)",
                      static_cast<int>(obstacle.rect.x + 15),
-                     static_cast<int>(obstacle.rect.y + obstacle.rect.height / 2 - 10),
-                     18, RAYWHITE);
+                     static_cast<int>(obstacle.rect.y + 8),
+                     16, RAYWHITE);
         }
     }
 

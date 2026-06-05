@@ -22,7 +22,7 @@
             }
           },
           {
-            "id": "29f03e9cdf1f8744",
+            "id": "9bf6001f46b9f2d4",
             "type": "leaf",
             "state": {
               "type": "canvas",
@@ -30,8 +30,8 @@
                 "file": "Flora Philosophia.canvas",
                 "viewState": {
                   "x": -3,
-                  "y": -851.4085425900907,
-                  "zoom": -0.7851216323208586
+                  "y": -690,
+                  "zoom": -1.5343738046228572
                 }
               },
               "icon": "lucide-layout-dashboard",
@@ -56,13 +56,13 @@
             }
           },
           {
-            "id": "fd94b4e02898a4b0",
+            "id": "29f03e9cdf1f8744",
             "type": "leaf",
             "state": {
               "type": "markdown",
               "state": {
                 "file": "Flora_Philosophia_GDD.md",
-                "mode": "source",
+                "mode": "preview",
                 "source": false
               },
               "icon": "lucide-file",
@@ -234,10 +234,11 @@
   },
   "active": "29f03e9cdf1f8744",
   "lastOpenFiles": [
+    "Flora Philosophia.canvas",
+    "Flora_Philosophia_GDD.md",
+    "Unconfirmed 300137.crdownload",
     "Unconfirmed 230855.crdownload",
     "The Cabin/Laboratory.md",
-    "Flora_Philosophia_GDD.md",
-    "Flora Philosophia.canvas",
     "The Cabin/Cabin.md",
     "The Cabin/Storefront.md",
     "The Ternary Alchemical Order/The Ternary Alchemical Order.md",

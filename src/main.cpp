@@ -1,224 +1,341 @@
 #include "raylib.h"
 #include "raymath.h"
 #include "world/player.h"
-#include "world/map.h"
+#include "world/room_manager.h"
+#include "world/inventory.h"
 #include "core/clock.h"
+#include "ui/inventory_ui.h"
 #include <chrono>
 #include <string>
 
 int main() {
     // 1. Initialise the Raylib Window
-    const int screenWidth = 1200;
+    const int screenWidth  = 1200;
     const int screenHeight = 900;
     InitWindow(screenWidth, screenHeight, "Flora Philosophia - Apothecary Sanctuary");
-
     SetTargetFPS(60);
 
-    // 2. Instantiate Game Systems
     using namespace FloraPhilosophia::World;
     using namespace FloraPhilosophia::Core;
+    using namespace FloraPhilosophia::UI;
 
-    // Create a 20x15 tile map with 60px size (1200x900 world space)
-    TileMap gameMap(20, 15, 60);
-    gameMap.Initialize();
+    // 2. Instantiate Game Systems
+    const int TILE_SIZE = 60;
 
-    // Spawn player at map center
+    // Room manager owns all maps and placed items
+    RoomManager roomManager(TILE_SIZE);
+    roomManager.Initialize();
+
+    // Player inventory — starts empty (inherited items are pre-placed, not in inventory)
+    // TODO: Load from save file on startup
+    Inventory inventory;
+
+    // Player spawns on the exterior map near the cabin approach
     Player player({ 600.0f, 450.0f });
 
-    // Astrological engine setup
+    // Astrological engine
     AstrologicalClock clock;
-    // TODO: Replace with device GPS coordinates at runtime
-    // Test coordinates: Medford, Oregon (approx. 42.3265 N, -122.8756 W)
-    const double observerLat = 42.3265;
+    // Medford, Oregon — matches device IP geolocation
+    const double observerLat =  42.3265;
     const double observerLon = -122.8756;
 
-    // 3. Configure Camera2D (for smooth scrolling behavior)
+    // 3. Camera2D — follows the player
     Camera2D camera = { 0 };
-    camera.target = player.GetPosition();
-    camera.offset = { screenWidth / 2.0f, screenHeight / 2.0f };
+    camera.target   = player.GetPosition();
+    camera.offset   = { screenWidth / 2.0f, screenHeight / 2.0f };
     camera.rotation = 0.0f;
-    camera.zoom = 1.0f;
+    camera.zoom     = 1.0f;
 
-    // 4. Input state management
-    bool joystickActive = false;
-    Vector2 joystickAnchor = { 0.0f, 0.0f };
-    Vector2 joystickDirection = { 0.0f, 0.0f };
-    const float joystickMaxRadius = 60.0f;
+    // 4. Input state
+    bool joystickActive        = false;
+    Vector2 joystickAnchor     = { 0.0f, 0.0f };
+    Vector2 joystickDirection  = { 0.0f, 0.0f };
+    const float joystickMaxRadius    = 60.0f;
+    const float joystickHoldThreshold = 0.2f;
+    float clickHoldTimer       = 0.0f;
+    bool isHolding             = false;
 
-    float clickHoldTimer = 0.0f;
-    const float joystickHoldThreshold = 0.2f; // Seconds of hold before joystick activates
-    bool isHolding = false;
+    // 5. UI systems
+    InventoryUI inventoryUI;
 
-    // Planetary glyph lookup — matches Planet enum order (Saturn=0 ... Moon=6)
-    // Used for the astrological clock HUD display
+    // Planetary glyph lookup — matches Planet enum (Saturn=0 ... Moon=6)
     const char* PLANET_GLYPHS[7] = { "♄", "♃", "♂", "☉", "♀", "☿", "☽" };
 
-    // Main game loop
+    // Interaction / harvest log
+    static std::string interactionLog = "Walk near objects and press [E] to interact";
+    static float logTimer = 0.0f;
+
+    // ── MAIN GAME LOOP ──────────────────────────────────────────────────────
     while (!WindowShouldClose()) {
         float deltaTime = GetFrameTime();
 
-        // --- Core Input Handling ---
-        Vector2 mousePos = GetMousePosition();
-        bool isLeftClickDown = IsMouseButtonDown(MOUSE_BUTTON_LEFT);
-        bool leftClickPressed = IsMouseButtonPressed(MOUSE_BUTTON_LEFT);
-        bool leftClickReleased = IsMouseButtonReleased(MOUSE_BUTTON_LEFT);
+        // ── Input ─────────────────────────────────────────────────────────
+        Vector2 mouseScreenPos = GetMousePosition();
+        Vector2 mouseWorldPos  = GetScreenToWorld2D(mouseScreenPos, camera);
+        bool leftPressed   = IsMouseButtonPressed(MOUSE_BUTTON_LEFT);
+        bool leftDown      = IsMouseButtonDown(MOUSE_BUTTON_LEFT);
+        bool leftReleased  = IsMouseButtonReleased(MOUSE_BUTTON_LEFT);
 
-        // Reset joystick direction each frame
         joystickDirection = { 0.0f, 0.0f };
 
-        if (leftClickPressed) {
-            isHolding = true;
-            clickHoldTimer = 0.0f;
-            joystickAnchor = mousePos;
+        // ── Inventory toggle ──────────────────────────────────────────────
+        if (IsKeyPressed(KEY_I)) {
+            inventoryUI.Toggle();
         }
 
-        if (isHolding) {
-            clickHoldTimer += deltaTime;
+        // ── Placement mode input ──────────────────────────────────────────
+        if (roomManager.IsInPlacementMode()) {
+            roomManager.UpdatePlacementGhost(mouseWorldPos);
 
-            if (clickHoldTimer >= joystickHoldThreshold && !joystickActive) {
-                // Long press threshold met: activate floating joystick
-                joystickActive = true;
+            if (leftPressed) {
+                // Left click = confirm placement
+                if (roomManager.ConfirmPlacement(inventory)) {
+                    interactionLog = "Item placed.";
+                    logTimer = 2.0f;
+                } else {
+                    interactionLog = "Cannot place here.";
+                    logTimer = 1.5f;
+                }
+            }
+            // B cancels placement — same key used to open inventory placement
+            if (IsKeyPressed(KEY_B)) {
+                roomManager.CancelPlacement(inventory);
+                interactionLog = "Placement cancelled.";
+                logTimer = 1.5f;
+            }
+        }
+        // ── Normal input (not in placement mode) ─────────────────────────
+        else {
+            // Inventory panel click — start placement for clicked item
+            if (leftPressed && inventoryUI.IsOpen()) {
+                ItemType clicked = inventoryUI.HandleClick(mouseScreenPos, inventory);
+                if (clicked != ItemType::COUNT) {
+                    inventoryUI.Toggle(); // close panel
+                    roomManager.StartPlacement(clicked);
+                    interactionLog = "Click to place. [B] to cancel.";
+                    logTimer = 5.0f;
+                }
             }
 
-            if (leftClickReleased) {
-                if (!joystickActive) {
-                    // Short tap: trigger A* pathfinding to tapped world position
-                    Vector2 worldClickPos = GetScreenToWorld2D(mousePos, camera);
-                    auto path = gameMap.FindPath(player.GetPosition(), worldClickPos);
-                    player.SetPath(path);
-                }
-
-                // Reset hold state
-                isHolding = false;
-                joystickActive = false;
+            // Joystick / tap-to-move
+            if (leftPressed) {
+                isHolding      = true;
                 clickHoldTimer = 0.0f;
+                joystickAnchor = mouseScreenPos;
             }
-        }
 
-        if (joystickActive && isLeftClickDown) {
-            // Compute normalised joystick direction from anchor drag
-            Vector2 offset = Vector2Subtract(mousePos, joystickAnchor);
-            float distance = Vector2Length(offset);
-
-            if (distance > 0.0f) {
-                Vector2 normalizedDir = Vector2Scale(offset, 1.0f / distance);
-                if (distance > joystickMaxRadius) {
-                    offset = Vector2Scale(normalizedDir, joystickMaxRadius);
+            if (isHolding) {
+                clickHoldTimer += deltaTime;
+                if (clickHoldTimer >= joystickHoldThreshold && !joystickActive) {
+                    joystickActive = true;
                 }
-                joystickDirection = normalizedDir;
+                if (leftReleased) {
+                    if (!joystickActive) {
+                        // Tap: pathfind to tapped world position
+                        auto& activeMap = roomManager.GetActiveMap();
+                        auto path = activeMap.FindPath(player.GetPosition(), mouseWorldPos);
+                        player.SetPath(path);
+                    }
+                    isHolding      = false;
+                    joystickActive = false;
+                    clickHoldTimer = 0.0f;
+                }
+            }
+
+            if (joystickActive && leftDown) {
+                Vector2 offset   = Vector2Subtract(mouseScreenPos, joystickAnchor);
+                float   distance = Vector2Length(offset);
+                if (distance > 0.0f) {
+                    Vector2 norm = Vector2Scale(offset, 1.0f / distance);
+                    if (distance > joystickMaxRadius)
+                        offset = Vector2Scale(norm, joystickMaxRadius);
+                    joystickDirection = norm;
+                }
             }
         }
 
-        // --- Core Updates ---
+        // ── E key: interact with placed items or harvest plants ───────────
+        if (IsKeyPressed(KEY_E)) {
+            // First try placed item interaction
+            InteractionResult result = roomManager.TryInteract(player.GetPosition());
+            switch (result) {
+                case InteractionResult::InspectDecoration:
+                    // Fireplace discovery moment
+                    interactionLog = "This fireplace... the heat is controllable. It's a furnace!";
+                    logTimer = 5.0f;
+                    break;
+                case InteractionResult::OpenApparatus:
+                    interactionLog = "[Apparatus UI — coming in Step 4]";
+                    logTimer = 2.0f;
+                    break;
+                case InteractionResult::OpenCompost:
+                    interactionLog = "Compost bin: place spent plant material here. Cannot be retrieved.";
+                    logTimer = 3.0f;
+                    break;
+                case InteractionResult::OpenMailbox:
+                    interactionLog = "[Mailbox — no letters yet]";
+                    logTimer = 2.0f;
+                    break;
+                case InteractionResult::OpenStorage:
+                    interactionLog = "[Storage UI — coming soon]";
+                    logTimer = 2.0f;
+                    break;
+                case InteractionResult::None: {
+                    // Try plant harvest if no placed item was nearby
+                    auto& activeMap = roomManager.GetActiveMap();
+                    PlantNode* node = activeMap.CheckPlantInteraction(player.GetPosition(), 20.0f);
+                    if (node) {
+                        long long currentUnixTime = std::chrono::duration_cast<std::chrono::seconds>(
+                            std::chrono::system_clock::now().time_since_epoch()
+                        ).count();
+                        PlanetaryHourInfo clockInfo = clock.CalculatePlanetaryHour(
+                            observerLat, observerLon, currentUnixTime);
+                        HarvestQuality quality = node->Harvest(clockInfo.dayRuler, clockInfo.rulingPlanet);
+
+                        // Add the harvested plant to the player's inventory
+                        ItemType plantItem = PlantNode::GetPlantItemType(node->GetName());
+                        inventory.AddItem(plantItem, 1);
+
+                        interactionLog = "Harvested " + node->GetName() + ": "
+                                       + PlantNode::GetQualityName(quality);
+                        logTimer = 3.0f;
+                    }
+                    break;
+                }
+                default: break;
+            }
+        }
+
+        // ── Update ────────────────────────────────────────────────────────
         Vector2 oldPos = player.GetPosition();
         player.Update(deltaTime, joystickActive, joystickDirection);
 
-        // Constrain player position against walls and map edges
-        Vector2 proposedPos = player.GetPosition();
-        Vector2 resolvedPos = gameMap.ConstrainPosition(oldPos, proposedPos, 15.0f);
-        player.SetPosition(resolvedPos);
+        // Constrain against active room's obstacles
+        auto& activeMap  = roomManager.GetActiveMap();
+        Vector2 proposed = player.GetPosition();
+        Vector2 resolved = activeMap.ConstrainPosition(oldPos, proposed, 15.0f);
+        player.SetPosition(resolved);
 
-        // Update map (plant respawn timers)
-        gameMap.Update(deltaTime);
+        // Update room (plant respawns, placed item animations, transition checks)
+        roomManager.Update(deltaTime, player.GetPosition());
 
-        // Smooth camera follow
+        // Handle room transition
+        const RoomTransition* transition = roomManager.GetPendingTransition();
+        if (transition) {
+            Vector2 entryPoint = transition->targetEntryPoint;
+            RoomID  targetRoom = transition->targetRoom;
+            roomManager.TransitionTo(targetRoom, entryPoint);
+            player.SetPosition(entryPoint);
+            player.ClearPath(); // cancel any active pathfinding from the previous room
+            camera.target = entryPoint;
+            interactionLog = "Entered " + transition->label;
+            logTimer = 2.0f;
+        }
+
         camera.target = player.GetPosition();
 
-        // --- Calculate Astrological State ---
-        // Fetch current system Unix UTC timestamp
+        // Interaction log timer
+        if (logTimer > 0.0f) logTimer -= deltaTime;
+        else interactionLog = "Walk near objects and press [E] to interact";
+
+        // ── Astrological clock ────────────────────────────────────────────
         long long currentUnixTime = std::chrono::duration_cast<std::chrono::seconds>(
             std::chrono::system_clock::now().time_since_epoch()
         ).count();
+        PlanetaryHourInfo clockInfo = clock.CalculatePlanetaryHour(
+            observerLat, observerLon, currentUnixTime);
 
-        PlanetaryHourInfo clockInfo = clock.CalculatePlanetaryHour(observerLat, observerLon, currentUnixTime);
-
-        // --- Interaction Logic ---
-        static std::string lastHarvestLog = "Walk near a plant and press [E] to harvest";
-        static float logTimer = 0.0f;
-        if (logTimer > 0.0f) logTimer -= deltaTime;
-        else lastHarvestLog = "Walk near a plant and press [E] to harvest";
-
-        if (IsKeyPressed(KEY_E)) {
-            PlantNode* node = gameMap.CheckPlantInteraction(player.GetPosition(), 20.0f);
-            if (node) {
-                // Use the real day ruler and hour ruler from the clock engine.
-                // Pristine quality requires BOTH to match the plant's ruling planet.
-                HarvestQuality quality = node->Harvest(clockInfo.dayRuler, clockInfo.rulingPlanet);
-                lastHarvestLog = "Harvested " + node->GetName() + ": " + PlantNode::GetQualityName(quality);
-                logTimer = 3.0f;
-            }
-        }
-
-        // --- Rendering ---
+        // ── Rendering ─────────────────────────────────────────────────────
         BeginDrawing();
             ClearBackground(DARKGRAY);
 
             BeginMode2D(camera);
-                gameMap.Draw();
+                roomManager.Draw();
 
-                // Draw A* path debug visualisation
+                // Path debug visualisation
                 if (player.HasActivePath()) {
                     const auto& path = player.GetPath();
                     for (size_t i = player.GetCurrentPathIndex(); i < path.size(); ++i) {
                         DrawCircleV(path[i], 3, Fade(GOLD, 0.5f));
-                        if (i > (size_t)player.GetCurrentPathIndex()) {
+                        if (i > (size_t)player.GetCurrentPathIndex())
                             DrawLineV(path[i-1], path[i], Fade(GOLD, 0.3f));
-                        } else {
+                        else
                             DrawLineV(player.GetPosition(), path[i], Fade(GOLD, 0.3f));
-                        }
                     }
                 }
 
                 player.Draw();
+
+                // Placement ghost (drawn in world space)
+                roomManager.DrawPlacementGhost(mouseWorldPos);
             EndMode2D();
 
-            // --- UI Overlays ---
+            // ── Screen-space UI ───────────────────────────────────────────
 
-            // 1. Virtual Joystick
+            // Virtual joystick
             if (joystickActive) {
                 DrawCircleV(joystickAnchor, joystickMaxRadius, Fade(GRAY, 0.4f));
                 DrawCircleLinesV(joystickAnchor, joystickMaxRadius, Fade(LIGHTGRAY, 0.6f));
-                Vector2 knobPos = Vector2Add(joystickAnchor, Vector2Scale(joystickDirection, joystickMaxRadius * 0.6f));
+                Vector2 knobPos = Vector2Add(joystickAnchor,
+                    Vector2Scale(joystickDirection, joystickMaxRadius * 0.6f));
                 DrawCircleV(knobPos, 22, Fade(SKYBLUE, 0.8f));
                 DrawCircleLinesV(knobPos, 22, BLUE);
             }
 
-            // 2. Astrological Clock HUD (top-left)
+            // Astrological clock HUD (top-left)
             DrawRectangle(15, 15, 340, 115, Fade(BLACK, 0.7f));
             DrawRectangleLines(15, 15, 340, 115, Color{ 140, 100, 70, 255 });
+            {
+                int planetIdx = static_cast<int>(clockInfo.rulingPlanet);
+                const char* glyph = PLANET_GLYPHS[planetIdx];
+                std::string timeStr  = "Planetary Hour: " + clockInfo.planetName;
+                std::string cycleStr = (clockInfo.hourIndex < 12)
+                    ? "Day Hour (Segment " : "Night Hour (Segment ";
+                cycleStr += std::to_string(clockInfo.hourIndex % 12 + 1) + "/12)";
+                std::string remStr = "Time remaining: "
+                    + std::to_string(static_cast<int>(clockInfo.minutesRemaining)) + "m";
 
-            std::string timeStr     = "Planetary Hour: " + clockInfo.planetName;
-            std::string cycleStr    = clockInfo.hourIndex < 12
-                                    ? "Day Hour (Segment "
-                                    : "Night Hour (Segment ";
-            cycleStr += std::to_string(clockInfo.hourIndex % 12 + 1) + "/12)";
-            std::string remainingStr = "Time remaining: " + std::to_string(static_cast<int>(clockInfo.minutesRemaining)) + "m";
+                DrawCircle(40, 72, 18, Color{ 160, 100, 40, 255 });
+                DrawText(glyph, 30, 64, 20, RAYWHITE);
+                DrawText("ASTROLOGICAL CLOCK", 75, 25, 12, GOLD);
+                DrawText(timeStr.c_str(),  75, 42, 16, RAYWHITE);
+                DrawText(cycleStr.c_str(), 75, 63, 13, LIGHTGRAY);
+                DrawText(remStr.c_str(),   75, 80, 13, LIGHTGRAY);
+                DrawText("Medford: 42.3N, -122.8W", 75, 100, 11, GRAY);
+            }
 
-            // Planetary glyph circle — uses real glyph for the ruling planet
-            int planetEnumIndex = static_cast<int>(clockInfo.rulingPlanet);
-            const char* glyph = PLANET_GLYPHS[planetEnumIndex];
-            DrawCircle(40, 50, 18, Color{ 160, 100, 40, 255 });
-            DrawText(glyph, 30, 42, 20, RAYWHITE);
+            // Room indicator (top-left, below clock)
+            {
+                const char* roomName = "Exterior";
+                switch (roomManager.GetActiveRoomID()) {
+                    case RoomID::CabinMain: roomName = "Cabin Interior"; break;
+                    case RoomID::CabinLoft: roomName = "Cabin Loft";     break;
+                    case RoomID::Garden:    roomName = "Garden";          break;
+                    default: break;
+                }
+                DrawRectangle(15, 140, 200, 28, Fade(BLACK, 0.7f));
+                DrawRectangleLines(15, 140, 200, 28, Color{ 100, 80, 60, 200 });
+                DrawText(roomName, 24, 148, 13, LIGHTGRAY);
+            }
 
-            DrawText("ASTROLOGICAL CLOCK", 75, 25, 12, GOLD);
-            DrawText(timeStr.c_str(), 75, 42, 16, RAYWHITE);
-            DrawText(cycleStr.c_str(), 75, 63, 13, LIGHTGRAY);
-            DrawText(remainingStr.c_str(), 75, 80, 13, LIGHTGRAY);
-            DrawText("Medford: 42.3N, -122.8W", 75, 100, 11, GRAY);
+            // Inventory UI (right side)
+            inventoryUI.Draw(inventory);
 
-            // 3. Controls Legend (bottom-left)
-            DrawRectangle(15, screenHeight - 115, 400, 100, Fade(BLACK, 0.7f));
-            DrawRectangleLines(15, screenHeight - 115, 400, 100, Color{ 110, 110, 120, 255 });
-            DrawText("CONTROLS:", 30, screenHeight - 105, 12, GOLD);
-            DrawText("- Desktop: Use WASD / Arrow Keys to move", 30, screenHeight - 87, 14, RAYWHITE);
-            DrawText("- Hold click/tap anywhere to activate Joystick", 30, screenHeight - 69, 14, RAYWHITE);
-            DrawText("- Tap anywhere to pathfind", 30, screenHeight - 51, 14, RAYWHITE);
+            // Controls legend (bottom-left)
+            DrawRectangle(15, screenHeight - 120, 420, 105, Fade(BLACK, 0.7f));
+            DrawRectangleLines(15, screenHeight - 120, 420, 105, Color{ 110, 110, 120, 255 });
+            DrawText("CONTROLS:",                                          30, screenHeight - 110, 12, GOLD);
+            DrawText("- WASD / Arrow Keys to move",                       30, screenHeight -  92, 13, RAYWHITE);
+            DrawText("- Hold click/drag to use joystick",                 30, screenHeight -  74, 13, RAYWHITE);
+            DrawText("- Tap to pathfind",                                 30, screenHeight -  56, 13, RAYWHITE);
+            DrawText("- [E] Interact / Harvest   [I] Inventory",          30, screenHeight -  38, 13, RAYWHITE);
+            DrawText("- [B] Cancel placement",                            30, screenHeight -  20, 13, RAYWHITE);
 
-            // 4. Harvest Log (top-center)
-            DrawRectangle(screenWidth / 2 - 200, 20, 400, 40, Fade(BLACK, 0.6f));
-            DrawText(lastHarvestLog.c_str(),
-                     screenWidth / 2 - MeasureText(lastHarvestLog.c_str(), 16) / 2,
-                     32, 16, GOLD);
+            // Interaction log (top-centre)
+            DrawRectangle(screenWidth / 2 - 250, 20, 500, 40, Fade(BLACK, 0.6f));
+            DrawText(interactionLog.c_str(),
+                screenWidth / 2 - MeasureText(interactionLog.c_str(), 15) / 2,
+                32, 15, GOLD);
 
         EndDrawing();
     }
