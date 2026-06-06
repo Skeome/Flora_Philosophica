@@ -4,6 +4,7 @@
 #include "world/room_manager.h"
 #include "world/inventory.h"
 #include "core/clock.h"
+#include "core/fonts.h"
 #include "ui/inventory_ui.h"
 #include <chrono>
 #include <string>
@@ -14,6 +15,10 @@ int main() {
     const int screenHeight = 900;
     InitWindow(screenWidth, screenHeight, "Flora Philosophica - Apothecary Sanctuary");
     SetTargetFPS(60);
+
+    // Load the Archemy alchemical font for planetary glyphs.
+    // Falls back to Raylib default if assets/fonts/Archemy.otf is missing.
+    Font alchemyFont = FloraPhilosophica::Core::LoadAlchemyFont(28);
 
     using namespace FloraPhilosophica::World;
     using namespace FloraPhilosophica::Core;
@@ -296,7 +301,7 @@ int main() {
                     + std::to_string(static_cast<int>(clockInfo.minutesRemaining)) + "m";
 
                 DrawCircle(40, 72, 18, Color{ 160, 100, 40, 255 });
-                DrawText(glyph, 30, 64, 20, RAYWHITE);
+                DrawTextEx(alchemyFont, glyph, Vector2{ 28.0f, 62.0f }, 24, 0, RAYWHITE);
                 DrawText("ASTROLOGICAL CLOCK", 75, 25, 12, GOLD);
                 DrawText(timeStr.c_str(),  75, 42, 16, RAYWHITE);
                 DrawText(cycleStr.c_str(), 75, 63, 13, LIGHTGRAY);
@@ -351,6 +356,8 @@ int main() {
         EndDrawing();
     }
 
+    // Unload the font texture before closing the window
+    UnloadFont(alchemyFont);
     CloseWindow();
     return 0;
 }

@@ -538,7 +538,7 @@ The alchemical processes described in this document are drawn from the operative
 
 The planetary attributions of herbs follow Culpeper's documented system throughout. This system is operatively recognised within the spagyric tradition and is not a game invention.
 
-The Ternary system — Mercurius, Sulphur, Sal — is the foundational three-principle model of Paracelsian alchemy and forms the educational backbone of the entire product progression pipeline.
+The Tria Prima — Mercurius, Sulphur, Sal — are the foundational three-principle model of Paracelsian alchemy and forms the educational backbone of the entire product progression pipeline.
 
 ---
 

@@ -51,3 +51,11 @@ Flora_Philosophica/.obsidian/workspace.json
 
 # GEMINI.md
 GEMINI.md
+
+# ── Proprietary assets — place manually after cloning ─────────────────────────
+# fonts/: Contains licensed/proprietary font files that cannot be distributed.
+# See assets/fonts/README.md for which fonts are required and where to obtain them.
+assets/fonts/*.otf
+assets/fonts/*.ttf
+assets/fonts/*.woff
+assets/fonts/*.woff2
