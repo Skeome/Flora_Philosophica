@@ -59,3 +59,6 @@ assets/fonts/*.otf
 assets/fonts/*.ttf
 assets/fonts/*.woff
 assets/fonts/*.woff2
+
+# Project tree file
+file-structure.txt
