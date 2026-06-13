@@ -9,56 +9,69 @@ namespace FloraPhilosophica {
 namespace World {
 
 // ─────────────────────────────────────────────────────────────────────────────
-// InventoryEntry
-// One stack of a single item type in the player's unplaced inventory.
-// quantity tracks how many of that item the player is holding.
+// InventorySlot
+// A single cell in the unified inventory (46 slots total).
+// Can hold either a stack of placeable items or a single HarvestItem herb.
 // ─────────────────────────────────────────────────────────────────────────────
-struct InventoryEntry {
-    ItemType type;
-    int      quantity;  // Number of unplaced instances of this item
+struct InventorySlot {
+    bool occupied = false;
+    bool isHerb   = false;
+    
+    // For Herbs
+    HarvestItem herb;
+    
+    // For Placeables (Stations, furniture)
+    ItemType    station  = ItemType::COUNT;
+    int         quantity = 0;
+
+    void Clear() {
+        occupied = false;
+        isHerb   = false;
+        station  = ItemType::COUNT;
+        quantity = 0;
+    }
 };
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Inventory
-// The player's collection of unplaced items — things they own but haven't
-// put down in a room yet. Placed items are tracked by the RoomManager instead.
-//
-// Items move through three states:
-//   1. In Inventory (here)       — owned but not placed
-//   2. Placed (in a Room)        — on the property grid, interactive
-//   3. Consumed / destroyed      — removed from the game entirely
+// A fixed-size (46 slot) container for all player items.
+// Slots 0-9: Hotbar row
+// Slots 10-45: 3x12 main grid
 // ─────────────────────────────────────────────────────────────────────────────
 class Inventory {
 public:
+    static constexpr int TOTAL_SLOTS = 46;
+
     Inventory();
 
-    // Add one or more items to the inventory
+    // ── Unified Slot Management ──────────────────────────────────────────
+    const InventorySlot& GetSlot(int index) const;
+    void SetSlot(int index, const InventorySlot& slot);
+    void SwapSlots(int idxA, int idxB);
+    void ClearSlot(int index);
+
+    // ── Legacy API Compatibility ─────────────────────────────────────────
+    // These now find the first available slot or stack
     void AddItem(ItemType type, int quantity = 1);
-
-    // Remove one item of the given type. Returns false if none available.
     bool RemoveItem(ItemType type, int quantity = 1);
+    
+    void AddHarvestItem(const std::string& plantName, HarvestQuality quality);
+    void AddHarvestItem(const HarvestItem& item);
+    bool RemoveHarvestItem(const std::string& plantName, PlantStage stage);
 
-    // Returns how many of a given item are currently unplaced
-    int GetQuantity(ItemType type) const;
+    // Helper for apparatus logic
+    bool HasHarvestItem(const std::string& plantName, PlantStage stage) const;
+    const HarvestItem* FindHarvestItem(const std::string& plantName, PlantStage stage) const;
 
-    // Returns true if the player has at least one of this item unplaced
-    bool HasItem(ItemType type) const;
-
-    // Returns all inventory entries (for rendering the inventory UI)
-    const std::vector<InventoryEntry>& GetAllEntries() const { return m_entries; }
-
-    // Serialisation helpers — used by the save system
-    // Returns a JSON-compatible string representation of the inventory
+    // ── Serialisation ─────────────────────────────────────────────────────
     std::string Serialise() const;
-
-    // Loads inventory state from a previously serialised string
-    void Deserialise(const std::string& json);
+    void        Deserialise(const std::string& json);
 
 private:
-    std::vector<InventoryEntry> m_entries;  // All item stacks the player holds
+    std::vector<InventorySlot> m_slots;
 
-    // Finds the entry index for a given type, or -1 if not present
-    int FindEntry(ItemType type) const;
+    int FindFirstEmptySlot() const;
+    int FindStack(ItemType type) const;
 };
 
 } // namespace World

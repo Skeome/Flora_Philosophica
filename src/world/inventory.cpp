@@ -1,101 +1,192 @@
 #include "inventory.h"
 #include "nlohmann/json.hpp"
-#include <stdexcept>
+#include <algorithm>
 
 namespace FloraPhilosophica {
 namespace World {
 
-Inventory::Inventory() {}
+Inventory::Inventory() {
+    m_slots.resize(TOTAL_SLOTS);
+}
 
-// ─────────────────────────────────────────────────────────────────────────────
-// FindEntry
-// Linear search through entries for a given item type.
-// Returns the index in m_entries, or -1 if not found.
-// Fine for the number of distinct item types we have (~16).
-// ─────────────────────────────────────────────────────────────────────────────
-int Inventory::FindEntry(ItemType type) const {
-    for (int i = 0; i < static_cast<int>(m_entries.size()); ++i) {
-        if (m_entries[i].type == type) return i;
+const InventorySlot& Inventory::GetSlot(int index) const {
+    if (index < 0 || index >= TOTAL_SLOTS) {
+        static InventorySlot empty;
+        return empty;
+    }
+    return m_slots[index];
+}
+
+void Inventory::SetSlot(int index, const InventorySlot& slot) {
+    if (index >= 0 && index < TOTAL_SLOTS) {
+        m_slots[index] = slot;
+    }
+}
+
+void Inventory::SwapSlots(int idxA, int idxB) {
+    if (idxA >= 0 && idxA < TOTAL_SLOTS && idxB >= 0 && idxB < TOTAL_SLOTS) {
+        std::swap(m_slots[idxA], m_slots[idxB]);
+    }
+}
+
+void Inventory::ClearSlot(int index) {
+    if (index >= 0 && index < TOTAL_SLOTS) {
+        m_slots[index].Clear();
+    }
+}
+
+int Inventory::FindFirstEmptySlot() const {
+    for (int i = 0; i < TOTAL_SLOTS; ++i) {
+        if (!m_slots[i].occupied) return i;
     }
     return -1;
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// AddItem
-// Increases the stack count for an existing entry, or creates a new entry.
-// ─────────────────────────────────────────────────────────────────────────────
+int Inventory::FindStack(ItemType type) const {
+    for (int i = 0; i < TOTAL_SLOTS; ++i) {
+        if (m_slots[i].occupied && !m_slots[i].isHerb && m_slots[i].station == type) {
+            return i;
+        }
+    }
+    return -1;
+}
+
 void Inventory::AddItem(ItemType type, int quantity) {
     if (quantity <= 0) return;
-    int index = FindEntry(type);
-    if (index >= 0) {
-        m_entries[index].quantity += quantity;
+    int idx = FindStack(type);
+    if (idx != -1) {
+        m_slots[idx].quantity += quantity;
     } else {
-        m_entries.push_back({ type, quantity });
+        int emptyIdx = FindFirstEmptySlot();
+        if (emptyIdx != -1) {
+            m_slots[emptyIdx].occupied = true;
+            m_slots[emptyIdx].isHerb = false;
+            m_slots[emptyIdx].station = type;
+            m_slots[emptyIdx].quantity = quantity;
+        }
     }
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// RemoveItem
-// Decrements the stack. Removes the entry entirely if quantity hits zero.
-// Returns false if there weren't enough items.
-// ─────────────────────────────────────────────────────────────────────────────
 bool Inventory::RemoveItem(ItemType type, int quantity) {
-    int index = FindEntry(type);
-    if (index < 0 || m_entries[index].quantity < quantity) return false;
-
-    m_entries[index].quantity -= quantity;
-    if (m_entries[index].quantity == 0) {
-        // Erase this entry — swap with back for O(1) removal
-        m_entries[index] = m_entries.back();
-        m_entries.pop_back();
+    int idx = FindStack(type);
+    if (idx != -1 && m_slots[idx].quantity >= quantity) {
+        m_slots[idx].quantity -= quantity;
+        if (m_slots[idx].quantity <= 0) {
+            m_slots[idx].Clear();
+        }
+        return true;
     }
-    return true;
+    return false;
 }
 
-int Inventory::GetQuantity(ItemType type) const {
-    int index = FindEntry(type);
-    return (index >= 0) ? m_entries[index].quantity : 0;
+void Inventory::AddHarvestItem(const std::string& plantName, HarvestQuality quality) {
+    int emptyIdx = FindFirstEmptySlot();
+    if (emptyIdx != -1) {
+        m_slots[emptyIdx].occupied = true;
+        m_slots[emptyIdx].isHerb = true;
+        m_slots[emptyIdx].herb = { plantName, PlantStage::Fresh, quality };
+    }
 }
 
-bool Inventory::HasItem(ItemType type) const {
-    return GetQuantity(type) > 0;
+void Inventory::AddHarvestItem(const HarvestItem& item) {
+    int emptyIdx = FindFirstEmptySlot();
+    if (emptyIdx != -1) {
+        m_slots[emptyIdx].occupied = true;
+        m_slots[emptyIdx].isHerb = true;
+        m_slots[emptyIdx].herb = item;
+    }
+}
+
+bool Inventory::RemoveHarvestItem(const std::string& plantName, PlantStage stage) {
+    for (int i = 0; i < TOTAL_SLOTS; ++i) {
+        if (m_slots[i].occupied && m_slots[i].isHerb && m_slots[i].herb.plantName == plantName && m_slots[i].herb.stage == stage) {
+            m_slots[i].Clear();
+            return true;
+        }
+    }
+    return false;
+}
+
+bool Inventory::HasHarvestItem(const std::string& plantName, PlantStage stage) const {
+    return FindHarvestItem(plantName, stage) != nullptr;
+}
+
+const HarvestItem* Inventory::FindHarvestItem(const std::string& plantName, PlantStage stage) const {
+    for (int i = 0; i < TOTAL_SLOTS; ++i) {
+        if (m_slots[i].occupied && m_slots[i].isHerb && m_slots[i].herb.plantName == plantName && m_slots[i].herb.stage == stage) {
+            return &m_slots[i].herb;
+        }
+    }
+    return nullptr;
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Serialise
-// Converts inventory to a JSON string for saving.
-// Format: [{"type": 0, "quantity": 3}, ...]
+// Serialise / Deserialise
 // ─────────────────────────────────────────────────────────────────────────────
 std::string Inventory::Serialise() const {
     nlohmann::json j = nlohmann::json::array();
-    for (const auto& entry : m_entries) {
-        j.push_back({
-            { "type",     static_cast<int>(entry.type) },
-            { "quantity", entry.quantity               }
-        });
+    for (int i = 0; i < TOTAL_SLOTS; ++i) {
+        const auto& s = m_slots[i];
+        nlohmann::json sj;
+        sj["occ"] = s.occupied;
+        if (s.occupied) {
+            sj["herb"] = s.isHerb;
+            if (s.isHerb) {
+                sj["name"] = s.herb.plantName;
+                sj["stg"]  = static_cast<int>(s.herb.stage);
+                sj["ql"]   = static_cast<int>(s.herb.quality);
+            } else {
+                sj["type"] = static_cast<int>(s.station);
+                sj["qty"]  = s.quantity;
+            }
+        }
+        j.push_back(sj);
     }
     return j.dump();
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// Deserialise
-// Restores inventory from a previously saved JSON string.
-// Clears current inventory before loading.
-// ─────────────────────────────────────────────────────────────────────────────
 void Inventory::Deserialise(const std::string& jsonStr) {
-    m_entries.clear();
+    for (auto& s : m_slots) s.Clear();
     try {
         auto j = nlohmann::json::parse(jsonStr);
-        for (const auto& entry : j) {
-            int typeInt = entry.at("type").get<int>();
-            int qty     = entry.at("quantity").get<int>();
-            if (typeInt >= 0 && typeInt < static_cast<int>(ItemType::COUNT) && qty > 0) {
-                m_entries.push_back({ static_cast<ItemType>(typeInt), qty });
+
+        // ── NEW FORMAT: JSON Array of 46 slots ───────────────────────────
+        if (j.is_array()) {
+            for (size_t i = 0; i < j.size() && i < (size_t)TOTAL_SLOTS; ++i) {
+                const auto& sj = j[i];
+                if (sj.contains("occ") && sj.at("occ").get<bool>()) {
+                    m_slots[i].occupied = true;
+                    m_slots[i].isHerb = sj.at("herb").get<bool>();
+                    if (m_slots[i].isHerb) {
+                        m_slots[i].herb.plantName = sj.at("name").get<std::string>();
+                        m_slots[i].herb.stage = static_cast<PlantStage>(sj.at("stg").get<int>());
+                        m_slots[i].herb.quality = static_cast<HarvestQuality>(sj.at("ql").get<int>());
+                    } else {
+                        m_slots[i].station = static_cast<ItemType>(sj.at("type").get<int>());
+                        m_slots[i].quantity = sj.at("qty").get<int>();
+                    }
+                }
             }
         }
-    } catch (const nlohmann::json::exception& e) {
-        // If the save is corrupt, start with empty inventory rather than crashing
-        m_entries.clear();
+        // ── OLD FORMAT: Object with "items" and "herbs" keys ──────────────
+        else if (j.is_object()) {
+            if (j.contains("items")) {
+                for (const auto& e : j["items"]) {
+                    AddItem(static_cast<ItemType>(e.at("type").get<int>()), e.at("quantity").get<int>());
+                }
+            }
+            if (j.contains("herbs")) {
+                for (const auto& h : j["herbs"]) {
+                    HarvestItem item;
+                    item.plantName = h.at("plant").get<std::string>();
+                    item.stage     = static_cast<PlantStage>(h.at("stage").get<int>());
+                    item.quality   = static_cast<HarvestQuality>(h.at("quality").get<int>());
+                    AddHarvestItem(item);
+                }
+            }
+        }
+    } catch (...) {
+        for (auto& s : m_slots) s.Clear();
     }
 }
 

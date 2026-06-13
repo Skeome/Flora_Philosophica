@@ -52,9 +52,9 @@ To compile these modules efficiently, the project utilizes a unified CMake build
 | Apothecary Lab | Scaffolded under `src/lab/` | Scaffolded under `tests/lab/` | Apparatus State & Processing loops | SQLite serialization backend |
 | User Interface | `src/ui/inventory_ui.h` | Mapped via rendering loop | Screenspace Overlays & Mobile HUD | Raylib Gestures and Textures |
 
-The Core Game Loop and Player Simulation MechanicsAt the center of Flora Philosophica lies a unified execution loop located in `main.cpp`. The viewport is configured to a locked 1200x900 pixel canvas operating at a target rate of 60 frames per second. The game world is built on a 2D grid structure using a uniform tile size of 60 pixels, allowing for efficient coordinate math and rapid spatial lookups.
+The Core Game Loop and Player Simulation MechanicsAt the center of Flora Philosophica lies a unified execution loop located in `main.cpp`. The viewport is configured to a locked 1280x960 pixel canvas operating at a target rate of 60 frames per second. The game world is built on a 2D grid structure using a uniform tile size of 64 pixels, allowing for efficient coordinate math and rapid spatial lookups.
 
-When a session initializes, the engine instantiates the `RoomManager`, spawning the player character at coordinate (600, 450) on the exterior cabin map. The player’s spatial position is updated continuously within the active room’s boundary limits, and a Raylib `Camera2D` component centers dynamically on the player to scroll the map smoothly.
+When a session initializes, the engine instantiates the `RoomManager`, spawning the player character at coordinate (640, 480) on the exterior cabin map. The player’s spatial position is updated continuously within the active room’s boundary limits, and a Raylib `Camera2D` component centers dynamically on the player to scroll the map smoothly.
 
 ```
 
@@ -99,7 +99,7 @@ The game world is populated with dynamic, interactable entities managed by the `
 - Relocate decor structure - Compost spent residue   - Evaluate item quality
 ```
 
-The placement engine supports an active decoration mode. When a player chooses to place furniture or laboratory gear, the engine renders a semi-transparent "ghost" preview of the item snapped to the nearest 60-pixel grid intersection. The player presses Left-Click to finalize placement or the `[B]` key to cancel the operation and return the item to the inventory stack.
+The placement engine supports an active decoration mode. When a player chooses to place furniture or laboratory gear, the engine renders a semi-transparent "ghost" preview of the item snapped to the nearest 64-pixel grid intersection. The player presses Left-Click to finalize placement or the `[B]` key to cancel the operation and return the item to the inventory stack.
 
 All interaction events and feedback logs are pushed to a central message queue displayed at the top of the viewport. This HUD component automatically wraps long text lines and truncates older logs using FIFO indexing, preventing text overlap during active play sessions.
 

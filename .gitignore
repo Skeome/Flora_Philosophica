@@ -62,3 +62,6 @@ assets/fonts/*.woff2
 
 # Project tree file
 file-structure.txt
+
+# Personal Save File
+save.json

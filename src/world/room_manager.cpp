@@ -40,22 +40,22 @@ void RoomManager::Initialize() {
     m_rooms[static_cast<int>(RoomID::Garden)]->Initialize(MapType::Garden);
 
     // ── Transition zones ─────────────────────────────────────────────────────
-    // Exterior → CabinMain: the cabin front door gap is at x:600-720, y:30-180.
+    // Exterior → CabinMain: the cabin front door gap is at x:640-768, y:32-192.
     // The path approaches from below (y increases downward in screen space).
     // Trigger sits at the bottom of the door gap — player walks north into it.
     AddTransition(RoomID::Exterior, {
-        Rectangle{ 604, 148, 112, 36 },         // Bottom of door gap, just inside the walls
+        Rectangle{ 644, 158, 120, 38 },         // Bottom of door gap, just inside the walls
         RoomID::CabinMain,
-        Vector2{ 360, 480 },                    // Spawn near bottom of cabin interior
+        Vector2{ 384, 512 },                    // Spawn near bottom of cabin interior
         "Enter Cabin"
     });
 
     // CabinMain → Exterior: doorway back out at the very bottom of the interior map
-    // Interior is 12x10 tiles (720x600). Bottom edge = y:540-600.
+    // Interior is 12x10 tiles (768x640). Bottom edge = y:576-640.
     AddTransition(RoomID::CabinMain, {
-        Rectangle{ 240, 555, 240, 45 },         // Wide trigger across the bottom centre
+        Rectangle{ 256, 592, 256, 48 },         // Wide trigger across the bottom centre
         RoomID::Exterior,
-        Vector2{ 660, 210 },                    // Spawn just below the cabin door on exterior
+        Vector2{ 704, 224 },                    // Spawn just below the cabin door on exterior
         "Exit Cabin"
     });
 
@@ -71,32 +71,46 @@ void RoomManager::Initialize() {
 // ─────────────────────────────────────────────────────────────────────────────
 void RoomManager::SetupDefaultCabinLayout() {
     int room = static_cast<int>(RoomID::CabinMain);
+    TileMap& cabinMap = *m_rooms[room];
+
+    // Helper lambda to place an item and immediately block its tiles
+    auto place = [&](ItemType type, int tx, int ty) {
+        m_placedItems[room].emplace_back(type, tx, ty, m_tileSize);
+        const ItemDefinition& def = GetItemDefinition(type);
+        cabinMap.BlockTiles(tx, ty, def.tileWidth, def.tileHeight);
+    };
 
     // Fireplace — back wall, centre. Looks decorative until inspected.
-    m_placedItems[room].emplace_back(ItemType::Fireplace, 5, 0, m_tileSize);
+    place(ItemType::Fireplace, 5, 0);
+
+    // DryingRack — back wall, left of fireplace
+    place(ItemType::DryingRack, 0, 0);
 
     // WorkBench — left side of the room
-    m_placedItems[room].emplace_back(ItemType::WorkBench, 0, 3, m_tileSize);
+    place(ItemType::WorkBench, 0, 3);
 
     // MortarAndPestle — on or near the workbench
-    m_placedItems[room].emplace_back(ItemType::MortarAndPestle, 0, 5, m_tileSize);
+    place(ItemType::MortarAndPestle, 0, 5);
 
     // MacerationJar — right side, near the window
-    m_placedItems[room].emplace_back(ItemType::MacerationJar, 9, 3, m_tileSize);
+    place(ItemType::MacerationJar, 9, 3);
 
     // Bookshelf — back wall, right of fireplace
-    m_placedItems[room].emplace_back(ItemType::Bookshelf, 8, 0, m_tileSize);
+    place(ItemType::Bookshelf, 8, 0);
 
     // StorageChest — corner
-    m_placedItems[room].emplace_back(ItemType::StorageChest, 0, 0, m_tileSize);
+    place(ItemType::StorageChest, 10, 0);
 
-    // CompostBin — placed outside by default (Exterior room)
-    // It's near the cabin door, easy to find early, encouraging the "trap"
+    // CompostBin — outside by default (Exterior room)
     int exterior = static_cast<int>(RoomID::Exterior);
     m_placedItems[exterior].emplace_back(ItemType::CompostBin, 11, 6, m_tileSize);
+    const ItemDefinition& binDef = GetItemDefinition(ItemType::CompostBin);
+    m_rooms[exterior]->BlockTiles(11, 6, binDef.tileWidth, binDef.tileHeight);
 
     // Mailbox — outside near the path
     m_placedItems[exterior].emplace_back(ItemType::MailboxPost, 8, 8, m_tileSize);
+    const ItemDefinition& mailDef = GetItemDefinition(ItemType::MailboxPost);
+    m_rooms[exterior]->BlockTiles(8, 8, mailDef.tileWidth, mailDef.tileHeight);
 }
 
 void RoomManager::AddTransition(RoomID room, RoomTransition transition) {
@@ -202,16 +216,99 @@ void RoomManager::DrawPlacementGhost(Vector2 mouseWorldPos) const {
 // ─────────────────────────────────────────────────────────────────────────────
 InteractionResult RoomManager::TryInteract(Vector2 playerPos, std::string& outMessage) {
     int roomIdx = static_cast<int>(m_activeRoom);
+    PlacedItem* bestItem = nullptr;
+    float bestDist = 999999.0f;
+
     for (auto& item : m_placedItems[roomIdx]) {
         if (item.IsPlayerNear(playerPos)) {
-            InteractionResult result = item.Interact();
-            if (result == InteractionResult::InspectDecoration) {
-                outMessage = item.GetInspectionMessage();
+            Rectangle rect = item.GetWorldRect();
+            Vector2 center = { rect.x + rect.width / 2.0f, rect.y + rect.height / 2.0f };
+            float dist = Vector2Distance(playerPos, center);
+            if (dist < bestDist) {
+                bestDist = dist;
+                bestItem = &item;
             }
-            return result;
         }
     }
+
+    if (bestItem) {
+        InteractionResult result = bestItem->Interact();
+        if (result == InteractionResult::InspectDecoration) {
+            outMessage = bestItem->GetInspectionMessage();
+        }
+        return result;
+    }
+
     return InteractionResult::None;
+}
+
+PlacedItem* RoomManager::GetNearestPlacedItem(Vector2 playerPos) {
+    int roomIdx = static_cast<int>(m_activeRoom);
+    PlacedItem* bestItem = nullptr;
+    float bestDist = 999999.0f;
+
+    for (auto& item : m_placedItems[roomIdx]) {
+        if (item.IsPlayerNear(playerPos)) {
+            Rectangle rect = item.GetWorldRect();
+            Vector2 center = { rect.x + rect.width / 2.0f, rect.y + rect.height / 2.0f };
+            float dist = Vector2Distance(playerPos, center);
+            if (dist < bestDist) {
+                bestDist = dist;
+                bestItem = &item;
+            }
+        }
+    }
+    return bestItem;
+}
+
+void RoomManager::ToggleBuildMode() {
+    m_buildModeActive = !m_buildModeActive;
+    if (!m_buildModeActive) {
+        m_placement.active = false;
+    }
+}
+
+bool RoomManager::PickupItem(Vector2 playerPos, Inventory& inventory) {
+    int roomIdx = static_cast<int>(m_activeRoom);
+    PlacedItem* target = GetNearestPlacedItem(playerPos);
+    if (!target) return false;
+
+    // Add back to inventory
+    inventory.AddItem(target->GetType(), 1);
+
+    // Unblock tiles
+    const ItemDefinition& def = GetItemDefinition(target->GetType());
+    m_rooms[roomIdx]->UnblockTiles(target->GetTileX(), target->GetTileY(), def.tileWidth, def.tileHeight);
+
+    // Remove from world
+    auto it = std::find_if(m_placedItems[roomIdx].begin(), m_placedItems[roomIdx].end(),
+        [&](const PlacedItem& p) { return &p == target; });
+    
+    if (it != m_placedItems[roomIdx].end()) {
+        m_placedItems[roomIdx].erase(it);
+        return true;
+    }
+    return false;
+}
+
+bool RoomManager::RemoveItem(Vector2 playerPos) {
+    int roomIdx = static_cast<int>(m_activeRoom);
+    PlacedItem* target = GetNearestPlacedItem(playerPos);
+    if (!target) return false;
+
+    // Unblock tiles
+    const ItemDefinition& def = GetItemDefinition(target->GetType());
+    m_rooms[roomIdx]->UnblockTiles(target->GetTileX(), target->GetTileY(), def.tileWidth, def.tileHeight);
+
+    // Remove from world
+    auto it = std::find_if(m_placedItems[roomIdx].begin(), m_placedItems[roomIdx].end(),
+        [&](const PlacedItem& p) { return &p == target; });
+    
+    if (it != m_placedItems[roomIdx].end()) {
+        m_placedItems[roomIdx].erase(it);
+        return true;
+    }
+    return false;
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -242,17 +339,21 @@ void RoomManager::UpdatePlacementGhost(Vector2 mouseWorldPos) {
 
 bool RoomManager::ConfirmPlacement(Inventory& inventory) {
     if (!m_placement.active || !m_placement.placementValid) return false;
-
-    // Remove from inventory
     if (!inventory.RemoveItem(m_placement.heldItem)) return false;
 
-    // Add to room as a placed item
     int roomIdx = static_cast<int>(m_activeRoom);
     m_placedItems[roomIdx].emplace_back(
         m_placement.heldItem,
         m_placement.ghostTileX,
         m_placement.ghostTileY,
         m_tileSize
+    );
+
+    // Register the item's footprint so pathfinding and collision treat it as solid
+    const ItemDefinition& def = GetItemDefinition(m_placement.heldItem);
+    m_rooms[roomIdx]->BlockTiles(
+        m_placement.ghostTileX, m_placement.ghostTileY,
+        def.tileWidth, def.tileHeight
     );
 
     m_placement.active = false;
@@ -338,8 +439,13 @@ std::string RoomManager::Serialise() const {
 }
 
 void RoomManager::Deserialise(const std::string& jsonStr, int tileSize) {
-    // Clear all placed items
+    // Unblock existing items from map before clearing
     for (int r = 0; r < static_cast<int>(RoomID::COUNT); ++r) {
+        TileMap& map = *m_rooms[r];
+        for (const auto& item : m_placedItems[r]) {
+            const ItemDefinition& def = GetItemDefinition(item.GetType());
+            map.UnblockTiles(item.GetTileX(), item.GetTileY(), def.tileWidth, def.tileHeight);
+        }
         m_placedItems[r].clear();
     }
 
@@ -354,12 +460,15 @@ void RoomManager::Deserialise(const std::string& jsonStr, int tileSize) {
                 int typeInt    = itemJson.at("type").get<int>();
                 int tx         = itemJson.at("tileX").get<int>();
                 int ty         = itemJson.at("tileY").get<int>();
-                bool discovered = itemJson.value("discovered", false);
 
                 if (typeInt >= 0 && typeInt < static_cast<int>(ItemType::COUNT)) {
                     PlacedItem item(static_cast<ItemType>(typeInt), tx, ty, tileSize);
-                    item.SetDiscovered(discovered);
+                    item.Deserialise(itemJson);
                     m_placedItems[r].push_back(std::move(item));
+
+                    // Block tiles in map
+                    const ItemDefinition& def = GetItemDefinition(static_cast<ItemType>(typeInt));
+                    m_rooms[r]->BlockTiles(tx, ty, def.tileWidth, def.tileHeight);
                 }
             }
         }

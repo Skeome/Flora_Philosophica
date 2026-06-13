@@ -56,25 +56,25 @@ void TileMap::InitializeExterior() {
 
     // 2. Define physical static obstacles
     // Obstacle 1a: Cabin left wall (leaves a 2-tile door gap at columns 10-11)
-    // cabinCol=10, so door is at x:600-720. Left wall runs from x:480 to x:600.
+    // cabinCol=10, so door is at x:640-768. Left wall runs from x:512 to x:640.
     m_obstacles.push_back({
         Rectangle{
-            static_cast<float>((cabinCol - 2) * m_tileSize),   // x: 480
-            static_cast<float>(0.5f * m_tileSize),              // y: 30
-            static_cast<float>(2 * m_tileSize),                 // width: 120 (cols 8-9)
-            static_cast<float>(2.5f * m_tileSize)               // height: 150
+            static_cast<float>((cabinCol - 2) * m_tileSize),   // x: 512
+            static_cast<float>(0.5f * m_tileSize),              // y: 32
+            static_cast<float>(2 * m_tileSize),                 // width: 128 (cols 8-9)
+            static_cast<float>(2.5f * m_tileSize)               // height: 160
         },
         Color{ 140, 100, 70, 255 }
     });
 
     // Obstacle 1b: Cabin right wall (mirror of left wall, starts after the door gap)
-    // Door gap ends at x:720 (col 12), right wall runs from x:720 to x:840.
+    // Door gap ends at x:768 (col 12), right wall runs from x:768 to x:896.
     m_obstacles.push_back({
         Rectangle{
-            static_cast<float>((cabinCol + 2) * m_tileSize),   // x: 720
-            static_cast<float>(0.5f * m_tileSize),              // y: 30
-            static_cast<float>(2 * m_tileSize),                 // width: 120 (cols 12-13)
-            static_cast<float>(2.5f * m_tileSize)               // height: 150
+            static_cast<float>((cabinCol + 2) * m_tileSize),   // x: 768
+            static_cast<float>(0.5f * m_tileSize),              // y: 32
+            static_cast<float>(2 * m_tileSize),                 // width: 128 (cols 12-13)
+            static_cast<float>(2.5f * m_tileSize)               // height: 160
         },
         Color{ 140, 100, 70, 255 }
     });
@@ -83,10 +83,10 @@ void TileMap::InitializeExterior() {
     // Thin back wall so the cabin reads as a complete structure.
     m_obstacles.push_back({
         Rectangle{
-            static_cast<float>((cabinCol - 2) * m_tileSize),   // x: 480
-            static_cast<float>(0.5f * m_tileSize),              // y: 30
-            static_cast<float>(6 * m_tileSize),                 // full width: 360
-            static_cast<float>(0.6f * m_tileSize)               // thin top bar: 36px
+            static_cast<float>((cabinCol - 2) * m_tileSize),   // x: 512
+            static_cast<float>(0.5f * m_tileSize),              // y: 32
+            static_cast<float>(6 * m_tileSize),                 // full width: 384
+            static_cast<float>(0.6f * m_tileSize)               // thin top bar: 38px
         },
         Color{ 120, 85, 55, 255 } // slightly darker for roof line
     });
@@ -114,12 +114,12 @@ void TileMap::InitializeExterior() {
     });
 
     // 3. Populate harvestable plant nodes
-    // Note: Nettle moved to 300, 750 to avoid overlapping the fallen log obstacle
-    m_plants.push_back(std::make_unique<PlantNode>("St. John's Wort", Vector2{ 200, 200 }));
-    m_plants.push_back(std::make_unique<PlantNode>("Mugwort", Vector2{ 1000, 150 }));
-    m_plants.push_back(std::make_unique<PlantNode>("Nettle", Vector2{ 300, 750 }));
-    m_plants.push_back(std::make_unique<PlantNode>("Lavender", Vector2{ 700, 450 }));
-    m_plants.push_back(std::make_unique<PlantNode>("Comfrey", Vector2{ 1000, 600 }));
+    // Note: Nettle moved to 320, 800 to avoid overlapping the fallen log obstacle
+    m_plants.push_back(std::make_unique<PlantNode>("St. John's Wort", Vector2{ 213, 213 }));
+    m_plants.push_back(std::make_unique<PlantNode>("Mugwort", Vector2{ 1067, 160 }));
+    m_plants.push_back(std::make_unique<PlantNode>("Nettle", Vector2{ 320, 800 }));
+    m_plants.push_back(std::make_unique<PlantNode>("Lavender", Vector2{ 747, 480 }));
+    m_plants.push_back(std::make_unique<PlantNode>("Comfrey", Vector2{ 1067, 640 }));
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -150,6 +150,51 @@ void TileMap::InitializeGarden() {
     // Default to grass — soil tile patches will be added when
     // the cultivation system is implemented in a future step
     m_tiles.assign(m_width * m_height, TileType::Grass);
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// BlockTiles / UnblockTiles
+// Called by RoomManager when a placed item is added or removed.
+// Marks tiles as ObstacleWall so IsWalkable() and pathfinding treat
+// the item's footprint as impassable.
+// ─────────────────────────────────────────────────────────────────────────────
+void TileMap::BlockTiles(int tileX, int tileY, int w, int h) {
+    for (int dy = 0; dy < h; ++dy) {
+        for (int dx = 0; dx < w; ++dx) {
+            int x = tileX + dx;
+            int y = tileY + dy;
+            if (x >= 0 && x < m_width && y >= 0 && y < m_height) {
+                m_tiles[y * m_width + x] = TileType::ObstacleWall;
+            }
+        }
+    }
+}
+
+void TileMap::UnblockTiles(int tileX, int tileY, int w, int h) {
+    for (int dy = 0; dy < h; ++dy) {
+        for (int dx = 0; dx < w; ++dx) {
+            int x = tileX + dx;
+            int y = tileY + dy;
+            if (x >= 0 && x < m_width && y >= 0 && y < m_height) {
+                // Restore to the appropriate floor type based on map context.
+                // Interior maps use WoodFloor; exterior maps use Grass.
+                // We can't know the map type here without storing it, so we
+                // check the surrounding tiles to infer the floor type.
+                TileType restore = TileType::Grass;
+                // Sample a neighbour tile to determine floor type
+                for (int sy = 0; sy < m_height && restore == TileType::Grass; ++sy) {
+                    for (int sx = 0; sx < m_width; ++sx) {
+                        TileType t = m_tiles[sy * m_width + sx];
+                        if (t == TileType::WoodFloor) {
+                            restore = TileType::WoodFloor;
+                            break;
+                        }
+                    }
+                }
+                m_tiles[y * m_width + x] = restore;
+            }
+        }
+    }
 }
 
 void TileMap::Update(float deltaTime) {

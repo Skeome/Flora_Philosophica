@@ -1,5 +1,5 @@
-#ifndef FLORA_PHILOSOPHICA_WORLD_MAP_H
-#define FLORA_PHILOSOPHICA_WORLD_MAP_H
+#ifndef FLORA_PHILOSOPHIA_WORLD_MAP_H
+#define FLORA_PHILOSOPHIA_WORLD_MAP_H
 
 #include "raylib.h"
 #include "plant_node.h"
@@ -55,6 +55,12 @@ public:
     bool HasLineOfSight(Vector2 start, Vector2 end) const;
     std::vector<Vector2> FindPath(Vector2 startWorld, Vector2 endWorld) const;
 
+    // Placed item footprint registration.
+    // Marks a rectangular region of tiles as blocked (placed) or walkable (removed).
+    // Called by RoomManager when items are placed or picked up.
+    void BlockTiles(int tileX, int tileY, int w, int h);
+    void UnblockTiles(int tileX, int tileY, int w, int h);
+
     int GetWidth() const { return m_width * m_tileSize; }
     int GetHeight() const { return m_height * m_tileSize; }
     int GetTileSize() const { return m_tileSize; }
@@ -76,4 +82,4 @@ private:
 } // namespace World
 } // namespace FloraPhilosophica
 
-#endif // FLORA_PHILOSOPHICA_WORLD_MAP_H
+#endif // FLORA_PHILOSOPHIA_WORLD_MAP_H

@@ -1,6 +1,5 @@
 #include "plant_node.h"
 #include "raymath.h"
-#include <iostream>
 
 namespace FloraPhilosophica {
 namespace World {
@@ -10,7 +9,7 @@ PlantNode::PlantNode(std::string plantName, Vector2 position)
     , m_position(position)
     , m_harvested(false)
     , m_respawnTimer(0.0f)
-    , m_maxRespawnTime(300.0f) // 5 minutes respawn for testing
+    , m_maxRespawnTime(300.0f) // 5 minutes for testing; will scale to real time later
     , m_interactionRadius(40.0f)
 {
     m_data = Alchemy::PlantDatabase::GetPlant(plantName);
@@ -29,65 +28,65 @@ void PlantNode::Update(float deltaTime) {
 void PlantNode::Draw() const {
     if (m_harvested) return;
 
-    // Draw the plant node
-    // In a full implementation, this would use sprites.
-    // For now, we use colored shapes based on the plant's ruler.
-    
+    // TODO: Replace placeholder drawing with Aseprite texture rendering once assets are ready
+
+    // Color encodes the plant's ruling planet for at-a-glance identification
     Color plantColor = GREEN;
     if (m_data) {
         switch (m_data->ruler) {
-            case Core::Planet::Sun:     plantColor = GOLD; break;
-            case Core::Planet::Moon:    plantColor = WHITE; break;
-            case Core::Planet::Mars:    plantColor = RED; break;
-            case Core::Planet::Venus:   plantColor = PINK; break;
-            case Core::Planet::Mercury: plantColor = SKYBLUE; break;
-            case Core::Planet::Jupiter: plantColor = PURPLE; break;
+            case Core::Planet::Sun:     plantColor = GOLD;     break;
+            case Core::Planet::Moon:    plantColor = WHITE;    break;
+            case Core::Planet::Mars:    plantColor = RED;      break;
+            case Core::Planet::Venus:   plantColor = PINK;     break;
+            case Core::Planet::Mercury: plantColor = SKYBLUE;  break;
+            case Core::Planet::Jupiter: plantColor = PURPLE;   break;
             case Core::Planet::Saturn:  plantColor = DARKGRAY; break;
         }
     }
 
     // Shadow
-    DrawCircle(static_cast<int>(m_position.x), static_cast<int>(m_position.y) + 5, 10, Fade(BLACK, 0.3f));
-    
-    // Plant "Body"
+    DrawCircle(static_cast<int>(m_position.x),
+               static_cast<int>(m_position.y) + 5, 10, Fade(BLACK, 0.3f));
+
+    // Plant body
     DrawCircleV(m_position, 12.0f, plantColor);
-    DrawCircleLines(static_cast<int>(m_position.x), static_cast<int>(m_position.y), 12, DARKGREEN);
-    
+    DrawCircleLines(static_cast<int>(m_position.x),
+                    static_cast<int>(m_position.y), 12, DARKGREEN);
+
     // Label
-    DrawText(m_plantName.c_str(), static_cast<int>(m_position.x) - 30, static_cast<int>(m_position.y) - 25, 10, RAYWHITE);
+    DrawText(m_plantName.c_str(),
+             static_cast<int>(m_position.x) - 30,
+             static_cast<int>(m_position.y) - 25,
+             10, RAYWHITE);
 }
 
 bool PlantNode::CheckCollision(Vector2 playerPosition, float interactionRadius) const {
     if (m_harvested) return false;
-    return CheckCollisionCircles(m_position, m_interactionRadius, playerPosition, interactionRadius);
+    return CheckCollisionCircles(m_position, m_interactionRadius,
+                                 playerPosition, interactionRadius);
 }
 
 HarvestQuality PlantNode::Harvest(Core::Planet dayRuler, Core::Planet hourRuler) {
     if (m_harvested) return HarvestQuality::Standard;
 
-    m_harvested = true;
+    m_harvested    = true;
     m_respawnTimer = m_maxRespawnTime;
 
     if (!m_data) return HarvestQuality::Standard;
 
-    // 1. Pristine: Matching Day AND Hour
-    if (dayRuler == m_data->ruler && hourRuler == m_data->ruler) {
+    // Pristine: matching day AND hour
+    if (dayRuler == m_data->ruler && hourRuler == m_data->ruler)
         return HarvestQuality::Pristine;
-    }
 
-    // 2. Debased: Opposite Planetary Hour
-    if (hourRuler == GetOppositePlanet(m_data->ruler)) {
+    // Debased: opposite planetary hour
+    if (hourRuler == GetOppositePlanet(m_data->ruler))
         return HarvestQuality::Debased;
-    }
 
-    // 3. Standard: Everything else
     return HarvestQuality::Standard;
 }
 
 Core::Planet PlantNode::GetOppositePlanet(Core::Planet planet) {
-    // Classical astrological oppositions:
-    // Sun opposes Saturn, Moon opposes Mars,
-    // Mercury opposes Jupiter, Venus opposes Mars (secondary)
+    // Classical astrological oppositions
     switch (planet) {
         case Core::Planet::Sun:     return Core::Planet::Saturn;
         case Core::Planet::Saturn:  return Core::Planet::Sun;
@@ -104,21 +103,9 @@ std::string PlantNode::GetQualityName(HarvestQuality quality) {
     switch (quality) {
         case HarvestQuality::Pristine: return "Pristine Celestial Harvest";
         case HarvestQuality::Standard: return "Standard Quality";
-        case HarvestQuality::Debased:  return "Stressed / Debased specimen";
+        case HarvestQuality::Debased:  return "Stressed / Debased";
         default:                       return "Unknown";
     }
-}
-
-ItemType PlantNode::GetPlantItemType(const std::string& plantName) {
-    if (plantName == "St. John's Wort") return ItemType::Plant_StJohnsWort;
-    if (plantName == "Mugwort")         return ItemType::Plant_Mugwort;
-    if (plantName == "Nettle")          return ItemType::Plant_Nettle;
-    if (plantName == "Yarrow")          return ItemType::Plant_Yarrow;
-    if (plantName == "Lavender")        return ItemType::Plant_Lavender;
-    if (plantName == "Dandelion")       return ItemType::Plant_Dandelion;
-    if (plantName == "Comfrey")         return ItemType::Plant_Comfrey;
-    // Unknown plant — return a safe fallback
-    return ItemType::Plant_StJohnsWort;
 }
 
 } // namespace World

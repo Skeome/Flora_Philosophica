@@ -1,5 +1,5 @@
-#ifndef FLORA_PHILOSOPHICA_WORLD_ROOM_MANAGER_H
-#define FLORA_PHILOSOPHICA_WORLD_ROOM_MANAGER_H
+#ifndef FLORA_PHILOSOPHIA_WORLD_ROOM_MANAGER_H
+#define FLORA_PHILOSOPHIA_WORLD_ROOM_MANAGER_H
 
 #include "map.h"
 #include "placed_item.h"
@@ -83,8 +83,22 @@ public:
     // the item's flavour text.
     InteractionResult TryInteract(Vector2 playerPos, std::string& outMessage);
 
-    // ── Placement mode ────────────────────────────────────────────────────
-    // Begin placing an item from inventory
+    // Returns a pointer to the nearest placed item the player is near in the
+    // active room, or nullptr if none. Used by main.cpp to drive apparatus
+    // interactions (loading/unloading HarvestItems) after TryInteract
+    // returns OpenApparatus.
+    PlacedItem* GetNearestPlacedItem(Vector2 playerPos);
+
+    // ── Build Mode ────────────────────────────────────────────────────
+    void ToggleBuildMode();
+    bool IsInBuildMode() const { return m_buildModeActive; }
+
+    // Picks up the nearest item and returns it to inventory
+    bool PickupItem(Vector2 playerPos, Inventory& inventory);
+    // Removes the nearest item (deletion)
+    bool RemoveItem(Vector2 playerPos);
+    
+    // Begin placing an item from inventory (internal or external)
     void StartPlacement(ItemType type);
 
     // Update ghost tile position from mouse/touch world position
@@ -131,6 +145,7 @@ private:
     RoomID m_activeRoom;
     const RoomTransition* m_pendingTransition;
     PlacementMode m_placement;
+    bool m_buildModeActive = false;
     int m_tileSize;
 
     // Builds the default Tier 1 cabin layout with inherited items
@@ -150,4 +165,4 @@ private:
 } // namespace World
 } // namespace FloraPhilosophica
 
-#endif // FLORA_PHILOSOPHICA_WORLD_ROOM_MANAGER_H
+#endif // FLORA_PHILOSOPHIA_WORLD_ROOM_MANAGER_H

@@ -437,6 +437,7 @@ All source files must follow these conventions:
 | **Android packaging** | Android NDK + Gradle | Wraps the C++ core into an Android APK |
 | **Build system** | CMake | Cross-platform build configuration |
 | **Save / state persistence** | JSON (nlohmann/json) or SQLite | Player save data, inventory, terrarium timers, lab queue |
+- **Implemented (June 2026):** Comprehensive **JSON Save System** (`save.json`). Tracks player position, the unique arrangement of 46 inventory slots, and exact state of every laboratory timer via UTC timestamps (progressing while offline). Auto-saves on room transitions and exit.
 | **GPS / clock** | Platform API calls (wrapped) | Planetary hour calculation; abstracted so the same logic works on web and Android |
 
 > *Raylib is recommended as the starting rendering library. It is designed for learners, has excellent documentation, compiles cleanly to WebAssembly via Emscripten, and supports Android. It can be replaced later if the project outgrows it.*
@@ -539,6 +540,14 @@ The alchemical processes described in this document are drawn from the operative
 The planetary attributions of herbs follow Culpeper's documented system throughout. This system is operatively recognised within the spagyric tradition and is not a game invention.
 
 The Tria Prima — Mercurius, Sulphur, Sal — are the foundational three-principle model of Paracelsian alchemy and forms the educational backbone of the entire product progression pipeline.
+
+---
+
+*☉ ☽ ♂ ☿ ♃ ♀ ♄*
+
+*Solve Et Coagula*
+t Coagula*
+kbone of the entire product progression pipeline.
 
 ---
 

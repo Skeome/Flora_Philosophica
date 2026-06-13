@@ -5,10 +5,48 @@
 namespace FloraPhilosophica {
 namespace World {
 
+// ─────────────────────────────────────────────────────────────────────────────
+// HarvestItem helpers
+// ─────────────────────────────────────────────────────────────────────────────
+std::string HarvestItem::GetStageName(PlantStage stage) {
+    switch (stage) {
+        case PlantStage::Fresh:    return "Fresh";
+        case PlantStage::Dried:    return "Dried";
+        case PlantStage::Ground:   return "Ground";
+        case PlantStage::Spent:    return "Spent";
+        case PlantStage::Spirits:  return "Spirits";
+        case PlantStage::Salt:     return "Salt";
+        case PlantStage::Tincture: return "Tincture";
+    }
+    return "Unknown";
+}
+
+std::string HarvestItem::GetDisplayName() const {
+    std::string qualStr;
+    switch (quality) {
+        case HarvestQuality::Pristine: qualStr = "Pristine"; break;
+        case HarvestQuality::Standard: qualStr = "Standard"; break;
+        case HarvestQuality::Debased:  qualStr = "Debased";  break;
+    }
+    
+    std::string name;
+    if (stage == PlantStage::Spirits) {
+        name = "Spirits of " + plantName;
+    } else if (stage == PlantStage::Salt) {
+        name = "Salt of " + plantName;
+    } else if (stage == PlantStage::Tincture) {
+        name = "Tincture of " + plantName;
+    } else {
+        name = GetStageName(stage) + " " + plantName;
+    }
+    
+    return name + " (" + qualStr + ")";
+}
+
 namespace {
     // ─────────────────────────────────────────────────────────────────────────
     // G_ITEM_DEFINITIONS
-    // Static lookup table for every item type.
+    // Static lookup table for every placeable item type.
     // Order must match the ItemType enum exactly.
     // Fields: type, displayName, description, tier, tileW, tileH, indoor, outdoor
     // ─────────────────────────────────────────────────────────────────────────
@@ -23,9 +61,20 @@ namespace {
             true, false
         },
         {
+            ItemType::DryingRack,
+            "Drying Rack",
+            "A simple wooden frame for hanging freshly harvested herbs. "
+            "Drying takes approximately 2 real hours. "
+            "Dried herbs can be ground in the mortar or used directly in maceration.",
+            EquipmentTier::Tier1_Forager,
+            2, 1,
+            true, true
+        },
+        {
             ItemType::MortarAndPestle,
             "Mortar & Pestle",
-            "Stone grinding bowl for crushing dried herbs into powder or paste.",
+            "Stone grinding bowl. Breaks dried herbs into powder, increasing surface "
+            "area for better extraction during maceration.",
             EquipmentTier::Tier1_Forager,
             1, 1,
             true, true
@@ -148,16 +197,6 @@ namespace {
             1, 1,
             false, true  // outdoor only
         },
-        // ── Harvested Plant Material ──────────────────────────────────────────
-        // canPlaceIndoors/Outdoors = false — these are inventory-only items,
-        // never placed on the grid directly.
-        { ItemType::Plant_StJohnsWort, "St. John's Wort", "Harvested herb. Sun-ruled. Fire element.", EquipmentTier::Tier1_Forager, 1, 1, false, false },
-        { ItemType::Plant_Mugwort,     "Mugwort",         "Harvested herb. Moon-ruled. Water element.", EquipmentTier::Tier1_Forager, 1, 1, false, false },
-        { ItemType::Plant_Nettle,      "Nettle",          "Harvested herb. Mars-ruled. Fire element.", EquipmentTier::Tier1_Forager, 1, 1, false, false },
-        { ItemType::Plant_Yarrow,      "Yarrow",          "Harvested herb. Venus-ruled. Earth element.", EquipmentTier::Tier1_Forager, 1, 1, false, false },
-        { ItemType::Plant_Lavender,    "Lavender",        "Harvested herb. Mercury-ruled. Air element.", EquipmentTier::Tier1_Forager, 1, 1, false, false },
-        { ItemType::Plant_Dandelion,   "Dandelion",       "Harvested herb. Jupiter-ruled. Air element.", EquipmentTier::Tier1_Forager, 1, 1, false, false },
-        { ItemType::Plant_Comfrey,     "Comfrey",         "Harvested herb. Saturn-ruled. Earth element.", EquipmentTier::Tier1_Forager, 1, 1, false, false },
     }};
 }
 
