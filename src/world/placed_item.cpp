@@ -309,7 +309,8 @@ bool PlacedItem::LoadHarvestItem(const HarvestItem& item, long long nowUtc) {
             return true;
 
         case ItemType::CompostBin:
-            // Compost accepts plants at any stage
+            // Compost accepts plants at any stage and is instant; it stays occupied
+            // until the instantaneous "unload" step clears the bin.
             m_loadedItem         = item;
             m_processStartUtc    = nowUtc;
             m_processDurationSec = 0; // Composting is instant "deletion" or has no timer here
@@ -330,15 +331,21 @@ bool PlacedItem::IsProcessComplete(long long nowUtc) const {
 bool PlacedItem::UnloadProcessedItem(HarvestItem& outItem, long long nowUtc) {
     if (!m_occupied || !IsProcessComplete(nowUtc)) return false;
 
-    outItem = m_loadedItem;
+    if (m_type == ItemType::CompostBin) {
+        // Compost bin consumes the item and does not return it.
+        outItem = HarvestItem{};
+        m_loadedItem = HarvestItem{}; // Clear the loaded item
+    } else {
+        outItem = m_loadedItem;
 
-    // Advance stage on unload for timed processes
-    if (m_type == ItemType::DryingRack) {
-        outItem.stage = PlantStage::Dried;
-    } else if (m_type == ItemType::MacerationJar) {
-        outItem.stage = PlantStage::Tincture;
+        // Advance stage on unload for timed processes
+        if (m_type == ItemType::DryingRack) {
+            outItem.stage = PlantStage::Dried;
+        } else if (m_type == ItemType::MacerationJar) {
+            outItem.stage = PlantStage::Tincture;
+        }
+        // MortarAndPestle stage was already set to Ground on load
     }
-    // MortarAndPestle stage was already set to Ground on load
 
     m_occupied           = false;
     m_processStartUtc    = 0;

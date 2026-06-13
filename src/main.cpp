@@ -283,8 +283,15 @@ int main() {
                                 if (slot.occupied && slot.isHerb) {
                                     std::string name = slot.herb.plantName;
                                     if (station->LoadHarvestItem(slot.herb, nowUtc)) {
-                                        inventory.ClearSlot(sel);
-                                        interactionLog = "Composted " + name + "."; logTimer = 2.5f;
+                                        HarvestItem out; 
+                                        if (station->UnloadProcessedItem(out, nowUtc)) {
+                                            inventory.ClearSlot(sel);
+                                            interactionLog = "Composted " + name + "."; logTimer = 2.5f;
+                                        } else {
+                                            interactionLog = "[Compost Error: Could not unload]"; logTimer = 2.0f;
+                                        }
+                                    } else {
+                                        interactionLog = "[Compost Error: Could not load]"; logTimer = 2.0f;
                                     }
                                 } else { interactionLog = "Select an herb to compost first."; logTimer = 2.0f; }
                             }
