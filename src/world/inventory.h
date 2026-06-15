@@ -2,79 +2,81 @@
 #define FLORA_PHILOSOPHICA_WORLD_INVENTORY_H
 
 #include "item.h"
-#include <vector>
-#include <string>
+#include <godot_cpp/classes/ref_counted.hpp>
+#include <godot_cpp/core/class_db.hpp>
+#include <godot_cpp/variant/typed_array.hpp>
 
-namespace FloraPhilosophica {
-namespace World {
+namespace godot {
 
-// ─────────────────────────────────────────────────────────────────────────────
-// InventorySlot
-// A single cell in the unified inventory (46 slots total).
-// Can hold either a stack of placeable items or a single HarvestItem herb.
-// ─────────────────────────────────────────────────────────────────────────────
-struct InventorySlot {
+class InventorySlot : public RefCounted {
+    GDCLASS(InventorySlot, RefCounted)
+
+public:
     bool occupied = false;
-    bool isHerb   = false;
-    
-    // For Herbs
-    HarvestItem herb;
-    
-    // For Placeables (Stations, furniture)
-    ItemType    station  = ItemType::COUNT;
-    int         quantity = 0;
+    bool is_herb = false;
+    Ref<HarvestItem> herb;
+    ItemType station = ITEM_COUNT;
+    int quantity = 0;
 
-    void Clear() {
-        occupied = false;
-        isHerb   = false;
-        station  = ItemType::COUNT;
-        quantity = 0;
-    }
+    InventorySlot();
+    ~InventorySlot();
+
+    void set_occupied(bool p_occupied) { occupied = p_occupied; }
+    bool get_occupied() const { return occupied; }
+
+    void set_is_herb(bool p_is_herb) { is_herb = p_is_herb; }
+    bool get_is_herb() const { return is_herb; }
+
+    void set_herb(const Ref<HarvestItem>& p_herb) { herb = p_herb; }
+    Ref<HarvestItem> get_herb() const { return herb; }
+
+    void set_station(ItemType p_station) { station = p_station; }
+    ItemType get_station() const { return station; }
+
+    void set_quantity(int p_quantity) { quantity = p_quantity; }
+    int get_quantity() const { return quantity; }
+
+    void clear();
+    Dictionary to_dict() const;
+    void from_dict(const Dictionary& p_dict);
+
+protected:
+    static void _bind_methods();
 };
 
-// ─────────────────────────────────────────────────────────────────────────────
-// Inventory
-// A fixed-size (46 slot) container for all player items.
-// Slots 0-9: Hotbar row
-// Slots 10-45: 3x12 main grid
-// ─────────────────────────────────────────────────────────────────────────────
-class Inventory {
+class Inventory : public RefCounted {
+    GDCLASS(Inventory, RefCounted)
+
 public:
     static constexpr int TOTAL_SLOTS = 46;
 
     Inventory();
+    ~Inventory();
 
-    // ── Unified Slot Management ──────────────────────────────────────────
-    const InventorySlot& GetSlot(int index) const;
-    void SetSlot(int index, const InventorySlot& slot);
-    void SwapSlots(int idxA, int idxB);
-    void ClearSlot(int index);
+    Ref<InventorySlot> get_slot(int p_index) const;
+    void set_slot(int p_index, const Ref<InventorySlot>& p_slot);
+    void swap_slots(int p_idx_a, int p_idx_b);
+    void clear_slot(int p_index);
 
-    // ── Legacy API Compatibility ─────────────────────────────────────────
-    // These now find the first available slot or stack
-    void AddItem(ItemType type, int quantity = 1);
-    bool RemoveItem(ItemType type, int quantity = 1);
+    void add_item(ItemType p_type, int p_quantity = 1);
+    bool remove_item(ItemType p_type, int p_quantity = 1);
     
-    void AddHarvestItem(const std::string& plantName, HarvestQuality quality);
-    void AddHarvestItem(const HarvestItem& item);
-    bool RemoveHarvestItem(const std::string& plantName, PlantStage stage);
+    void add_harvest_item(const Ref<HarvestItem>& p_item);
+    bool remove_harvest_item(const String& p_plant_name, PlantStage p_stage);
 
-    // Helper for apparatus logic
-    bool HasHarvestItem(const std::string& plantName, PlantStage stage) const;
-    const HarvestItem* FindHarvestItem(const std::string& plantName, PlantStage stage) const;
+    String serialise() const;
+    void deserialise(const String& p_json);
 
-    // ── Serialisation ─────────────────────────────────────────────────────
-    std::string Serialise() const;
-    void        Deserialise(const std::string& json);
+protected:
+    static void _bind_methods();
 
 private:
-    std::vector<InventorySlot> m_slots;
+    std::vector<Ref<InventorySlot>> m_slots;
 
-    int FindFirstEmptySlot() const;
-    int FindStack(ItemType type) const;
+    int find_first_empty_slot() const;
+    int find_stack(ItemType p_type) const;
 };
 
-} // namespace World
-} // namespace FloraPhilosophica
+} // namespace godot
 
 #endif // FLORA_PHILOSOPHICA_WORLD_INVENTORY_H

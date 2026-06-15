@@ -1,144 +1,73 @@
-#ifndef FLORA_PHILOSOPHIA_WORLD_PLACED_ITEM_H
-#define FLORA_PHILOSOPHIA_WORLD_PLACED_ITEM_H
+#ifndef FLORA_PHILOSOPHICA_WORLD_PLACED_ITEM_H
+#define FLORA_PHILOSOPHICA_WORLD_PLACED_ITEM_H
 
 #include "item.h"
-#include "raylib.h"
-#include "nlohmann/json.hpp"
-#include <string>
-#include <vector>
+#include <godot_cpp/classes/ref_counted.hpp>
+#include <godot_cpp/core/class_db.hpp>
+#include <godot_cpp/variant/dictionary.hpp>
 
-namespace FloraPhilosophica {
-namespace World {
+namespace godot {
 
-// ─────────────────────────────────────────────────────────────────────────────
-// InteractionResult
-// What happens when the player presses E near a placed item.
-// The game loop reads this and dispatches to the correct subsystem.
-// ─────────────────────────────────────────────────────────────────────────────
-enum class InteractionResult {
-    None,               // Nothing happened (not close enough, or item has no action)
-    OpenApparatus,      // Open the apparatus UI for this station (lab work)
-    OpenStorage,        // Open the storage chest UI
-    OpenCompost,        // Open the compost confirmation dialog
-    InspectDecoration,  // Show the flavour-text description (fireplace "discovery" moment)
-    OpenMailbox,        // Open the mailbox to read letters
-    OpenPlacementMenu,  // Not used here — triggered by inventory UI instead
+enum InteractionResult {
+    INTERACT_NONE,
+    INTERACT_OPEN_APPARATUS,
+    INTERACT_OPEN_STORAGE,
+    INTERACT_OPEN_COMPOST,
+    INTERACT_INSPECT_DECORATION,
+    INTERACT_OPEN_MAILBOX
 };
 
-// ─────────────────────────────────────────────────────────────────────────────
-// PlacedItem
-// An instance of an item that has been placed on a room's tile grid.
-// Holds its grid position, type, and any instance-specific state.
-// ─────────────────────────────────────────────────────────────────────────────
-class PlacedItem {
+class PlacedItem : public RefCounted {
+    GDCLASS(PlacedItem, RefCounted)
+
 public:
-    struct DryingSlot {
-        bool occupied = false;
-        HarvestItem loadedItem = {};
-        long long processStartUtc = 0;
-        long long processDurationSec = 0;
-    };
+    PlacedItem();
+    ~PlacedItem();
 
-    struct StorageSlot {
-        bool occupied = false;
-        bool isHarvest = false;
-        ItemType placeableType = ItemType::COUNT;
-        HarvestItem harvestItem = {};
-    };
+    void init(ItemType p_type, int p_tile_x, int p_tile_y);
 
-    PlacedItem(ItemType type, int tileX, int tileY, int tileSize);
+    // --- Apparatus Logic ---
+    bool load_harvest_item(const Ref<HarvestItem>& p_item, int64_t p_now_utc);
+    bool is_process_complete(int64_t p_now_utc) const;
+    Ref<HarvestItem> unload_processed_item(int64_t p_now_utc);
+    float get_progress(int64_t p_now_utc) const;
+    
+    InteractionResult interact();
+    String get_inspection_message() const;
 
-    // Draw the item at its grid position
-    // TODO: Replace colored rectangles with sprites when art assets are ready
-    void Draw() const;
+    // --- Getters/Setters ---
+    ItemType get_item_type() const { return type; }
+    int get_tile_x() const { return tile_x; }
+    int get_tile_y() const { return tile_y; }
+    bool is_discovered() const { return discovered; }
+    void set_discovered(bool p_discovered) { discovered = p_discovered; }
 
-    // Update per-frame logic (timer display, animation states)
-    void Update(float deltaTime);
+    // --- Serialization ---
+    Dictionary to_dict() const;
+    void from_dict(const Dictionary& p_dict);
 
-    // ── Apparatus / timed process interface ──────────────────────────────
-    // Load an item into this apparatus. Returns false if the station is
-    // already occupied or the item type is not accepted.
-    bool LoadHarvestItem(const HarvestItem& item, long long nowUtc);
-
-    // Returns true if the loaded process has completed
-    bool IsProcessComplete(long long nowUtc) const;
-
-    // Unloads and returns the processed item. Call only when IsProcessComplete().
-    // Returns false if nothing is loaded or process not complete.
-    bool UnloadProcessedItem(HarvestItem& outItem, long long nowUtc);
-
-    // Returns progress 0.0–1.0, or -1 if nothing loaded
-    float GetProgress(long long nowUtc) const;
-
-    // Returns the display name of the currently loaded item, or empty string
-    std::string GetLoadedItemName() const;
-
-    // Returns true if the player position is within interaction range
-    bool IsPlayerNear(Vector2 playerWorldPos) const;
-
-    // Called when the player presses E near this item
-    // Returns what action the game loop should take
-    InteractionResult Interact();
-
-    // Returns the flavour text shown when an item is inspected.
-    // Only meaningful when Interact() returns InspectDecoration.
-    std::string GetInspectionMessage() const;
-
-    // Getters
-    ItemType GetType()  const { return m_type; }
-    int      GetTileX() const { return m_tileX; }
-    int      GetTileY() const { return m_tileY; }
-    bool     IsDiscovered() const { return m_discovered; }
-
-    std::vector<DryingSlot>& GetDryingSlots() { return m_dryingSlots; }
-    const std::vector<DryingSlot>& GetDryingSlots() const { return m_dryingSlots; }
-
-    std::vector<StorageSlot>& GetStorageGrid() { return m_storageGrid; }
-    const std::vector<StorageSlot>& GetStorageGrid() const { return m_storageGrid; }
-
-    // Setters
-    void SetDiscovered(bool discovered) { m_discovered = discovered; }
-
-    // Returns the world-space rectangle occupied by this item
-    Rectangle GetWorldRect() const;
-
-    // Serialise instance state to JSON string
-    std::string Serialise() const;
-    void Deserialise(const nlohmann::json& j);
+protected:
+    static void _bind_methods();
 
 private:
-    ItemType m_type;
-    int      m_tileX;       // Grid column (left edge of footprint)
-    int      m_tileY;       // Grid row (top edge of footprint)
-    int      m_tileSize;    // Pixels per tile — needed to convert to world coords
+    ItemType type;
+    int tile_x;
+    int tile_y;
+    bool discovered;
 
-    // m_discovered tracks whether the player has inspected this item and
-    // learned its true function.
-    bool m_discovered;
-
-    // ── Apparatus state ───────────────────────────────────────────────────
-    // Used by timed stations (DryingRack, MacerationJar, etc.)
-    bool        m_occupied;          // True if a process is running
-    HarvestItem m_loadedItem;        // The item currently being processed
-    long long   m_processStartUtc;   // UTC timestamp when the process began
-    long long   m_processDurationSec;// Total process duration in seconds
-    float       m_cachedProgress;    // 0.0-1.0, updated each frame for Draw()
-
-    // ── Multi-slot state ──────────────────────────────────────────────────
-    std::vector<DryingSlot>  m_dryingSlots;  // Size 7 for DryingRack
-    std::vector<StorageSlot> m_storageGrid;  // Size 144 (12x12) for StorageChest
+    // Apparatus state
+    bool occupied;
+    Ref<HarvestItem> loaded_item;
+    int64_t process_start_utc;
+    int64_t process_duration_sec;
 
     // Duration constants (seconds)
-    // 1 real hour = 1 in-game week
-    static constexpr long long DRYING_DURATION_SEC     = 2 * 3600LL; // 2 hours
-    static constexpr long long GRINDING_DURATION_SEC   = 0LL;         // instant
-    static constexpr long long MACERATION_DURATION_SEC = 1 * 3600LL; // 1 hour
-
-    // Interaction radius in world pixels
-    static constexpr float INTERACTION_RADIUS = 36.0f;
+    static constexpr int64_t DRYING_DURATION_SEC     = 2 * 3600;
+    static constexpr int64_t MACERATION_DURATION_SEC = 1 * 3600;
 };
 
-} // namespace World
-} // namespace FloraPhilosophica
+} // namespace godot
 
-#endif // FLORA_PHILOSOPHIA_WORLD_PLACED_ITEM_H
+VARIANT_ENUM_CAST(godot::InteractionResult);
+
+#endif // FLORA_PHILOSOPHICA_WORLD_PLACED_ITEM_H

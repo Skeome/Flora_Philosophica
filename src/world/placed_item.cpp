@@ -1,320 +1,64 @@
 #include "placed_item.h"
-#include "item.h"
-#include "raymath.h"
-#include "nlohmann/json.hpp"
-#include <cmath>
-#include <chrono>
 #include <algorithm>
 
-namespace FloraPhilosophica {
-namespace World {
+namespace godot {
 
-PlacedItem::PlacedItem(ItemType type, int tileX, int tileY, int tileSize)
-    : m_type(type)
-    , m_tileX(tileX)
-    , m_tileY(tileY)
-    , m_tileSize(tileSize)
-    , m_discovered(false)
-    , m_occupied(false)
-    , m_loadedItem{}
-    , m_processStartUtc(0)
-    , m_processDurationSec(0)
-    , m_cachedProgress(0.0f)
-{
-    if (type == ItemType::DryingRack) {
-        m_dryingSlots.resize(7);
-    } else if (type == ItemType::StorageChest) {
-        m_storageGrid.resize(144);
-    }
+PlacedItem::PlacedItem() 
+    : type(ITEM_COUNT), tile_x(0), tile_y(0), discovered(false), occupied(false), 
+      process_start_utc(0), process_duration_sec(0) {}
+
+PlacedItem::~PlacedItem() {}
+
+void PlacedItem::init(ItemType p_type, int p_tile_x, int p_tile_y) {
+    type = p_type;
+    tile_x = p_tile_x;
+    tile_y = p_tile_y;
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// GetWorldRect
-// Converts the tile-grid position to a world-space rectangle.
-// Uses the item's tile footprint from the definition table.
-// ─────────────────────────────────────────────────────────────────────────────
-Rectangle PlacedItem::GetWorldRect() const {
-    const ItemDefinition& def = GetItemDefinition(m_type);
-    return Rectangle{
-        static_cast<float>(m_tileX * m_tileSize),
-        static_cast<float>(m_tileY * m_tileSize),
-        static_cast<float>(def.tileWidth  * m_tileSize),
-        static_cast<float>(def.tileHeight * m_tileSize)
-    };
+void PlacedItem::_bind_methods() {
+    ClassDB::bind_method(D_METHOD("init", "type", "tile_x", "tile_y"), &PlacedItem::init);
+    ClassDB::bind_method(D_METHOD("load_harvest_item", "item", "now_utc"), &PlacedItem::load_harvest_item);
+    ClassDB::bind_method(D_METHOD("is_process_complete", "now_utc"), &PlacedItem::is_process_complete);
+    ClassDB::bind_method(D_METHOD("unload_processed_item", "now_utc"), &PlacedItem::unload_processed_item);
+    ClassDB::bind_method(D_METHOD("get_progress", "now_utc"), &PlacedItem::get_progress);
+    ClassDB::bind_method(D_METHOD("interact"), &PlacedItem::interact);
+    ClassDB::bind_method(D_METHOD("get_inspection_message"), &PlacedItem::get_inspection_message);
+    
+    ClassDB::bind_method(D_METHOD("get_item_type"), &PlacedItem::get_item_type);
+    ClassDB::bind_method(D_METHOD("is_discovered"), &PlacedItem::is_discovered);
+    ClassDB::bind_method(D_METHOD("set_discovered", "discovered"), &PlacedItem::set_discovered);
+
+    ClassDB::bind_method(D_METHOD("to_dict"), &PlacedItem::to_dict);
+    ClassDB::bind_method(D_METHOD("from_dict", "dict"), &PlacedItem::from_dict);
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// Draw
-// Temporary colored-rectangle placeholder rendering.
-// Color encodes the item's tier/function at a glance during development.
-// Replace with sprite rendering once art assets are available.
-// ─────────────────────────────────────────────────────────────────────────────
-void PlacedItem::Draw() const {
-    Rectangle rect = GetWorldRect();
-    const ItemDefinition& def = GetItemDefinition(m_type);
+bool PlacedItem::load_harvest_item(const Ref<HarvestItem>& p_item, int64_t p_now_utc) {
+    if (occupied || !p_item.is_valid()) return false;
 
-    // Choose a development placeholder color by item type
-    Color fillColor;
-    switch (m_type) {
-        case ItemType::Fireplace:
-            // Undiscovered: grey stone. Discovered: warm orange glow.
-            fillColor = m_discovered
-                ? Color{ 200, 100, 30, 255 }   // orange — furnace revealed
-                : Color{ 120, 110, 100, 255 };  // stone grey — looks decorative
-            break;
-        case ItemType::DryingRack:
-            fillColor = m_occupied
-                ? Color{ 160, 130, 80, 255 }   // warm tan — herbs hanging
-                : Color{ 120,  90, 50, 255 };  // dark wood — empty rack
-            break;
-        case ItemType::MacerationJar:   fillColor = Color{  80, 160, 120, 220 }; break; // green tint glass
-        case ItemType::CompostBin:      fillColor = Color{  90, 130,  60, 255 }; break; // earthy green
-        case ItemType::WorkBench:       fillColor = Color{ 150, 110,  70, 255 }; break; // wood brown
-        case ItemType::CopperAlembic:   fillColor = Color{ 180, 100,  40, 255 }; break; // copper
-        case ItemType::Bookshelf:       fillColor = Color{ 120,  80,  40, 255 }; break; // dark wood
-        case ItemType::StorageChest:    fillColor = Color{ 160, 120,  60, 255 }; break; // medium wood
-        case ItemType::MailboxPost:     fillColor = Color{ 180,  40,  40, 255 }; break; // post-box red
-        default:                        fillColor = Color{  80,  80, 160, 255 }; break; // blue = higher tier
-    }
-
-    // Shadow
-    DrawRectangleRec(
-        Rectangle{ rect.x + 4, rect.y + 4, rect.width, rect.height },
-        Fade(BLACK, 0.25f)
-    );
-
-    // Item body
-    DrawRectangleRec(rect, fillColor);
-    DrawRectangleLinesEx(rect, 2.0f, ColorAlpha(WHITE, 0.3f));
-
-    // Item label
-    DrawText(
-        def.displayName.c_str(),
-        static_cast<int>(rect.x + 4),
-        static_cast<int>(rect.y + rect.height / 2 - 6),
-        10,
-        RAYWHITE
-    );
-
-    // Show interaction hint when discovered (fireplace) or always for lab stations
-    if (m_discovered && m_type == ItemType::Fireplace) {
-        DrawText("[Furnace]",
-            static_cast<int>(rect.x + 4),
-            static_cast<int>(rect.y + rect.height / 2 + 6),
-            9, GOLD);
-    }
-
-    // Progress bar for occupied timed apparatus
-    if (m_occupied && m_processDurationSec > 0) {
-        // Use current time approximation — full UTC not available in Draw(),
-        // so we use a stored cached progress set by Update()
-        float barW   = rect.width - 8;
-        float barX   = rect.x + 4;
-        float barY   = rect.y + rect.height - 10;
-
-        // Background track
-        DrawRectangle(static_cast<int>(barX), static_cast<int>(barY),
-                      static_cast<int>(barW), 5, Fade(BLACK, 0.5f));
-
-        // Progress fill — m_cachedProgress is updated by Update()
-        DrawRectangle(static_cast<int>(barX), static_cast<int>(barY),
-                      static_cast<int>(barW * m_cachedProgress), 5,
-                      Color{ 80, 200, 120, 255 });
-
-        // Loaded item name (truncated)
-        std::string loaded = m_loadedItem.plantName;
-        if (loaded.length() > 8) loaded = loaded.substr(0, 7) + ".";
-        DrawText(loaded.c_str(),
-                 static_cast<int>(rect.x + 4),
-                 static_cast<int>(rect.y + rect.height / 2 + 6),
-                 9, GOLD);
-    }
-
-    // Display summary count for DryingRack in world space
-    if (m_type == ItemType::DryingRack) {
-        int occupiedCount = 0;
-        int completeCount = 0;
-        long long nowUtc = static_cast<long long>(
-            std::chrono::duration_cast<std::chrono::seconds>(
-                std::chrono::system_clock::now().time_since_epoch()
-            ).count()
-        );
-        for (const auto& slot : m_dryingSlots) {
-            if (slot.occupied) {
-                occupiedCount++;
-                if ((nowUtc - slot.processStartUtc) >= slot.processDurationSec) {
-                    completeCount++;
-                }
-            }
-        }
-
-        if (occupiedCount > 0) {
-            std::string labelStr = std::to_string(occupiedCount) + " herbs (" + std::to_string(completeCount) + " ready)";
-            DrawText(labelStr.c_str(),
-                     static_cast<int>(rect.x + 4),
-                     static_cast<int>(rect.y + rect.height / 2 + 6),
-                     9, GOLD);
-        }
-    }
-}
-
-void PlacedItem::Update(float deltaTime) {
-    (void)deltaTime;
-
-    // Update the cached progress so Draw() can show it without needing UTC time
-    if (m_occupied && m_processDurationSec > 0) {
-        long long nowUtc = static_cast<long long>(
-            std::chrono::duration_cast<std::chrono::seconds>(
-                std::chrono::system_clock::now().time_since_epoch()
-            ).count()
-        );
-        float elapsed = static_cast<float>(nowUtc - m_processStartUtc);
-        float total   = static_cast<float>(m_processDurationSec);
-        m_cachedProgress = std::min(elapsed / total, 1.0f);
-    } else {
-        m_cachedProgress = 0.0f;
-    }
-}
-
-// ─────────────────────────────────────────────────────────────────────────────
-// IsPlayerNear
-// Uses circle-rectangle collision: checks if the player's position is within
-// INTERACTION_RADIUS of the item's bounding rectangle.
-// ─────────────────────────────────────────────────────────────────────────────
-bool PlacedItem::IsPlayerNear(Vector2 playerWorldPos) const {
-    Rectangle rect = GetWorldRect();
-    return CheckCollisionCircleRec(playerWorldPos, INTERACTION_RADIUS, rect);
-}
-
-// ─────────────────────────────────────────────────────────────────────────────
-// Interact
-// Called when the player presses E near this item.
-// Returns an InteractionResult so the game loop can dispatch correctly.
-//
-// The fireplace has special logic: first inspection triggers the discovery
-// moment (sets m_discovered = true, shows the revelation message).
-// Subsequent interactions open it as a furnace apparatus.
-// ─────────────────────────────────────────────────────────────────────────────
-InteractionResult PlacedItem::Interact() {
-    switch (m_type) {
-        case ItemType::Fireplace:
-            if (!m_discovered) {
-                // First interaction: "discovery" moment — this is a furnace
-                m_discovered = true;
-                return InteractionResult::InspectDecoration;
-            }
-            // Subsequent interactions: open as calcination furnace
-            return InteractionResult::OpenApparatus;
-
-        case ItemType::DryingRack:
-        case ItemType::MacerationJar:
-        case ItemType::MortarAndPestle:
-        case ItemType::CopperAlembic:
-        case ItemType::GlassFlask:
-        case ItemType::GlassblowingStation:
-        case ItemType::DistillationTrain:
-        case ItemType::SoxhletExtractor:
-        case ItemType::PelicanFlask:
-        case ItemType::RetortTrain:
-        case ItemType::Terrarium:
-        case ItemType::CompostBin:
-            return InteractionResult::OpenApparatus;
-
-        case ItemType::StorageChest:
-            return InteractionResult::OpenStorage;
-
-        case ItemType::MailboxPost:
-            return InteractionResult::OpenMailbox;
-
-        case ItemType::Bookshelf:
-        case ItemType::WorkBench:
-            m_discovered = true;
-            return InteractionResult::InspectDecoration;
-
-        default:
-            return InteractionResult::None;
-    }
-}
-
-// ─────────────────────────────────────────────────────────────────────────────
-// GetInspectionMessage
-// Returns the flavour text shown when the player first inspects this item.
-// Each inspectable item has its own message rooted in the game's lore.
-// ─────────────────────────────────────────────────────────────────────────────
-std::string PlacedItem::GetInspectionMessage() const {
-    switch (m_type) {
-        case ItemType::Fireplace:
-            // The discovery moment — the player realises this is a furnace
-            return "This fireplace... the heat is controllable. The previous herbalist "
-                   "used this as a calcination furnace. It's a furnace!";
-
-        case ItemType::Bookshelf:
-            return "The shelves are packed with dog-eared herbals and loose manuscript "
-                   "pages. Culpeper's Complete Herbal sits open to the chapter on "
-                   "Solar herbs. A handwritten note reads: \"Begin with what the Sun gives freely.\"";
-
-        case ItemType::WorkBench:
-            return "A worn but sturdy preparation table. Dried plant stalks and a faint "
-                   "smell of alcohol linger in the wood grain. Whoever worked here last "
-                   "was methodical.";
-
-        case ItemType::StorageChest:
-            return "A lockable chest. The lock is broken — forced open from the outside, "
-                   "or the previous herbalist left in a hurry. Whatever was stored here "
-                   "is gone.";
-
-        case ItemType::MailboxPost:
-            return "A weathered post box. The slot is empty, but the inside smells faintly "
-                   "of sealed wax and old paper.";
-
-        default:
-            return "Nothing of note.";
-    }
-}
-
-// ─────────────────────────────────────────────────────────────────────────────
-// Apparatus — timed process methods
-// ─────────────────────────────────────────────────────────────────────────────
-
-bool PlacedItem::LoadHarvestItem(const HarvestItem& item, long long nowUtc) {
-    if (m_occupied) return false;
-
-    switch (m_type) {
-        case ItemType::DryingRack:
-            // Only accepts Fresh herbs
-            if (item.stage != PlantStage::Fresh) return false;
-            m_loadedItem         = item;
-            m_processStartUtc    = nowUtc;
-            m_processDurationSec = DRYING_DURATION_SEC;
-            m_occupied           = true;
+    switch (type) {
+        case ITEM_DRYING_RACK:
+            if (p_item->stage != STAGE_FRESH) return false;
+            loaded_item = p_item;
+            process_start_utc = p_now_utc;
+            process_duration_sec = DRYING_DURATION_SEC;
+            occupied = true;
             return true;
 
-        case ItemType::MortarAndPestle:
-            // Only accepts Dried herbs — grinding is instant
-            if (item.stage != PlantStage::Dried) return false;
-            m_loadedItem         = item;
-            m_loadedItem.stage   = PlantStage::Ground; // immediate
-            m_processStartUtc    = nowUtc;
-            m_processDurationSec = 0;
-            m_occupied           = true;
+        case ITEM_MORTAR_AND_PESTLE:
+            if (p_item->stage != STAGE_DRIED) return false;
+            loaded_item = p_item;
+            loaded_item->stage = STAGE_GROUND;
+            process_start_utc = p_now_utc;
+            process_duration_sec = 0;
+            occupied = true;
             return true;
 
-        case ItemType::MacerationJar:
-            // Accepts Ground or Dried herbs
-            if (item.stage != PlantStage::Ground && item.stage != PlantStage::Dried) return false;
-            m_loadedItem         = item;
-            m_processStartUtc    = nowUtc;
-            m_processDurationSec = MACERATION_DURATION_SEC;
-            m_occupied           = true;
-            return true;
-
-        case ItemType::CompostBin:
-            // Compost accepts plants at any stage and is instant; it stays occupied
-            // until the instantaneous "unload" step clears the bin.
-            m_loadedItem         = item;
-            m_processStartUtc    = nowUtc;
-            m_processDurationSec = 0; // Composting is instant "deletion" or has no timer here
-            m_occupied           = true;
+        case ITEM_MACERATION_JAR:
+            if (p_item->stage != STAGE_GROUND && p_item->stage != STAGE_DRIED) return false;
+            loaded_item = p_item;
+            process_start_utc = p_now_utc;
+            process_duration_sec = MACERATION_DURATION_SEC;
+            occupied = true;
             return true;
 
         default:
@@ -322,160 +66,105 @@ bool PlacedItem::LoadHarvestItem(const HarvestItem& item, long long nowUtc) {
     }
 }
 
-bool PlacedItem::IsProcessComplete(long long nowUtc) const {
-    if (!m_occupied) return false;
-    if (m_processDurationSec == 0) return true; // instant processes
-    return (nowUtc - m_processStartUtc) >= m_processDurationSec;
+bool PlacedItem::is_process_complete(int64_t p_now_utc) const {
+    if (!occupied) return false;
+    if (process_duration_sec == 0) return true;
+    return (p_now_utc - process_start_utc) >= process_duration_sec;
 }
 
-bool PlacedItem::UnloadProcessedItem(HarvestItem& outItem, long long nowUtc) {
-    if (!m_occupied || !IsProcessComplete(nowUtc)) return false;
+Ref<HarvestItem> PlacedItem::unload_processed_item(int64_t p_now_utc) {
+    if (!occupied || !is_process_complete(p_now_utc)) return Ref<HarvestItem>();
 
-    if (m_type == ItemType::CompostBin) {
-        // Compost bin consumes the item and does not return it.
-        outItem = HarvestItem{};
-        m_loadedItem = HarvestItem{}; // Clear the loaded item
-    } else {
-        outItem = m_loadedItem;
-
-        // Advance stage on unload for timed processes
-        if (m_type == ItemType::DryingRack) {
-            outItem.stage = PlantStage::Dried;
-        } else if (m_type == ItemType::MacerationJar) {
-            outItem.stage = PlantStage::Tincture;
-        }
-        // MortarAndPestle stage was already set to Ground on load
+    Ref<HarvestItem> out = loaded_item;
+    
+    if (type == ITEM_DRYING_RACK) {
+        out->stage = STAGE_DRIED;
+    } else if (type == ITEM_MACERATION_JAR) {
+        out->stage = STAGE_TINCTURE;
     }
 
-    m_occupied           = false;
-    m_processStartUtc    = 0;
-    m_processDurationSec = 0;
-    return true;
+    occupied = false;
+    loaded_item.unref();
+    process_start_utc = 0;
+    process_duration_sec = 0;
+    return out;
 }
 
-float PlacedItem::GetProgress(long long nowUtc) const {
-    if (!m_occupied) return -1.0f;
-    if (m_processDurationSec == 0) return 1.0f;
-    float elapsed = static_cast<float>(nowUtc - m_processStartUtc);
-    float total   = static_cast<float>(m_processDurationSec);
-    return std::min(elapsed / total, 1.0f);
+float PlacedItem::get_progress(int64_t p_now_utc) const {
+    if (!occupied) return -1.0f;
+    if (process_duration_sec == 0) return 1.0f;
+    float elapsed = (float)(p_now_utc - process_start_utc);
+    return std::min(elapsed / (float)process_duration_sec, 1.0f);
 }
 
-std::string PlacedItem::GetLoadedItemName() const {
-    if (!m_occupied) return "";
-    return m_loadedItem.GetDisplayName();
-}
-
-// ─────────────────────────────────────────────────────────────────────────────
-// Serialise
-// Saves the item's grid position and discovered state.
-// The type is stored as its integer enum value.
-// ─────────────────────────────────────────────────────────────────────────────
-std::string PlacedItem::Serialise() const {
-    nlohmann::json j = {
-        { "type",       static_cast<int>(m_type) },
-        { "tileX",      m_tileX                  },
-        { "tileY",      m_tileY                  },
-        { "discovered", m_discovered             },
-        { "occupied",   m_occupied               },
-        { "processStartUtc", m_processStartUtc   },
-        { "processDurationSec", m_processDurationSec },
-        { "loadedItem", {
-            { "plant",   m_loadedItem.plantName },
-            { "stage",   static_cast<int>(m_loadedItem.stage) },
-            { "quality", static_cast<int>(m_loadedItem.quality) }
-        }}
-    };
-
-    if (m_type == ItemType::DryingRack) {
-        nlohmann::json slots = nlohmann::json::array();
-        for (const auto& slot : m_dryingSlots) {
-            slots.push_back({
-                { "occupied", slot.occupied },
-                { "processStartUtc", slot.processStartUtc },
-                { "processDurationSec", slot.processDurationSec },
-                { "loadedItem", {
-                    { "plant",   slot.loadedItem.plantName },
-                    { "stage",   static_cast<int>(slot.loadedItem.stage) },
-                    { "quality", static_cast<int>(slot.loadedItem.quality) }
-                }}
-            });
-        }
-        j["dryingSlots"] = slots;
-    }
-
-    if (m_type == ItemType::StorageChest) {
-        nlohmann::json grid = nlohmann::json::array();
-        for (const auto& slot : m_storageGrid) {
-            grid.push_back({
-                { "occupied", slot.occupied },
-                { "isHarvest", slot.isHarvest },
-                { "placeableType", static_cast<int>(slot.placeableType) },
-                { "harvestItem", {
-                    { "plant",   slot.harvestItem.plantName },
-                    { "stage",   static_cast<int>(slot.harvestItem.stage) },
-                    { "quality", static_cast<int>(slot.harvestItem.quality) }
-                }}
-            });
-        }
-        j["storageGrid"] = grid;
-    }
-
-    return j.dump();
-}
-
-void PlacedItem::Deserialise(const nlohmann::json& j) {
-    m_discovered = j.value("discovered", false);
-    m_occupied = j.value("occupied", false);
-    m_processStartUtc = j.value("processStartUtc", 0LL);
-    m_processDurationSec = j.value("processDurationSec", 0LL);
-    if (j.contains("loadedItem")) {
-        auto& li = j["loadedItem"];
-        m_loadedItem.plantName = li.value("plant", "");
-        m_loadedItem.stage = static_cast<PlantStage>(li.value("stage", 0));
-        m_loadedItem.quality = static_cast<HarvestQuality>(li.value("quality", 0));
-    }
-    if (j.contains("dryingSlots") && m_type == ItemType::DryingRack) {
-        auto& slots = j["dryingSlots"];
-        m_dryingSlots.clear();
-        for (const auto& sj : slots) {
-            DryingSlot slot;
-            slot.occupied = sj.value("occupied", false);
-            slot.processStartUtc = sj.value("processStartUtc", 0LL);
-            slot.processDurationSec = sj.value("processDurationSec", 0LL);
-            if (sj.contains("loadedItem")) {
-                auto& li = sj["loadedItem"];
-                slot.loadedItem.plantName = li.value("plant", "");
-                slot.loadedItem.stage = static_cast<PlantStage>(li.value("stage", 0));
-                slot.loadedItem.quality = static_cast<HarvestQuality>(li.value("quality", 0));
+InteractionResult PlacedItem::interact() {
+    switch (type) {
+        case ITEM_FIREPLACE:
+            if (!discovered) {
+                discovered = true;
+                return INTERACT_INSPECT_DECORATION;
             }
-            m_dryingSlots.push_back(slot);
-        }
-        while (m_dryingSlots.size() < 7) {
-            m_dryingSlots.push_back(DryingSlot{});
-        }
-    }
-    if (j.contains("storageGrid") && m_type == ItemType::StorageChest) {
-        auto& grid = j["storageGrid"];
-        m_storageGrid.clear();
-        for (const auto& sg : grid) {
-            StorageSlot slot;
-            slot.occupied = sg.value("occupied", false);
-            slot.isHarvest = sg.value("isHarvest", false);
-            slot.placeableType = static_cast<ItemType>(sg.value("placeableType", static_cast<int>(ItemType::COUNT)));
-            if (sg.contains("harvestItem")) {
-                auto& hi = sg["harvestItem"];
-                slot.harvestItem.plantName = hi.value("plant", "");
-                slot.harvestItem.stage = static_cast<PlantStage>(hi.value("stage", 0));
-                slot.harvestItem.quality = static_cast<HarvestQuality>(hi.value("quality", 0));
-            }
-            m_storageGrid.push_back(slot);
-        }
-        while (m_storageGrid.size() < 144) {
-            m_storageGrid.push_back(StorageSlot{});
-        }
+            return INTERACT_OPEN_APPARATUS;
+
+        case ITEM_DRYING_RACK:
+        case ITEM_MORTAR_AND_PESTLE:
+        case ITEM_MACERATION_JAR:
+            return INTERACT_OPEN_APPARATUS;
+
+        case ITEM_STORAGE_CHEST:
+            return INTERACT_OPEN_STORAGE;
+
+        case ITEM_MAILBOX_POST:
+            return INTERACT_OPEN_MAILBOX;
+
+        case ITEM_BOOKSHELF:
+        case ITEM_WORK_BENCH:
+            discovered = true;
+            return INTERACT_INSPECT_DECORATION;
+
+        default:
+            return INTERACT_NONE;
     }
 }
 
-} // namespace World
-} // namespace FloraPhilosophica
+String PlacedItem::get_inspection_message() const {
+    switch (type) {
+        case ITEM_FIREPLACE:
+            return "This fireplace... the heat is controllable. It's a furnace!";
+        case ITEM_BOOKSHELF:
+            return "The shelves are packed with dog-eared herbals. One reads: \"Begin with what the Sun gives freely.\"";
+        default:
+            return "Nothing of note.";
+    }
+}
+
+Dictionary PlacedItem::to_dict() const {
+    Dictionary d;
+    d["type"] = (int)type;
+    d["tile_x"] = tile_x;
+    d["tile_y"] = tile_y;
+    d["discovered"] = discovered;
+    d["occupied"] = occupied;
+    d["process_start_utc"] = process_start_utc;
+    d["process_duration_sec"] = process_duration_sec;
+    if (occupied && loaded_item.is_valid()) {
+        d["loaded_item"] = loaded_item->to_dict();
+    }
+    return d;
+}
+
+void PlacedItem::from_dict(const Dictionary& p_dict) {
+    type = (ItemType)(int)p_dict.get("type", (int)ITEM_COUNT);
+    tile_x = p_dict.get("tile_x", 0);
+    tile_y = p_dict.get("tile_y", 0);
+    discovered = p_dict.get("discovered", false);
+    occupied = p_dict.get("occupied", false);
+    process_start_utc = p_dict.get("process_start_utc", 0);
+    process_duration_sec = p_dict.get("process_duration_sec", 0);
+    if (occupied && p_dict.has("loaded_item")) {
+        loaded_item.instantiate();
+        loaded_item->from_dict(p_dict["loaded_item"]);
+    }
+}
+
+} // namespace godot

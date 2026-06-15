@@ -1,69 +1,55 @@
 #ifndef FLORA_PHILOSOPHICA_CORE_CLOCK_H
 #define FLORA_PHILOSOPHICA_CORE_CLOCK_H
 
-#include <string>
+#include <godot_cpp/classes/ref_counted.hpp>
+#include <godot_cpp/core/class_db.hpp>
+#include <godot_cpp/variant/dictionary.hpp>
+#include <godot_cpp/variant/string.hpp>
 
-namespace FloraPhilosophica {
-namespace Core {
+namespace godot {
 
-// The Seven Planetary Rulers, ordered precisely according to the Chaldean Sequence.
-// This specific ordering is crucial as it allows us to calculate ruling planets 
-// using simple arithmetic shift: (WeekdayRuler + HourIndex) % 7.
-enum class Planet {
-    Saturn = 0,
-    Jupiter = 1,
-    Mars = 2,
-    Sun = 3,
-    Venus = 4,
-    Mercury = 5,
-    Moon = 6
-};
+class PlanetaryHourCalculator : public RefCounted {
+    GDCLASS(PlanetaryHourCalculator, RefCounted)
 
-// Represents the calculated planetary hour state for a given timestamp.
-struct PlanetaryHourInfo {
-    Planet rulingPlanet;        // Ruling planet of the current hour
-    Planet dayRuler;            // Ruling planet of the current weekday (for Pristine harvest check)
-    int hourIndex;              // 0 to 11 for day hours, 12 to 23 for night hours
-    double minutesRemaining;    // Minutes remaining in the current planetary hour
-    std::string planetName;     // String representation of the ruling planet
-    long long hourStartUtc;     // Unix timestamp when this hour began
-    long long hourEndUtc;       // Unix timestamp when this hour ends
-};
-
-class AstrologicalClock {
 public:
-    AstrologicalClock();
+    enum Planet {
+        SATURN = 0,
+        JUPITER = 1,
+        MARS = 2,
+        SUN = 3,
+        VENUS = 4,
+        MERCURY = 5,
+        MOON = 6
+    };
 
-    // Calculates the planetary hour based on coordinates and a Unix UTC timestamp
-    PlanetaryHourInfo CalculatePlanetaryHour(double latitude, double longitude, long long utcTimestamp);
+    PlanetaryHourCalculator();
+    ~PlanetaryHourCalculator();
 
-    // Get string representation of a planet
-    static std::string GetPlanetName(Planet planet);
+    Dictionary calculate_planetary_hour(double latitude, double longitude, int64_t utc_timestamp);
+    static String get_planet_name(Planet planet);
+
+protected:
+    static void _bind_methods();
 
 private:
-    // Internal struct to hold Sunrise and Sunset limits in minutes from UTC midnight
     struct SolarTimes {
         double sunriseUTC;      // Minutes from UTC midnight
         double sunsetUTC;       // Minutes from UTC midnight
         bool isPolar;           // True if polar day or night (no sunrise/sunset)
     };
 
-    // Internal struct to hold absolute Unix timestamps for a specific day's boundaries
     struct DayLimits {
-        long long sunriseUnix;  // Sunrise Unix timestamp
-        long long sunsetUnix;   // Sunset Unix timestamp
+        int64_t sunriseUnix;    // Sunrise Unix timestamp
+        int64_t sunsetUnix;     // Sunset Unix timestamp
         bool isPolar;           // True if polar day or night (no sunrise/sunset)
     };
 
-    // Computes solar times (sunrise/sunset) for a specific Julian Date
-    SolarTimes CalculateSolarLimits(double latitude, double longitude, double julianDate);
-
-    // Calculates sunrise and sunset Unix timestamps for a target day relative to a base timestamp
-    // dayOffset: -1 for yesterday, 0 for today, 1 for tomorrow
-    DayLimits GetDayLimits(double latitude, double longitude, long long utcTimestamp, int dayOffset);
+    SolarTimes calculate_solar_limits(double latitude, double longitude, double julianDate);
+    DayLimits get_day_limits(double latitude, double longitude, int64_t utcTimestamp, int dayOffset);
 };
 
-} // namespace Core
-} // namespace FloraPhilosophica
+} // namespace godot
+
+VARIANT_ENUM_CAST(PlanetaryHourCalculator::Planet);
 
 #endif // FLORA_PHILOSOPHICA_CORE_CLOCK_H

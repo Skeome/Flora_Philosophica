@@ -2,30 +2,52 @@
 #define FLORA_PHILOSOPHICA_ALCHEMY_PLANT_DB_H
 
 #include "core/clock.h"
-#include <string>
-#include <vector>
+#include <godot_cpp/classes/ref_counted.hpp>
+#include <godot_cpp/core/class_db.hpp>
+#include <godot_cpp/variant/string.hpp>
+#include <godot_cpp/variant/typed_array.hpp>
 
-namespace FloraPhilosophica {
-namespace Alchemy {
+namespace godot {
 
-// Holds alchemical data and Culpeper attributions for a botanical species.
-struct PlantData {
-    std::string name;
-    Core::Planet ruler;          // The ruling planet of the plant
-    std::string element;        // Elemental association (Fire, Water, Air, Earth)
-    std::string properties;     // Historical Culpeper properties
-};
+class PlantData : public RefCounted {
+    GDCLASS(PlantData, RefCounted)
 
-class PlantDatabase {
 public:
-    // Retrieves details for a specific plant by its name key
-    static const PlantData* GetPlant(const std::string& name);
+    String name;
+    PlanetaryHourCalculator::Planet ruler;
+    String element;
+    String properties;
 
-    // Retrieves all registered plants in the botanical database
-    static std::vector<PlantData> GetAllPlants();
+    PlantData();
+    ~PlantData();
+
+    void set_name(const String& p_name) { name = p_name; }
+    String get_name() const { return name; }
+
+    void set_ruler(PlanetaryHourCalculator::Planet p_ruler) { ruler = p_ruler; }
+    PlanetaryHourCalculator::Planet get_ruler() const { return ruler; }
+
+    void set_element(const String& p_element) { element = p_element; }
+    String get_element() const { return element; }
+
+    void set_properties(const String& p_properties) { properties = p_properties; }
+    String get_properties() const { return properties; }
+
+protected:
+    static void _bind_methods();
 };
 
-} // namespace Alchemy
-} // namespace FloraPhilosophica
+class PlantDatabase : public Object {
+    GDCLASS(PlantDatabase, Object)
+
+public:
+    static Ref<PlantData> get_plant(const String& p_name);
+    static TypedArray<PlantData> get_all_plants();
+
+protected:
+    static void _bind_methods();
+};
+
+} // namespace godot
 
 #endif // FLORA_PHILOSOPHICA_ALCHEMY_PLANT_DB_H

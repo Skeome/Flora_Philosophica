@@ -1,0 +1,13 @@
+[configuration]
+entry_symbol = "flora_philosophica_library_init"
+compatibility_minimum = "4.6"
+
+[libraries]
+linux.x86_64 = "res://bin/libflora_philosophica.so"
+linux.x86_32 = "res://bin/libflora_philosophica.x86_32.so"
+windows.x86_64 = "res://bin/libflora_philosophica.windows.x86_64.dll"
+macos.universal = "res://bin/libflora_philosophica.macos.universal.framework"
+
+[dependencies]
+# If your planetary calculator relies on external shared .so libraries, 
+# you would link their paths here so Godot loads them first. Empty for now.

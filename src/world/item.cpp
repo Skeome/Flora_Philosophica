@@ -1,212 +1,118 @@
 #include "item.h"
-#include <array>
-#include <stdexcept>
 
-namespace FloraPhilosophica {
-namespace World {
+namespace godot {
 
-// ─────────────────────────────────────────────────────────────────────────────
-// HarvestItem helpers
-// ─────────────────────────────────────────────────────────────────────────────
-std::string HarvestItem::GetStageName(PlantStage stage) {
-    switch (stage) {
-        case PlantStage::Fresh:    return "Fresh";
-        case PlantStage::Dried:    return "Dried";
-        case PlantStage::Ground:   return "Ground";
-        case PlantStage::Spent:    return "Spent";
-        case PlantStage::Spirits:  return "Spirits";
-        case PlantStage::Salt:     return "Salt";
-        case PlantStage::Tincture: return "Tincture";
+HarvestItem::HarvestItem() : stage(STAGE_FRESH), quality(QUALITY_STANDARD) {}
+HarvestItem::~HarvestItem() {}
+
+void HarvestItem::_bind_methods() {
+    ClassDB::bind_method(D_METHOD("get_display_name"), &HarvestItem::get_display_name);
+    ClassDB::bind_static_method("HarvestItem", D_METHOD("get_stage_name", "stage"), &HarvestItem::get_stage_name);
+    
+    ClassDB::bind_method(D_METHOD("to_dict"), &HarvestItem::to_dict);
+    ClassDB::bind_method(D_METHOD("from_dict", "dict"), &HarvestItem::from_dict);
+
+    ClassDB::bind_method(D_METHOD("set_plant_name", "name"), &HarvestItem::set_plant_name);
+    ClassDB::bind_method(D_METHOD("get_plant_name"), &HarvestItem::get_plant_name);
+    ClassDB::bind_method(D_METHOD("set_stage", "stage"), &HarvestItem::set_stage);
+    ClassDB::bind_method(D_METHOD("get_stage"), &HarvestItem::get_stage);
+    ClassDB::bind_method(D_METHOD("set_quality", "quality"), &HarvestItem::set_quality);
+    ClassDB::bind_method(D_METHOD("get_quality"), &HarvestItem::get_quality);
+
+    ADD_PROPERTY(PropertyInfo(Variant::STRING, "plant_name"), "set_plant_name", "get_plant_name");
+    ADD_PROPERTY(PropertyInfo(Variant::INT, "stage", PROPERTY_HINT_ENUM, "Fresh,Dried,Ground,Spent,Spirits,Salt,Tincture"), "set_stage", "get_stage");
+    ADD_PROPERTY(PropertyInfo(Variant::INT, "quality", PROPERTY_HINT_ENUM, "Pristine,Standard,Debased"), "set_quality", "get_quality");
+}
+
+String HarvestItem::get_stage_name(PlantStage p_stage) {
+    switch (p_stage) {
+        case STAGE_FRESH:    return "Fresh";
+        case STAGE_DRIED:    return "Dried";
+        case STAGE_GROUND:   return "Ground";
+        case STAGE_SPENT:    return "Spent";
+        case STAGE_SPIRITS:  return "Spirits";
+        case STAGE_SALT:     return "Salt";
+        case STAGE_TINCTURE: return "Tincture";
     }
     return "Unknown";
 }
 
-std::string HarvestItem::GetDisplayName() const {
-    std::string qualStr;
+String HarvestItem::get_display_name() const {
+    String qual_str;
     switch (quality) {
-        case HarvestQuality::Pristine: qualStr = "Pristine"; break;
-        case HarvestQuality::Standard: qualStr = "Standard"; break;
-        case HarvestQuality::Debased:  qualStr = "Debased";  break;
+        case QUALITY_PRISTINE: qual_str = "Pristine"; break;
+        case QUALITY_STANDARD: qual_str = "Standard"; break;
+        case QUALITY_DEBASED:  qual_str = "Debased";  break;
     }
     
-    std::string name;
-    if (stage == PlantStage::Spirits) {
-        name = "Spirits of " + plantName;
-    } else if (stage == PlantStage::Salt) {
-        name = "Salt of " + plantName;
-    } else if (stage == PlantStage::Tincture) {
-        name = "Tincture of " + plantName;
+    String name;
+    if (stage == STAGE_SPIRITS) {
+        name = "Spirits of " + plant_name;
+    } else if (stage == STAGE_SALT) {
+        name = "Salt of " + plant_name;
+    } else if (stage == STAGE_TINCTURE) {
+        name = "Tincture of " + plant_name;
     } else {
-        name = GetStageName(stage) + " " + plantName;
+        name = get_stage_name(stage) + " " + plant_name;
     }
     
-    return name + " (" + qualStr + ")";
+    return name + " (" + qual_str + ")";
 }
 
-namespace {
-    // ─────────────────────────────────────────────────────────────────────────
-    // G_ITEM_DEFINITIONS
-    // Static lookup table for every placeable item type.
-    // Order must match the ItemType enum exactly.
-    // Fields: type, displayName, description, tier, tileW, tileH, indoor, outdoor
-    // ─────────────────────────────────────────────────────────────────────────
-    const std::array<ItemDefinition, static_cast<size_t>(ItemType::COUNT)> G_ITEM_DEFINITIONS = {{
-        // ── Tier 1 ───────────────────────────────────────────────────────────
-        {
-            ItemType::Fireplace,
-            "Fireplace",
-            "A stone hearth that warms the cabin. Inspect it to discover its true purpose.",
-            EquipmentTier::Tier1_Forager,
-            2, 2,
-            true, false
-        },
-        {
-            ItemType::DryingRack,
-            "Drying Rack",
-            "A simple wooden frame for hanging freshly harvested herbs. "
-            "Drying takes approximately 2 real hours. "
-            "Dried herbs can be ground in the mortar or used directly in maceration.",
-            EquipmentTier::Tier1_Forager,
-            2, 1,
-            true, true
-        },
-        {
-            ItemType::MortarAndPestle,
-            "Mortar & Pestle",
-            "Stone grinding bowl. Breaks dried herbs into powder, increasing surface "
-            "area for better extraction during maceration.",
-            EquipmentTier::Tier1_Forager,
-            1, 1,
-            true, true
-        },
-        {
-            ItemType::MacerationJar,
-            "Maceration Jar",
-            "A sealed mason jar for steeping herbs in alcohol. The start of every tincture.",
-            EquipmentTier::Tier1_Forager,
-            1, 1,
-            true, true
-        },
-        {
-            ItemType::CompostBin,
-            "Compost Bin",
-            "A wooden bin for organic waste. Generates fertiliser for the garden. "
-            "Warning: anything placed inside cannot be retrieved.",
-            EquipmentTier::Tier1_Forager,
-            1, 1,
-            false, true  // outdoor only — the trap is outside the lab
-        },
-        {
-            ItemType::WorkBench,
-            "Work Bench",
-            "A sturdy wooden table for general preparation and sorting.",
-            EquipmentTier::Tier1_Forager,
-            2, 1,
-            true, true
-        },
-        // ── Tier 2 ───────────────────────────────────────────────────────────
-        {
-            ItemType::CopperAlembic,
-            "Copper Alembic",
-            "A classic pot-still for distillation. Separates volatile spirits from plant matter.",
-            EquipmentTier::Tier2_Herbalist,
-            2, 2,
-            true, false
-        },
-        {
-            ItemType::GlassFlask,
-            "Glass Flask",
-            "Borosilicate glass vessel for heating, storing, and observing preparations.",
-            EquipmentTier::Tier2_Herbalist,
-            1, 1,
-            true, false
-        },
-        {
-            ItemType::GlassblowingStation,
-            "Glassblowing Station",
-            "Furnace and pipe for hand-blowing replacement vessels. "
-            "Skill improves vessel quality and heat tolerance over time.",
-            EquipmentTier::Tier2_Herbalist,
-            2, 2,
-            true, false
-        },
-        // ── Tier 3 ───────────────────────────────────────────────────────────
-        {
-            ItemType::DistillationTrain,
-            "Distillation Train",
-            "Multi-stage glass apparatus for producing refined distillates and magisteries.",
-            EquipmentTier::Tier3_Paracelsian,
-            3, 2,
-            true, false
-        },
-        {
-            ItemType::SoxhletExtractor,
-            "Soxhlet Extractor",
-            "Continuous-cycle solvent extractor for exhaustive plant extraction.",
-            EquipmentTier::Tier3_Paracelsian,
-            2, 2,
-            true, false
-        },
-        // ── Tier 4 ───────────────────────────────────────────────────────────
-        {
-            ItemType::PelicanFlask,
-            "Pelican Flask",
-            "A self-feeding distillation vessel for cohobation. Required for Plant Stone creation.",
-            EquipmentTier::Tier4_Adept,
-            2, 2,
-            true, false
-        },
-        {
-            ItemType::RetortTrain,
-            "Retort Train",
-            "Full retort distillation apparatus for ens tinctures and advanced preparations.",
-            EquipmentTier::Tier4_Adept,
-            3, 2,
-            true, false
-        },
-        {
-            ItemType::Terrarium,
-            "Enchanted Terrarium",
-            "A sealed glass enclosure that slowly grows and auto-harvests a single plant species.",
-            EquipmentTier::Tier4_Adept,
-            2, 2,
-            true, true
-        },
-        // ── Decoration / Furniture ───────────────────────────────────────────
-        {
-            ItemType::Bookshelf,
-            "Bookshelf",
-            "A shelf for herbals, alchemical texts, and the Plant Compendium.",
-            EquipmentTier::Tier1_Forager,
-            2, 1,
-            true, false
-        },
-        {
-            ItemType::StorageChest,
-            "Storage Chest",
-            "A lockable chest for storing harvested plants and processed materials.",
-            EquipmentTier::Tier1_Forager,
-            1, 1,
-            true, true
-        },
-        {
-            ItemType::MailboxPost,
-            "Mailbox",
-            "A post box outside the cabin. Letters from customers and the Ternary Order arrive here.",
-            EquipmentTier::Tier1_Forager,
-            1, 1,
-            false, true  // outdoor only
-        },
-    }};
+Dictionary HarvestItem::to_dict() const {
+    Dictionary d;
+    d["plant_name"] = plant_name;
+    d["stage"] = (int)stage;
+    d["quality"] = (int)quality;
+    return d;
 }
 
-const ItemDefinition& GetItemDefinition(ItemType type) {
-    size_t index = static_cast<size_t>(type);
-    if (index >= static_cast<size_t>(ItemType::COUNT)) {
-        throw std::out_of_range("ItemType index out of range in GetItemDefinition");
+void HarvestItem::from_dict(const Dictionary& p_dict) {
+    plant_name = p_dict.get("plant_name", "");
+    stage = (PlantStage)(int)p_dict.get("stage", 0);
+    quality = (HarvestQuality)(int)p_dict.get("quality", 1);
+}
+
+// --- ItemDefinition ---
+
+ItemDefinition::ItemDefinition() : type(ITEM_COUNT), tier(TIER_1_FORAGER), tile_width(1), tile_height(1), can_place_indoors(true), can_place_outdoors(true) {}
+ItemDefinition::~ItemDefinition() {}
+
+void ItemDefinition::_bind_methods() {}
+
+// --- ItemDB (Static Database) ---
+
+void ItemDB::_bind_methods() {
+    ClassDB::bind_static_method("ItemDB", D_METHOD("get_item_definition", "type"), &ItemDB::get_item_definition);
+}
+
+Ref<ItemDefinition> ItemDB::get_item_definition(ItemType p_type) {
+    Ref<ItemDefinition> def;
+    def.instantiate();
+    def->type = p_type;
+
+    switch (p_type) {
+        case ITEM_FIREPLACE:
+            def->display_name = "Fireplace";
+            def->description = "A stone hearth for warming and calcination.";
+            def->tile_width = 2; def->tile_height = 2;
+            break;
+        case ITEM_DRYING_RACK:
+            def->display_name = "Drying Rack";
+            def->description = "Hangs herbs to dry.";
+            def->tile_width = 2; def->tile_height = 1;
+            break;
+        case ITEM_MORTAR_AND_PESTLE:
+            def->display_name = "Mortar & Pestle";
+            def->description = "For grinding dried herbs.";
+            def->tile_width = 1; def->tile_height = 1;
+            break;
+        // ... (Rest of the items would be populated here)
+        default:
+            def->display_name = "Unknown Apparatus";
+            break;
     }
-    return G_ITEM_DEFINITIONS[index];
+    return def;
 }
 
-} // namespace World
-} // namespace FloraPhilosophica
+} // namespace godot

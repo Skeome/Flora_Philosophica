@@ -29,7 +29,9 @@
 
 # Build directory
 build/
-bin/
+bin/**
+!**/bin/*.gdextension
+!**/bin/*.gdextension.uid
 
 # Dependency manager directories
 .cpm/
@@ -42,6 +44,15 @@ _deps/
 .DS_Store
 CMakeSettings.json
 CMakeUserPresets.json
+compile_commands.json
+.clangd/
+.cache/
+
+# Debug and Temporary files
+*.log
+vgcore.*
+*~
+*.swp
 
 # Obsidian Vault files (keep .obsidian/ but ignore workspace.json which contains recent file history)
 Flora_Philosophica/.obsidian/workspace.json

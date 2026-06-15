@@ -1,168 +1,44 @@
-#ifndef FLORA_PHILOSOPHIA_WORLD_ROOM_MANAGER_H
-#define FLORA_PHILOSOPHIA_WORLD_ROOM_MANAGER_H
+#ifndef FLORA_PHILOSOPHICA_WORLD_ROOM_MANAGER_H
+#define FLORA_PHILOSOPHICA_WORLD_ROOM_MANAGER_H
 
-#include "map.h"
 #include "placed_item.h"
-#include "inventory.h"
-#include "raylib.h"
-#include <vector>
-#include <memory>
-#include <string>
+#include <godot_cpp/classes/ref_counted.hpp>
+#include <godot_cpp/core/class_db.hpp>
+#include <godot_cpp/variant/typed_array.hpp>
 
-namespace FloraPhilosophica {
-namespace World {
+namespace godot {
 
-// ─────────────────────────────────────────────────────────────────────────────
-// RoomID
-// Every distinct map in the game has an ID.
-// Add new rooms here as they are designed.
-// ─────────────────────────────────────────────────────────────────────────────
-enum class RoomID {
-    Exterior,       // The mountain clearing, foraging map, approach to cabin
-    CabinMain,      // Ground floor of the cabin — lab, fireplace, workbench
-    CabinLoft,      // Upper floor — future expansion (sleeping area, study)
-    Garden,         // Cultivated outdoor plot attached to the cabin grounds
-    COUNT
+enum RoomID {
+    ROOM_EXTERIOR = 0,
+    ROOM_CABIN_MAIN = 1,
+    ROOM_CABIN_LOFT = 2,
+    ROOM_GARDEN = 3,
+    ROOM_COUNT = 4
 };
 
-// ─────────────────────────────────────────────────────────────────────────────
-// RoomTransition
-// A tile-aligned trigger zone in a room. When the player walks over it,
-// they transition to targetRoom and spawn at targetEntryPoint.
-// ─────────────────────────────────────────────────────────────────────────────
-struct RoomTransition {
-    Rectangle  triggerRect;     // World-space area that triggers the transition
-    RoomID     targetRoom;
-    Vector2    targetEntryPoint;// Where the player appears in the target room
-    std::string label;          // e.g. "Enter Cabin", shown as an interaction hint
-};
+class RoomManager : public RefCounted {
+    GDCLASS(RoomManager, RefCounted)
 
-// ─────────────────────────────────────────────────────────────────────────────
-// PlacementMode
-// State for the Stardew-style item placement UI.
-// When active, the player is holding a ghost of an item and choosing where
-// to place it. Pressing confirm places it; pressing cancel returns it to
-// inventory.
-// ─────────────────────────────────────────────────────────────────────────────
-struct PlacementMode {
-    bool     active = false;
-    ItemType heldItem = ItemType::Fireplace;  // What we're placing
-    int      ghostTileX = 0;                 // Current cursor tile position
-    int      ghostTileY = 0;
-    bool     placementValid = false;         // Can we place here?
-};
-
-// ─────────────────────────────────────────────────────────────────────────────
-// RoomManager
-// Owns all room TileMaps and the placed items within each room.
-// Handles:
-//   - Room transitions (walking through doorways)
-//   - Item placement (Stardew-style grid placement)
-//   - Item interaction dispatch (E key near a placed item)
-//   - Serialisation of all placed item positions for the save system
-// ─────────────────────────────────────────────────────────────────────────────
-class RoomManager {
 public:
-    RoomManager(int tileSize);
+    RoomManager();
+    ~RoomManager();
 
-    // Build all room tilemaps and populate the default cabin layout
-    void Initialize();
+    void add_placed_item(RoomID p_room, const Ref<PlacedItem>& p_item);
+    void remove_placed_item(RoomID p_room, const Ref<PlacedItem>& p_item);
+    TypedArray<PlacedItem> get_placed_items(RoomID p_room) const;
 
-    // Update the active room and handle transition triggers
-    void Update(float deltaTime, Vector2 playerPos);
+    String serialise() const;
+    void deserialise(const String& p_json);
 
-    // Draw the active room (tiles + placed items)
-    void Draw() const;
-
-    // Draw placement mode ghost item overlay (called after Draw)
-    void DrawPlacementGhost(Vector2 mouseWorldPos) const;
-
-    // Attempt to interact with the nearest placed item in the active room.
-    // Returns the result so main.cpp can dispatch to the correct UI.
-    // If the result is InspectDecoration, outMessage is populated with
-    // the item's flavour text.
-    InteractionResult TryInteract(Vector2 playerPos, std::string& outMessage);
-
-    // Returns a pointer to the nearest placed item the player is near in the
-    // active room, or nullptr if none. Used by main.cpp to drive apparatus
-    // interactions (loading/unloading HarvestItems) after TryInteract
-    // returns OpenApparatus.
-    PlacedItem* GetNearestPlacedItem(Vector2 playerPos);
-
-    // ── Build Mode ────────────────────────────────────────────────────
-    void ToggleBuildMode();
-    bool IsInBuildMode() const { return m_buildModeActive; }
-
-    // Picks up the nearest item and returns it to inventory
-    bool PickupItem(Vector2 playerPos, Inventory& inventory);
-    // Removes the nearest item (deletion)
-    bool RemoveItem(Vector2 playerPos);
-    
-    // Begin placing an item from inventory (internal or external)
-    void StartPlacement(ItemType type);
-
-    // Update ghost tile position from mouse/touch world position
-    void UpdatePlacementGhost(Vector2 mouseWorldPos);
-
-    // Confirm placement at the current ghost position.
-    // Removes the item from inventory and adds it as a PlacedItem.
-    // Returns false if the placement is invalid.
-    bool ConfirmPlacement(Inventory& inventory);
-
-    // Cancel placement and return the item to inventory
-    void CancelPlacement(Inventory& inventory);
-
-    bool IsInPlacementMode() const { return m_placement.active; }
-
-    // ── Room access ───────────────────────────────────────────────────────
-    TileMap&       GetActiveMap()       { return *m_rooms[static_cast<int>(m_activeRoom)]; }
-    const TileMap& GetActiveMap() const { return *m_rooms[static_cast<int>(m_activeRoom)]; }
-    RoomID         GetActiveRoomID()    const { return m_activeRoom; }
-
-    // Immediately switch to a new room and place the player at entryPoint.
-    // Called by main.cpp when GetPendingTransition() returns non-null.
-    void TransitionTo(RoomID target, Vector2 playerEntryPoint);
-
-    // Returns the pending transition if the player just walked into one,
-    // or nullptr if no transition is pending this frame.
-    const RoomTransition* GetPendingTransition() const { return m_pendingTransition; }
-    void ClearPendingTransition() { m_pendingTransition = nullptr; }
-
-    // ── Save/load ─────────────────────────────────────────────────────────
-    std::string Serialise() const;
-    void        Deserialise(const std::string& json, int tileSize);
+protected:
+    static void _bind_methods();
 
 private:
-    // One TileMap per room
-    std::unique_ptr<TileMap> m_rooms[static_cast<int>(RoomID::COUNT)];
-
-    // Placed items per room — indexed by RoomID
-    std::vector<PlacedItem> m_placedItems[static_cast<int>(RoomID::COUNT)];
-
-    // Transition zones per room
-    std::vector<RoomTransition> m_transitions[static_cast<int>(RoomID::COUNT)];
-
-    RoomID m_activeRoom;
-    const RoomTransition* m_pendingTransition;
-    PlacementMode m_placement;
-    bool m_buildModeActive = false;
-    int m_tileSize;
-
-    // Builds the default Tier 1 cabin layout with inherited items
-    void SetupDefaultCabinLayout();
-
-    // Adds a transition zone to a room
-    void AddTransition(RoomID room, RoomTransition transition);
-
-    // Returns true if the given tile position is a valid placement location
-    // for the given item type in the given room
-    bool IsValidPlacement(RoomID room, ItemType type, int tileX, int tileY) const;
-
-    // Returns true if any placed item in the room overlaps the given tile rect
-    bool TilesOccupied(RoomID room, int tileX, int tileY, int w, int h) const;
+    std::vector<TypedArray<PlacedItem>> m_rooms;
 };
 
-} // namespace World
-} // namespace FloraPhilosophica
+} // namespace godot
 
-#endif // FLORA_PHILOSOPHIA_WORLD_ROOM_MANAGER_H
+VARIANT_ENUM_CAST(godot::RoomID);
+
+#endif // FLORA_PHILOSOPHICA_WORLD_ROOM_MANAGER_H

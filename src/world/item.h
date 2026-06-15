@@ -1,137 +1,122 @@
 #ifndef FLORA_PHILOSOPHICA_WORLD_ITEM_H
 #define FLORA_PHILOSOPHICA_WORLD_ITEM_H
 
-#include <string>
+#include <godot_cpp/classes/ref_counted.hpp>
+#include <godot_cpp/core/class_db.hpp>
+#include <godot_cpp/variant/string.hpp>
+#include <godot_cpp/variant/dictionary.hpp>
 
-namespace FloraPhilosophica {
-namespace World {
+namespace godot {
 
-// ─────────────────────────────────────────────────────────────────────────────
-// PlantStage
-// The processing stage a piece of plant material is currently in.
-// Material moves through these stages as the player processes it.
-// Future stages (Root, Leaf, Flower, Seed) will be added when plant part
-// separation is implemented.
-// ─────────────────────────────────────────────────────────────────────────────
-enum class PlantStage {
-    Fresh,      // Just harvested — must be dried before further processing
-    Dried,      // Dried on the rack — ready for grinding or direct maceration
-    Ground,     // Dried and ground in mortar — better extraction than whole dried
-    Spent,      // Post-maceration residue — goes to furnace (calcination) or compost
-    Spirits,    // Ethanol distilled/extracted from herb
-    Salt,       // Potassium Carbonate (Salt of Tartar/Ash) from calcination
-    Tincture,   // Basic Tincture from maceration
+enum PlantStage {
+    STAGE_FRESH = 0,
+    STAGE_DRIED = 1,
+    STAGE_GROUND = 2,
+    STAGE_SPENT = 3,
+    STAGE_SPIRITS = 4,
+    STAGE_SALT = 5,
+    STAGE_TINCTURE = 6,
 };
 
-// ─────────────────────────────────────────────────────────────────────────────
-// HarvestQuality
-// Moved here from plant_node.h so inventory.h can include it without
-// pulling in the full plant node system.
-// ─────────────────────────────────────────────────────────────────────────────
-enum class HarvestQuality {
-    Pristine,   // Harvested during matching planetary day AND hour
-    Standard,   // Harvested during standard times
-    Debased,    // Harvested during the opposite planetary hour
+enum HarvestQuality {
+    QUALITY_PRISTINE = 0,
+    QUALITY_STANDARD = 1,
+    QUALITY_DEBASED = 2,
 };
 
-// ─────────────────────────────────────────────────────────────────────────────
-// HarvestItem
-// A piece of plant material in the player's inventory.
-// Carries the plant's name, its current processing stage, and the quality
-// at which it was originally harvested. Quality persists through processing.
-//
-// This is separate from ItemType because plant material is not placeable
-// on the grid and has too many variants (plant × stage × quality) to enumerate
-// as flat enum values.
-// ─────────────────────────────────────────────────────────────────────────────
-struct HarvestItem {
-    std::string    plantName;   // e.g. "St. John's Wort" — keys into PlantDatabase
-    PlantStage     stage;       // Current processing stage
-    HarvestQuality quality;     // Quality from original harvest — never changes
-
-    // Convenience: returns a display string like "Dried St. John's Wort (Pristine)"
-    std::string GetDisplayName() const;
-
-    // Returns the stage name as a short string for display
-    static std::string GetStageName(PlantStage stage);
+enum ItemType {
+    ITEM_FIREPLACE = 0,
+    ITEM_DRYING_RACK = 1,
+    ITEM_MORTAR_AND_PESTLE = 2,
+    ITEM_MACERATION_JAR = 3,
+    ITEM_COMPOST_BIN = 4,
+    ITEM_WORK_BENCH = 5,
+    ITEM_COPPER_ALEMBIC = 6,
+    ITEM_GLASS_FLASK = 7,
+    ITEM_GLASSBLOWING_STATION = 8,
+    ITEM_DISTILLATION_TRAIN = 9,
+    ITEM_SOXHLET_EXTRACTOR = 10,
+    ITEM_PELICAN_FLASK = 11,
+    ITEM_RETORT_TRAIN = 12,
+    ITEM_TERRARIUM = 13,
+    ITEM_BOOKSHELF = 14,
+    ITEM_STORAGE_CHEST = 15,
+    ITEM_MAILBOX_POST = 16,
+    ITEM_COUNT = 17
 };
 
-// ─────────────────────────────────────────────────────────────────────────────
-// ItemType
-// Every placeable object in the game — lab stations, furniture, storage — is
-// one of these types. The type determines how the item looks, what it does
-// when inspected, and which tier unlocks it.
-//
-// Adding a new station: add an entry here, handle it in PlacedItem and
-// item.cpp's G_ITEM_DEFINITIONS table.
-// ─────────────────────────────────────────────────────────────────────────────
-enum class ItemType {
-    // ── Tier 1 (inherited from the previous herbalist) ────────────────────
-    Fireplace,          // Decoration that doubles as a calcination furnace
-    DryingRack,         // Hangs harvested herbs to dry (2 real hours)
-    MortarAndPestle,    // Grinding station — converts Dried → Ground plant
-    MacerationJar,      // Mason jar for alcohol maceration (basic tincture)
-    CompostBin,         // Irretrievable disposal — the "trap" mechanic
-    WorkBench,          // General preparation surface
-
-    // ── Tier 2 ───────────────────────────────────────────────────────────
-    CopperAlembic,      // Distillation apparatus for simple extractions
-    GlassFlask,         // Borosilicate vessel for heating and storage
-    GlassblowingStation,// Mini-game station: blow replacement vessels
-
-    // ── Tier 3 ───────────────────────────────────────────────────────────
-    DistillationTrain,  // Multi-stage distillation setup
-    SoxhletExtractor,   // Continuous solvent extraction apparatus
-
-    // ── Tier 4 ───────────────────────────────────────────────────────────
-    PelicanFlask,       // Cohobation vessel for Plant Stone creation
-    RetortTrain,        // Full retort apparatus for advanced distillation
-    Terrarium,          // Passive idle plant grower
-
-    // ── Decoration / Furniture ───────────────────────────────────────────
-    Bookshelf,
-    StorageChest,
-    MailboxPost,        // Placed outside; where Ternary Order letters arrive
-
-    // Sentinel value — keep last
-    COUNT
+enum EquipmentTier {
+    TIER_1_FORAGER = 1,
+    TIER_2_HERBALIST = 2,
+    TIER_3_PARACELSIAN = 3,
+    TIER_4_ADEPT = 4
 };
 
-// ─────────────────────────────────────────────────────────────────────────────
-// EquipmentTier
-// Which progression tier unlocks this item for purchase.
-// Tier 1 items are inherited and never need to be bought.
-// ─────────────────────────────────────────────────────────────────────────────
-enum class EquipmentTier {
-    Tier1_Forager     = 1,
-    Tier2_Herbalist   = 2,
-    Tier3_Paracelsian = 3,
-    Tier4_Adept       = 4
+class HarvestItem : public RefCounted {
+    GDCLASS(HarvestItem, RefCounted)
+
+public:
+    String plant_name;
+    PlantStage stage;
+    HarvestQuality quality;
+
+    HarvestItem();
+    ~HarvestItem();
+
+    void set_plant_name(const String& p_name) { plant_name = p_name; }
+    String get_plant_name() const { return plant_name; }
+
+    void set_stage(PlantStage p_stage) { stage = p_stage; }
+    PlantStage get_stage() const { return stage; }
+
+    void set_quality(HarvestQuality p_quality) { quality = p_quality; }
+    HarvestQuality get_quality() const { return quality; }
+
+    String get_display_name() const;
+    static String get_stage_name(PlantStage p_stage);
+
+    Dictionary to_dict() const;
+    void from_dict(const Dictionary& p_dict);
+
+protected:
+    static void _bind_methods();
 };
 
-// ─────────────────────────────────────────────────────────────────────────────
-// ItemDefinition
-// Static data about an item type — its name, tier, grid footprint, and
-// whether it can be placed indoors, outdoors, or both.
-// ─────────────────────────────────────────────────────────────────────────────
-struct ItemDefinition {
-    ItemType      type;
-    std::string   displayName;
-    std::string   description;
+class ItemDefinition : public RefCounted {
+    GDCLASS(ItemDefinition, RefCounted)
+
+public:
+    ItemType type;
+    String display_name;
+    String description;
     EquipmentTier tier;
-    int           tileWidth;    // Footprint width in tiles
-    int           tileHeight;   // Footprint height in tiles
-    bool          canPlaceIndoors;
-    bool          canPlaceOutdoors;
+    int tile_width;
+    int tile_height;
+    bool can_place_indoors;
+    bool          can_place_outdoors;
+
+    ItemDefinition();
+    ~ItemDefinition();
+
+protected:
+    static void _bind_methods();
 };
 
-// ─────────────────────────────────────────────────────────────────────────────
-// GetItemDefinition
-// Returns static metadata for a given item type.
-// ─────────────────────────────────────────────────────────────────────────────
-const ItemDefinition& GetItemDefinition(ItemType type);
+class ItemDB : public Object {
+    GDCLASS(ItemDB, Object)
 
-} // namespace World
-} // namespace FloraPhilosophica
+public:
+    static Ref<ItemDefinition> get_item_definition(ItemType p_type);
+
+protected:
+    static void _bind_methods();
+};
+
+} // namespace godot
+
+VARIANT_ENUM_CAST(godot::PlantStage);
+VARIANT_ENUM_CAST(godot::HarvestQuality);
+VARIANT_ENUM_CAST(godot::ItemType);
+VARIANT_ENUM_CAST(godot::EquipmentTier);
 
 #endif // FLORA_PHILOSOPHICA_WORLD_ITEM_H

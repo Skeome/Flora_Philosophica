@@ -18,7 +18,11 @@ endif()
 include(${CPM_DOWNLOAD_LOCATION})
 
 # --- Dependencies ---
-find_package(raylib REQUIRED)
+CPMAddPackage(
+    NAME godot-cpp
+    GITHUB_REPOSITORY godotengine/godot-cpp
+    GIT_TAG 4.3
+)
 
 CPMAddPackage(
   NAME nlohmann_json
@@ -26,42 +30,39 @@ CPMAddPackage(
   VERSION 3.11.3
 )
 
-# --- Library Target ---
-file(GLOB_RECURSE CORE_SOURCES
-    "src/core/*.cpp"
-    "src/world/*.cpp"
-    "src/lab/*.cpp"
-    "src/alchemy/*.cpp"
-    "src/combat/*.cpp"
-    "src/economy/*.cpp"
-    "src/idle/*.cpp"
-    "src/ui/*.cpp"
+# --- GDExtension Target ---
+# Explicitly listing sources to avoid missing new files
+set(GDE_SOURCES
+    "src/core/register_types.cpp"
+    "src/core/clock.cpp"
+    "src/world/item.cpp"
+    "src/world/inventory.cpp"
+    "src/world/placed_item.cpp"
+    "src/world/room_manager.cpp"
+    "src/alchemy/plant_db.cpp"
 )
 
-add_library(FloraPhilosophicaCore STATIC ${CORE_SOURCES})
-target_link_libraries(FloraPhilosophicaCore PUBLIC raylib nlohmann_json::nlohmann_json)
-target_include_directories(FloraPhilosophicaCore PUBLIC src)
+add_library(flora_philosophica MODULE ${GDE_SOURCES})
 
-# --- Executable Target ---
-add_executable(FloraPhilosophica src/main.cpp)
-target_link_libraries(FloraPhilosophica PRIVATE FloraPhilosophicaCore)
+target_link_libraries(flora_philosophica 
+    PUBLIC 
+        godot::cpp 
+        nlohmann_json::nlohmann_json
+)
 
-# --- Testing ---
-option(BUILD_TESTING "Build the test suite" ON)
-if(BUILD_TESTING)
-  enable_testing()
+target_include_directories(flora_philosophica PUBLIC src)
 
-  CPMAddPackage(
-    NAME doctest
-    GITHUB_REPOSITORY doctest/doctest
-    VERSION 2.4.11
-  )
+# Set output properties to match .gdextension manifest
+set_target_properties(flora_philosophica PROPERTIES
+    LIBRARY_OUTPUT_DIRECTORY "${CMAKE_SOURCE_DIR}/godot/bin"
+    PREFIX "lib"
+    SUFFIX ".so"
+)
 
-  file(GLOB_RECURSE TEST_SOURCES "tests/*.cpp")
+target_compile_options(flora_philosophica PRIVATE -fPIC)
 
-  add_executable(FloraPhilosophicaTests ${TEST_SOURCES})
-  target_link_libraries(FloraPhilosophicaTests PRIVATE FloraPhilosophicaCore doctest::doctest)
-  target_include_directories(FloraPhilosophicaTests PRIVATE tests)
-
-  add_test(NAME CoreTests COMMAND FloraPhilosophicaTests)
+if(WIN32)
+    set_target_properties(flora_philosophica PROPERTIES SUFFIX ".dll")
+elseif(APPLE)
+    set_target_properties(flora_philosophica PROPERTIES SUFFIX ".dylib")
 endif()
