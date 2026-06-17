@@ -19,9 +19,25 @@ void HarvestItem::_bind_methods() {
     ClassDB::bind_method(D_METHOD("set_quality", "quality"), &HarvestItem::set_quality);
     ClassDB::bind_method(D_METHOD("get_quality"), &HarvestItem::get_quality);
 
+    // PlantStage enum
+    BIND_CONSTANT(STAGE_FRESH);
+    BIND_CONSTANT(STAGE_DRIED);
+    BIND_CONSTANT(STAGE_GROUND);
+    BIND_CONSTANT(STAGE_SPENT);
+    BIND_CONSTANT(STAGE_SPIRITS);
+    BIND_CONSTANT(STAGE_SALT);
+    BIND_CONSTANT(STAGE_TINCTURE);
+
+    // HarvestQuality enum
+    BIND_CONSTANT(QUALITY_CELESTIAL);
+    BIND_CONSTANT(QUALITY_PRISTINE);
+    BIND_CONSTANT(QUALITY_STANDARD);
+    BIND_CONSTANT(QUALITY_STRESSED);
+    BIND_CONSTANT(QUALITY_DEBASED);
+
     ADD_PROPERTY(PropertyInfo(Variant::STRING, "plant_name"), "set_plant_name", "get_plant_name");
     ADD_PROPERTY(PropertyInfo(Variant::INT, "stage", PROPERTY_HINT_ENUM, "Fresh,Dried,Ground,Spent,Spirits,Salt,Tincture"), "set_stage", "get_stage");
-    ADD_PROPERTY(PropertyInfo(Variant::INT, "quality", PROPERTY_HINT_ENUM, "Pristine,Standard,Debased"), "set_quality", "get_quality");
+    ADD_PROPERTY(PropertyInfo(Variant::INT, "quality", PROPERTY_HINT_ENUM, "Celestial,Pristine,Standard,Stressed,Debased"), "set_quality", "get_quality");
 }
 
 String HarvestItem::get_stage_name(PlantStage p_stage) {
@@ -40,9 +56,11 @@ String HarvestItem::get_stage_name(PlantStage p_stage) {
 String HarvestItem::get_display_name() const {
     String qual_str;
     switch (quality) {
-        case QUALITY_PRISTINE: qual_str = "Pristine"; break;
-        case QUALITY_STANDARD: qual_str = "Standard"; break;
-        case QUALITY_DEBASED:  qual_str = "Debased";  break;
+        case QUALITY_PRISTINE:  qual_str = "Pristine"; break;
+        case QUALITY_STANDARD:  qual_str = "Standard"; break;
+        case QUALITY_DEBASED:   qual_str = "Debased";  break;
+        case QUALITY_CELESTIAL: qual_str = "Celestial"; break;
+        case QUALITY_STRESSED:  qual_str = "Stressed"; break;
     }
     
     String name;

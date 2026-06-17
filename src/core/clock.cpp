@@ -1,6 +1,8 @@
 #include "clock.h"
 #include <godot_cpp/core/class_db.hpp>
+#include <godot_cpp/variant/utility_functions.hpp>
 #include <cmath>
+#include <vector>
 
 namespace {
     constexpr double PI = 3.14159265358979323846;
@@ -66,7 +68,7 @@ PlanetaryHourCalculator::SolarTimes PlanetaryHourCalculator::calculate_solar_lim
         y * std::sin(2.0 * L0_rad)
         - 2.0 * e * std::sin(M_rad)
         + 4.0 * e * y * std::sin(M_rad) * std::cos(2.0 * L0_rad)
-        - 0.5 * y * y * std::sin(4.0 * L0_rad)
+        - 0.5 * y * std::sin(4.0 * L0_rad)
         - 1.25 * e * e * std::sin(2.0 * M_rad)
     );
 
@@ -113,57 +115,67 @@ PlanetaryHourCalculator::DayLimits PlanetaryHourCalculator::get_day_limits(doubl
 }
 
 Dictionary PlanetaryHourCalculator::calculate_planetary_hour(double latitude, double longitude, int64_t utc_timestamp) {
-    DayLimits yesterday = get_day_limits(latitude, longitude, utc_timestamp, -1);
-    DayLimits today = get_day_limits(latitude, longitude, utc_timestamp, 0);
-    DayLimits tomorrow = get_day_limits(latitude, longitude, utc_timestamp, 1);
+    // 1. Gather limits for 3 days to cover all UTC/Local transitions
+    DayLimits days[3];
+    days[0] = get_day_limits(latitude, longitude, utc_timestamp, -1);
+    days[1] = get_day_limits(latitude, longitude, utc_timestamp, 0);
+    days[2] = get_day_limits(latitude, longitude, utc_timestamp, 1);
 
     int64_t activeStart = 0;
     int64_t activeEnd = 0;
+    int64_t anchorMidnight = 0;
     int hourOffset = 0;
-    int64_t targetMidnight = 0;
     bool isPolarActive = false;
+    bool found = false;
 
     double rawDays = static_cast<double>(utc_timestamp) / 86400.0;
     int64_t midnightToday = static_cast<int64_t>(std::floor(rawDays)) * 86400;
 
-    if (today.isPolar) {
-        isPolarActive = true;
+    // 2. Find the segment containing utc_timestamp
+    for (int i = 0; i < 3; ++i) {
+        if (days[i].isPolar) {
+            int64_t m_start = midnightToday + (i - 1) * 86400;
+            int64_t m_end = m_start + 86400;
+            if (utc_timestamp >= m_start && utc_timestamp < m_end) {
+                activeStart = m_start;
+                activeEnd = m_end;
+                anchorMidnight = m_start;
+                hourOffset = 0;
+                isPolarActive = true;
+                found = true;
+                break;
+            }
+        } else {
+            // Check Day segment
+            if (utc_timestamp >= days[i].sunriseUnix && utc_timestamp < days[i].sunsetUnix) {
+                activeStart = days[i].sunriseUnix;
+                activeEnd = days[i].sunsetUnix;
+                anchorMidnight = midnightToday + (i - 1) * 86400;
+                hourOffset = 0;
+                found = true;
+                break;
+            }
+            // Check Night segment (between current day i and next day i+1)
+            if (i < 2 && !days[i+1].isPolar) {
+                if (utc_timestamp >= days[i].sunsetUnix && utc_timestamp < days[i+1].sunriseUnix) {
+                    activeStart = days[i].sunsetUnix;
+                    activeEnd = days[i+1].sunriseUnix;
+                    anchorMidnight = midnightToday + (i - 1) * 86400;
+                    hourOffset = 12;
+                    found = true;
+                    break;
+                }
+            }
+        }
+    }
+
+    if (!found) {
+        UtilityFunctions::printerr("Planetary Clock: No valid segment found for TS ", utc_timestamp);
+        // Fallback to UTC day
         activeStart = midnightToday;
         activeEnd = midnightToday + 86400;
-        targetMidnight = midnightToday;
-    } else {
-        if (utc_timestamp >= today.sunriseUnix && utc_timestamp < today.sunsetUnix) {
-            activeStart = today.sunriseUnix;
-            activeEnd = today.sunsetUnix;
-            hourOffset = 0;
-            targetMidnight = midnightToday;
-        } 
-        else if (utc_timestamp >= today.sunsetUnix && utc_timestamp < tomorrow.sunriseUnix) {
-            activeStart = today.sunsetUnix;
-            activeEnd = tomorrow.sunriseUnix;
-            hourOffset = 12;
-            targetMidnight = midnightToday;
-        } 
-        else if (utc_timestamp < today.sunriseUnix) {
-            if (yesterday.isPolar) {
-                isPolarActive = true;
-                int64_t midnightYesterday = midnightToday - 86400;
-                activeStart = midnightYesterday;
-                activeEnd = midnightYesterday + 86400;
-                targetMidnight = midnightYesterday;
-            } else {
-                activeStart = yesterday.sunsetUnix;
-                activeEnd = today.sunriseUnix;
-                hourOffset = 12;
-                targetMidnight = midnightToday - 86400;
-            }
-        } 
-        else {
-            activeStart = tomorrow.sunriseUnix;
-            activeEnd = tomorrow.sunsetUnix;
-            hourOffset = 0;
-            targetMidnight = midnightToday + 86400;
-        }
+        anchorMidnight = midnightToday;
+        isPolarActive = true;
     }
 
     double totalDuration = static_cast<double>(activeEnd - activeStart);
@@ -187,8 +199,8 @@ Dictionary PlanetaryHourCalculator::calculate_planetary_hour(double latitude, do
         minutesRemaining = (segmentDuration - std::fmod(elapsed, segmentDuration)) / 60.0;
     }
 
-    double julianNoon = (static_cast<double>(targetMidnight) / 86400.0) + 2440588.0;
-    int64_t JDN = static_cast<int64_t>(std::floor(julianNoon));
+    double julianAnchor = (static_cast<double>(anchorMidnight) / 86400.0) + 2440588.0;
+    int64_t JDN = static_cast<int64_t>(std::floor(julianAnchor));
     int weekdayIndex = static_cast<int>((JDN + 1) % 7);
 
     Planet dayRuler = SUN;
@@ -202,14 +214,15 @@ Dictionary PlanetaryHourCalculator::calculate_planetary_hour(double latitude, do
         case 6: dayRuler = SATURN;  break;
     }
 
+    // Chaldean Order: SATURN=0, JUPITER=1, MARS=2, SUN=3, VENUS=4, MERCURY=5, MOON=6
     int planetIndex = (static_cast<int>(dayRuler) + hourIndex) % 7;
     Planet rulingPlanet = static_cast<Planet>(planetIndex);
 
     double segmentDurationFinal = isPolarActive ? 3600.0 : (totalDuration / 12.0);
-    int relativeHourFinal = isPolarActive ? hourIndex : (hourIndex - hourOffset);
+    int relativeHourInWindow = isPolarActive ? hourIndex : (hourIndex - hourOffset);
 
-    int64_t hourStartUtc = activeStart + static_cast<int64_t>(relativeHourFinal * segmentDurationFinal);
-    int64_t hourEndUtc   = activeStart + static_cast<int64_t>((relativeHourFinal + 1) * segmentDurationFinal);
+    int64_t hourStartUtc = activeStart + static_cast<int64_t>(relativeHourInWindow * segmentDurationFinal);
+    int64_t hourEndUtc   = activeStart + static_cast<int64_t>((relativeHourInWindow + 1) * segmentDurationFinal);
 
     Dictionary info;
     info["ruling_planet"] = rulingPlanet;

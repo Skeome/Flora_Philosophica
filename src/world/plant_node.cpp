@@ -74,37 +74,57 @@ HarvestQuality PlantNode::Harvest(Core::Planet dayRuler, Core::Planet hourRuler)
 
     if (!m_data) return HarvestQuality::Standard;
 
-    // Pristine: matching day AND hour
+    // Celestial: matching day AND hour
     if (dayRuler == m_data->ruler && hourRuler == m_data->ruler)
+        return HarvestQuality::Celestial;
+
+    // Pristine: matching hour only
+    if (hourRuler == m_data->ruler)
         return HarvestQuality::Pristine;
 
-    // Debased: opposite planetary hour
-    if (hourRuler == GetOppositePlanet(m_data->ruler))
+    // Check for opposite planets
+    std::vector<Core::Planet> opposites = GetOppositePlanets(static_cast<Core::Planet>(m_data->ruler));
+    bool hourIsOpposite = false;
+    bool dayIsOpposite = false;
+    
+    for (Core::Planet p : opposites) {
+        if (hourRuler == p) hourIsOpposite = true;
+        if (dayRuler == p) dayIsOpposite = true;
+    }
+
+    // Debased: BOTH day AND hour are opposite
+    if (dayIsOpposite && hourIsOpposite)
         return HarvestQuality::Debased;
+
+    // Stressed: hour is opposite only
+    if (hourIsOpposite)
+        return HarvestQuality::Stressed;
 
     return HarvestQuality::Standard;
 }
 
-Core::Planet PlantNode::GetOppositePlanet(Core::Planet planet) {
+std::vector<Core::Planet> PlantNode::GetOppositePlanets(Core::Planet planet) {
     // Classical astrological oppositions
     switch (planet) {
-        case Core::Planet::Sun:     return Core::Planet::Saturn;
-        case Core::Planet::Saturn:  return Core::Planet::Sun;
-        case Core::Planet::Moon:    return Core::Planet::Mars;
-        case Core::Planet::Mars:    return Core::Planet::Moon;
-        case Core::Planet::Mercury: return Core::Planet::Jupiter;
-        case Core::Planet::Jupiter: return Core::Planet::Mercury;
-        case Core::Planet::Venus:   return Core::Planet::Mars;
-        default:                    return Core::Planet::Saturn;
+        case Core::Planet::Sun:     return {Core::Planet::Saturn};
+        case Core::Planet::Moon:    return {Core::Planet::Saturn};
+        case Core::Planet::Saturn:  return {Core::Planet::Sun, Core::Planet::Moon};
+        case Core::Planet::Mars:    return {Core::Planet::Venus};
+        case Core::Planet::Venus:   return {Core::Planet::Mars};
+        case Core::Planet::Mercury: return {Core::Planet::Jupiter};
+        case Core::Planet::Jupiter: return {Core::Planet::Mercury};
+        default:                    return {};
     }
 }
 
 std::string PlantNode::GetQualityName(HarvestQuality quality) {
     switch (quality) {
-        case HarvestQuality::Pristine: return "Pristine Celestial Harvest";
-        case HarvestQuality::Standard: return "Standard Quality";
-        case HarvestQuality::Debased:  return "Stressed / Debased";
-        default:                       return "Unknown";
+        case HarvestQuality::Celestial: return "Celestial Harvest";
+        case HarvestQuality::Pristine:  return "Pristine Harvest";
+        case HarvestQuality::Standard:  return "Standard Quality";
+        case HarvestQuality::Stressed:  return "Stressed / Negated";
+        case HarvestQuality::Debased:   return "Debased / Inverted";
+        default:                        return "Unknown";
     }
 }
 

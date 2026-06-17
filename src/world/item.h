@@ -19,9 +19,11 @@ enum PlantStage {
 };
 
 enum HarvestQuality {
-    QUALITY_PRISTINE = 0,
-    QUALITY_STANDARD = 1,
-    QUALITY_DEBASED = 2,
+    QUALITY_CELESTIAL = 0,
+    QUALITY_PRISTINE = 1,
+    QUALITY_STANDARD = 2,
+    QUALITY_STRESSED = 3,
+    QUALITY_DEBASED = 4,
 };
 
 enum ItemType {

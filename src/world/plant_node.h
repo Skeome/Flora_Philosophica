@@ -6,6 +6,7 @@
 #include "alchemy/plant_db.h"
 #include "item.h"
 #include <string>
+#include <vector>
 
 namespace FloraPhilosophica {
 namespace World {
@@ -23,8 +24,8 @@ public:
     // HarvestQuality is now defined in item.h.
     HarvestQuality Harvest(Core::Planet dayRuler, Core::Planet hourRuler);
 
-    // Classical astrological opposite/enemy planet
-    static Core::Planet GetOppositePlanet(Core::Planet planet);
+    // Classical astrological opposite/enemy planets
+    static std::vector<Core::Planet> GetOppositePlanets(Core::Planet planet);
 
     // Quality display name
     static std::string GetQualityName(HarvestQuality quality);

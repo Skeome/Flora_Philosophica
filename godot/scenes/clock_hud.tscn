@@ -1,0 +1,17 @@
+[gd_scene format=3 uid="uid://btr3fvarespcd"]
+
+[ext_resource type="Script" uid="uid://blksk3j03kx8q" path="res://scripts/clock_hud.gd" id="1_v4min"]
+[ext_resource type="FontFile" uid="uid://cay4mepc0pu6l" path="res://assets/fonts/Archemy.otf" id="2_lvv3c"]
+
+[sub_resource type="LabelSettings" id="LabelSettings_d7rib"]
+line_spacing = 2.0
+font = ExtResource("2_lvv3c")
+font_size = 10
+
+[node name="ClockHUD" type="CanvasLayer" unique_id=400407185]
+script = ExtResource("1_v4min")
+
+[node name="ClockLabel" type="Label" parent="." unique_id=867457161]
+offset_right = 40.0
+offset_bottom = 23.0
+label_settings = SubResource("LabelSettings_d7rib")

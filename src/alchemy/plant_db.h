@@ -17,6 +17,7 @@ public:
     PlanetaryHourCalculator::Planet ruler;
     String element;
     String properties;
+    String sprite_path;
 
     PlantData();
     ~PlantData();
@@ -32,6 +33,9 @@ public:
 
     void set_properties(const String& p_properties) { properties = p_properties; }
     String get_properties() const { return properties; }
+
+    void set_sprite_path(const String& p_path) { sprite_path = p_path; }
+    String get_sprite_path() const { return sprite_path; }
 
 protected:
     static void _bind_methods();

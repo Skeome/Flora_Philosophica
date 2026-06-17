@@ -76,3 +76,20 @@ file-structure.txt
 
 # Personal Save File
 save.json
+
+# Godot Assets
+godot/assets/
+
+# Godot editor and import files
+*.uid
+*.import
+.godot/
+
+# Save files and user data
+save.json
+
+# CMake cache
+CMakeCache.txt
+cmake_install.cmake
+CMakeFiles/
+cpm-package-lock.cmake

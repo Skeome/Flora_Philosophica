@@ -1,8 +1,6 @@
 #include "inventory.h"
 #include <godot_cpp/variant/utility_functions.hpp>
-#include <nlohmann/json.hpp>
-
-using json = nlohmann::json;
+#include <godot_cpp/classes/json.hpp>
 
 namespace godot {
 
@@ -164,44 +162,45 @@ bool Inventory::remove_harvest_item(const String& p_plant_name, PlantStage p_sta
 }
 
 String Inventory::serialise() const {
-    json j = json::array();
+    Array j;
     for (int i = 0; i < TOTAL_SLOTS; i++) {
-        json slot;
+        Dictionary slot;
         slot["occupied"] = m_slots[i]->occupied;
-        slot["isHerb"] = m_slots[i]->is_herb;
+        slot["isHerb"]   = m_slots[i]->is_herb;
         if (m_slots[i]->is_herb && m_slots[i]->herb.is_valid()) {
-            slot["plant"] = m_slots[i]->herb->plant_name.utf8().get_data();
-            slot["stage"] = (int)m_slots[i]->herb->stage;
+            slot["plant"]   = m_slots[i]->herb->plant_name;
+            slot["stage"]   = (int)m_slots[i]->herb->stage;
             slot["quality"] = (int)m_slots[i]->herb->quality;
         } else {
-            slot["station"] = (int)m_slots[i]->station;
+            slot["station"]  = (int)m_slots[i]->station;
             slot["quantity"] = m_slots[i]->quantity;
         }
-        j.push_back(slot);
+        j.append(slot);
     }
-    return String(j.dump().c_str());
+    return JSON::stringify(j);
 }
 
 void Inventory::deserialise(const String& p_json) {
-    try {
-        json j = json::parse(p_json.utf8().get_data());
-        for (int i = 0; i < TOTAL_SLOTS && i < (int)j.size(); i++) {
-            m_slots[i]->clear();
-            const auto& slot = j[i];
-            m_slots[i]->occupied = slot.value("occupied", false);
-            m_slots[i]->is_herb = slot.value("isHerb", false);
-            if (m_slots[i]->is_herb) {
-                m_slots[i]->herb.instantiate();
-                m_slots[i]->herb->plant_name = String(slot.value("plant", "").c_str());
-                m_slots[i]->herb->stage = (PlantStage)slot.value("stage", 0);
-                m_slots[i]->herb->quality = (HarvestQuality)slot.value("quality", 1);
-            } else {
-                m_slots[i]->station = (ItemType)slot.value("station", (int)ITEM_COUNT);
-                m_slots[i]->quantity = slot.value("quantity", 0);
-            }
+    Variant parsed = JSON::parse_string(p_json);
+    if (parsed.get_type() != Variant::ARRAY) {
+        UtilityFunctions::printerr("Failed to deserialise inventory: invalid JSON.");
+        return;
+    }
+    Array j = parsed;
+    for (int i = 0; i < TOTAL_SLOTS && i < j.size(); i++) {
+        m_slots[i]->clear();
+        Dictionary slot = j[i];
+        m_slots[i]->occupied = slot.get("occupied", false);
+        m_slots[i]->is_herb  = slot.get("isHerb", false);
+        if (m_slots[i]->is_herb) {
+            m_slots[i]->herb.instantiate();
+            m_slots[i]->herb->plant_name = String(slot.get("plant", ""));
+            m_slots[i]->herb->stage   = (PlantStage)(int)slot.get("stage", 0);
+            m_slots[i]->herb->quality = (HarvestQuality)(int)slot.get("quality", 1);
+        } else {
+            m_slots[i]->station  = (ItemType)(int)slot.get("station", (int)ITEM_COUNT);
+            m_slots[i]->quantity = slot.get("quantity", 0);
         }
-    } catch (...) {
-        UtilityFunctions::printerr("Failed to deserialise inventory.");
     }
 }
 

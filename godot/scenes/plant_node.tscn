@@ -1,0 +1,39 @@
+[gd_scene format=3 uid="uid://dspd4c2j5tn"]
+
+[ext_resource type="Texture2D" uid="uid://bbvkxoxmn46op" path="res://assets/sprites/plants/Adders-Tongue.png" id="1_neqak"]
+[ext_resource type="Script" uid="uid://by2t43v1ildep" path="res://scripts/plant_node.gd" id="1_script"]
+[ext_resource type="FontFile" uid="uid://cay4mepc0pu6l" path="res://assets/fonts/Archemy.otf" id="3_16gpg"]
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_1"]
+radius = 8.0
+
+[sub_resource type="LabelSettings" id="LabelSettings_hmsy2"]
+font = ExtResource("3_16gpg")
+font_size = 10
+
+[node name="PlantNode" type="Area2D" unique_id=802686058]
+collision_layer = 4
+collision_mask = 2
+script = ExtResource("1_script")
+
+[node name="Sprite2D" type="Sprite2D" parent="." unique_id=947808208]
+position = Vector2(0, -8)
+scale = Vector2(0.25, 0.25)
+texture = ExtResource("1_neqak")
+offset = Vector2(0, -1)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=1424095424]
+position = Vector2(0, -8)
+shape = SubResource("CircleShape2D_1")
+
+[node name="Label" type="Label" parent="." unique_id=571201340]
+offset_left = -40.0
+offset_top = -37.0
+offset_right = 40.0
+offset_bottom = -14.0
+theme_override_font_sizes/font_size = 12
+text = "Adder's Tongue"
+label_settings = SubResource("LabelSettings_hmsy2")
+horizontal_alignment = 1
+vertical_alignment = 2
+autowrap_mode = 3
