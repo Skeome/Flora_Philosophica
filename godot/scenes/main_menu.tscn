@@ -1,0 +1,453 @@
+[gd_scene format=3 uid="uid://d3yo85hrtpjn1"]
+
+[ext_resource type="Script" uid="uid://b2215laxlcxdi" path="res://scripts/planet_orbit_animator.gd" id="1_8ln24"]
+[ext_resource type="Texture2D" uid="uid://c2utjis5d8n6t" path="res://assets/ui/Flora_Philosophica_Gradient.png" id="2_grad"]
+[ext_resource type="FontFile" uid="uid://cay4mepc0pu6l" path="res://assets/fonts/Archemy.otf" id="5_8ln24"]
+[ext_resource type="Texture2D" uid="uid://0v4ot61tsnra" path="res://assets/ui/Sun.png" id="6_sun"]
+[ext_resource type="Texture2D" uid="uid://b3s2edrrewtmx" path="res://assets/ui/Moon.png" id="7_moon"]
+[ext_resource type="Texture2D" uid="uid://cvie2ltt48e01" path="res://assets/ui/Mercury.png" id="8_mercury"]
+[ext_resource type="Texture2D" uid="uid://c7b6ncfwayht5" path="res://assets/ui/Venus.png" id="9_venus"]
+[ext_resource type="Texture2D" uid="uid://c7ftas1jm34b1" path="res://assets/ui/Sign.png" id="10_1ajci"]
+[ext_resource type="Texture2D" uid="uid://mnx4dkhjlqbn" path="res://assets/ui/Mars.png" id="10_mars"]
+[ext_resource type="Texture2D" uid="uid://cb8ouvsm534sw" path="res://assets/ui/Jupiter.png" id="11_jupiter"]
+[ext_resource type="Texture2D" uid="uid://br5wn1bdm354j" path="res://assets/ui/Small_Button.png" id="12_7b55j"]
+[ext_resource type="Texture2D" uid="uid://cqvrpr1jfnkn0" path="res://assets/ui/Saturn.png" id="12_saturn"]
+[ext_resource type="Texture2D" uid="uid://b2jwtg0wk8yjo" path="res://assets/ui/Large_Button.png" id="13_5pajh"]
+[ext_resource type="LabelSettings" uid="uid://crcpdgw8giep1" path="res://assets/ui/Menu_font.tres" id="14_j7ex8"]
+
+[sub_resource type="LabelSettings" id="LabelSettings_a8gd2"]
+font = ExtResource("5_8ln24")
+font_size = 56
+outline_size = 10
+outline_color = Color(0.99215686, 0.8156863, 0.09019608, 1)
+
+[sub_resource type="LabelSettings" id="LabelSettings_hstxw"]
+font = ExtResource("5_8ln24")
+font_size = 30
+outline_size = 6
+outline_color = Color(0.99215686, 0.8156863, 0.09019608, 1)
+
+[sub_resource type="LabelSettings" id="LabelSettings_8egab"]
+font = ExtResource("5_8ln24")
+font_size = 32
+outline_size = 6
+outline_color = Color(0.99215686, 0.8156863, 0.09019608, 1)
+
+[sub_resource type="LabelSettings" id="LabelSettings_gw5y6"]
+line_spacing = 0.0
+font = ExtResource("5_8ln24")
+font_size = 12
+outline_size = 3
+outline_color = Color(0.99215686, 0.8156863, 0.09019608, 1)
+
+[sub_resource type="LabelSettings" id="LabelSettings_rtw2f"]
+font = ExtResource("5_8ln24")
+
+[sub_resource type="LabelSettings" id="LabelSettings_oa1go"]
+font = ExtResource("5_8ln24")
+
+[sub_resource type="LabelSettings" id="LabelSettings_tbmy8"]
+font = ExtResource("5_8ln24")
+
+[node name="MainMenu" type="Control" unique_id=1331265265]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_8ln24")
+
+[node name="Background" type="TextureRect" parent="." unique_id=826645721]
+layout_mode = 0
+anchor_right = 1.0
+anchor_bottom = 1.0
+texture = ExtResource("2_grad")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="Planets" type="Control" parent="." unique_id=579684722]
+z_index = 1
+anchors_preset = 0
+anchor_right = 1.0
+anchor_bottom = 1.0
+mouse_filter = 2
+
+[node name="Sun" type="TextureRect" parent="Planets" unique_id=1194380248]
+layout_mode = 0
+offset_right = 80.0
+offset_bottom = 80.0
+mouse_filter = 2
+texture = ExtResource("6_sun")
+expand_mode = 1
+stretch_mode = 4
+
+[node name="Moon" type="TextureRect" parent="Planets" unique_id=823068252]
+layout_mode = 0
+offset_right = 36.0
+offset_bottom = 36.0
+mouse_filter = 2
+texture = ExtResource("7_moon")
+expand_mode = 1
+stretch_mode = 4
+
+[node name="Mercury" type="TextureRect" parent="Planets" unique_id=422271926]
+layout_mode = 0
+offset_right = 32.0
+offset_bottom = 32.0
+mouse_filter = 2
+texture = ExtResource("8_mercury")
+expand_mode = 1
+stretch_mode = 4
+
+[node name="Venus" type="TextureRect" parent="Planets" unique_id=1107311311]
+layout_mode = 0
+offset_right = 40.0
+offset_bottom = 40.0
+mouse_filter = 2
+texture = ExtResource("9_venus")
+expand_mode = 1
+stretch_mode = 4
+
+[node name="Mars" type="TextureRect" parent="Planets" unique_id=285198746]
+layout_mode = 0
+offset_right = 38.0
+offset_bottom = 38.0
+mouse_filter = 2
+texture = ExtResource("10_mars")
+expand_mode = 1
+stretch_mode = 4
+
+[node name="Jupiter" type="TextureRect" parent="Planets" unique_id=546941579]
+layout_mode = 0
+offset_right = 56.0
+offset_bottom = 56.0
+mouse_filter = 2
+texture = ExtResource("11_jupiter")
+expand_mode = 1
+stretch_mode = 4
+
+[node name="Saturn" type="TextureRect" parent="Planets" unique_id=1134726065]
+layout_mode = 0
+offset_right = 64.0
+offset_bottom = 64.0
+mouse_filter = 2
+texture = ExtResource("12_saturn")
+expand_mode = 1
+stretch_mode = 4
+
+[node name="Title" type="Node2D" parent="." unique_id=413002493]
+
+[node name="Sign" type="TextureRect" parent="Title" unique_id=1076562975]
+offset_left = 156.0
+offset_top = 24.0
+offset_right = 484.0
+offset_bottom = 164.0
+texture = ExtResource("10_1ajci")
+expand_mode = 1
+
+[node name="Label" type="Label" parent="Title/Sign" unique_id=937170990]
+layout_mode = 1
+anchors_preset = -1
+anchor_right = 0.99700004
+anchor_bottom = 1.0
+offset_right = -0.016021729
+text = "Flora
+Philosophica"
+label_settings = SubResource("LabelSettings_a8gd2")
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="Buttons" type="Control" parent="." unique_id=1176069955]
+anchors_preset = 0
+offset_right = 40.0
+offset_bottom = 40.0
+
+[node name="Settings" type="TextureRect" parent="Buttons" unique_id=20194969]
+layout_mode = 0
+offset_left = 11.0
+offset_top = 325.0
+offset_right = 51.0
+offset_bottom = 365.0
+scale = Vector2(0.75, 0.75)
+texture = ExtResource("12_7b55j")
+expand_mode = 1
+
+[node name="BtnSettings" type="Button" parent="Buttons/Settings" unique_id=382359160]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+flat = true
+
+[node name="LblSettings" type="Label" parent="Buttons/Settings" unique_id=1909541203]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+text = "⚙"
+label_settings = SubResource("LabelSettings_hstxw")
+horizontal_alignment = 1
+
+[node name="About" type="TextureRect" parent="Buttons" unique_id=13804088]
+layout_mode = 0
+offset_left = 600.0
+offset_top = 325.0
+offset_right = 640.0
+offset_bottom = 365.0
+scale = Vector2(0.75, 0.75)
+texture = ExtResource("12_7b55j")
+expand_mode = 1
+
+[node name="BtnAbout" type="Button" parent="Buttons/About" unique_id=1059290600]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+flat = true
+
+[node name="LblAbout" type="Label" parent="Buttons/About" unique_id=1921638275]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+text = "?"
+label_settings = SubResource("LabelSettings_8egab")
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="TTAO" type="TextureRect" parent="Buttons" unique_id=1791056300]
+layout_mode = 0
+offset_left = 600.0
+offset_top = 290.0
+offset_right = 640.0
+offset_bottom = 330.0
+scale = Vector2(0.75, 0.75)
+texture = ExtResource("12_7b55j")
+expand_mode = 1
+
+[node name="BtnTTAO" type="Button" parent="Buttons/TTAO" unique_id=995045351]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+flat = true
+
+[node name="LblTTAO" type="Label" parent="Buttons/TTAO" unique_id=621515771]
+layout_mode = 0
+offset_right = 40.0
+offset_bottom = 40.0
+text = "  🝨   🝪
+🝭"
+label_settings = SubResource("LabelSettings_gw5y6")
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="NewGame" type="TextureRect" parent="Buttons" unique_id=898360179]
+layout_mode = 0
+offset_left = 157.0
+offset_top = 290.0
+offset_right = 234.0
+offset_bottom = 352.0
+texture = ExtResource("13_5pajh")
+expand_mode = 1
+
+[node name="BtnNewGame" type="Button" parent="Buttons/NewGame" unique_id=1487234472]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+flat = true
+
+[node name="LblNewGame" type="Label" parent="Buttons/NewGame" unique_id=575427603]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+text = "New"
+label_settings = ExtResource("14_j7ex8")
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="LoadGame" type="TextureRect" parent="Buttons" unique_id=1100649877]
+layout_mode = 0
+offset_left = 241.0
+offset_top = 290.0
+offset_right = 318.0
+offset_bottom = 352.0
+texture = ExtResource("13_5pajh")
+expand_mode = 1
+
+[node name="BtnLoadGame" type="Button" parent="Buttons/LoadGame" unique_id=732895646]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+flat = true
+
+[node name="LblLoadGame" type="Label" parent="Buttons/LoadGame" unique_id=1132498771]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+text = "Load"
+label_settings = ExtResource("14_j7ex8")
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="OnlinePlay" type="TextureRect" parent="Buttons" unique_id=2000377890]
+layout_mode = 0
+offset_left = 323.0
+offset_top = 290.0
+offset_right = 400.0
+offset_bottom = 352.0
+texture = ExtResource("13_5pajh")
+expand_mode = 1
+
+[node name="BtnOnlinePlay" type="Button" parent="Buttons/OnlinePlay" unique_id=1782984495]
+modulate = Color(1, 1, 1, 0.45)
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+disabled = true
+flat = true
+
+[node name="LblOnlinePlay" type="Label" parent="Buttons/OnlinePlay" unique_id=1528719827]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+text = "Online"
+label_settings = ExtResource("14_j7ex8")
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="ExitGame" type="TextureRect" parent="Buttons" unique_id=1626200318]
+layout_mode = 0
+offset_left = 404.0
+offset_top = 290.0
+offset_right = 481.0
+offset_bottom = 352.0
+texture = ExtResource("13_5pajh")
+expand_mode = 1
+
+[node name="BtnExitGame" type="Button" parent="Buttons/ExitGame" unique_id=1845911648]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+flat = true
+
+[node name="Label" type="Label" parent="Buttons/ExitGame" unique_id=1251126261]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+text = "Exit"
+label_settings = ExtResource("14_j7ex8")
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="PanelTTAO" type="PanelContainer" parent="." unique_id=1488020088]
+visible = false
+layout_mode = 0
+anchor_left = 0.3
+anchor_top = 0.25
+anchor_right = 0.7
+anchor_bottom = 0.65
+
+[node name="VBox" type="VBoxContainer" parent="PanelTTAO" unique_id=604700949]
+layout_mode = 2
+
+[node name="Title" type="Label" parent="PanelTTAO/VBox" unique_id=1209695345]
+layout_mode = 2
+text = "Temple of the Ternary Alchemical Order"
+label_settings = SubResource("LabelSettings_rtw2f")
+horizontal_alignment = 1
+
+[node name="Subtitle" type="Label" parent="PanelTTAO/VBox" unique_id=1436271419]
+layout_mode = 2
+text = "Support the development of Flora Philosophica"
+label_settings = SubResource("LabelSettings_oa1go")
+horizontal_alignment = 1
+
+[node name="BtnPatreon" type="Button" parent="PanelTTAO/VBox" unique_id=356890294]
+layout_mode = 2
+theme_override_fonts/font = ExtResource("5_8ln24")
+text = "  Patreon"
+
+[node name="BtnGoFundMe" type="Button" parent="PanelTTAO/VBox" unique_id=437832730]
+layout_mode = 2
+theme_override_fonts/font = ExtResource("5_8ln24")
+text = "  GoFundMe"
+
+[node name="BtnCloseTTAO" type="Button" parent="PanelTTAO/VBox" unique_id=123473992]
+layout_mode = 2
+theme_override_fonts/font = ExtResource("5_8ln24")
+text = "Close"
+
+[node name="PanelCredits" type="PanelContainer" parent="." unique_id=298517603]
+visible = false
+layout_mode = 0
+anchor_left = 0.25
+anchor_top = 0.2
+anchor_right = 0.75
+anchor_bottom = 0.75
+
+[node name="VBox" type="VBoxContainer" parent="PanelCredits" unique_id=1199687117]
+layout_mode = 2
+
+[node name="CreditsLabel" type="Label" parent="PanelCredits/VBox" unique_id=1914682102]
+custom_minimum_size = Vector2(100, 100)
+layout_mode = 2
+text = "Flora Philosophica
+Design & Development: Astrust
+Built with Godot 4 + C++ GDExtension
+Alchemical sources: Frater Albertus, Robert Allen Bartlett, Nicholas Culpeper
+Solve Et Coagula
+☉ ☽ ♂ ☿ ♃ ♀ ♄"
+label_settings = SubResource("LabelSettings_tbmy8")
+horizontal_alignment = 1
+autowrap_mode = 3
+
+[node name="BtnCloseCredits" type="Button" parent="PanelCredits/VBox" unique_id=883039595]
+layout_mode = 2
+theme_override_fonts/font = ExtResource("5_8ln24")
+text = "Close"
+
+[connection signal="pressed" from="Buttons/Settings/BtnSettings" to="." method="_on_btn_settings_pressed"]
+[connection signal="pressed" from="Buttons/About/BtnAbout" to="." method="_on_btn_about_pressed"]
+[connection signal="pressed" from="Buttons/TTAO/BtnTTAO" to="." method="_on_btn_ttao_pressed"]
+[connection signal="pressed" from="Buttons/NewGame/BtnNewGame" to="." method="_on_btn_new_game_pressed"]
+[connection signal="pressed" from="Buttons/LoadGame/BtnLoadGame" to="." method="_on_btn_load_game_pressed"]
+[connection signal="pressed" from="Buttons/OnlinePlay/BtnOnlinePlay" to="." method="_on_btn_online_play_pressed"]
+[connection signal="pressed" from="Buttons/ExitGame/BtnExitGame" to="." method="_on_btn_exit_game_pressed"]
+[connection signal="pressed" from="PanelTTAO/VBox/BtnPatreon" to="." method="_on_btn_patreon_pressed"]
+[connection signal="pressed" from="PanelTTAO/VBox/BtnGoFundMe" to="." method="_on_btn_gofundme_pressed"]
+[connection signal="pressed" from="PanelTTAO/VBox/BtnCloseTTAO" to="." method="_on_btn_close_ttao_pressed"]
+[connection signal="pressed" from="PanelCredits/VBox/BtnCloseCredits" to="." method="_on_btn_close_credits_pressed"]

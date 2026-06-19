@@ -1,6 +1,7 @@
 #include "register_types.h"
 
 #include "clock.h" 
+#include "orbit_calculator.h"
 #include "world/item.h"
 #include "world/inventory.h"
 #include "world/placed_item.h"
@@ -20,6 +21,7 @@ void initialize_flora_philosophica_module(ModuleInitializationLevel p_level) {
 
     // Core
     ClassDB::register_class<PlanetaryHourCalculator>();
+    ClassDB::register_class<PlanetaryOrbitCalculator>();
 
     // World Logic
     ClassDB::register_class<HarvestItem>();

@@ -33,13 +33,14 @@ CPMAddPackage(
 # --- GDExtension Target ---
 # Explicitly listing sources to avoid missing new files
 set(GDE_SOURCES
+    "src/alchemy/plant_db.cpp"
     "src/core/register_types.cpp"
     "src/core/clock.cpp"
+    "src/core/orbit_calculator.cpp"
     "src/world/item.cpp"
     "src/world/inventory.cpp"
     "src/world/placed_item.cpp"
     "src/world/room_manager.cpp"
-    "src/alchemy/plant_db.cpp"
 )
 
 add_library(flora_philosophica MODULE ${GDE_SOURCES})

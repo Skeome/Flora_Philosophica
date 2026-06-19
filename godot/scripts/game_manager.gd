@@ -13,6 +13,10 @@ var clock = null
 var inventory = null
 var room_manager = null
 
+# Set by world.gd before a scene transition so the incoming scene knows
+# where to place the player on _ready().
+var pending_spawn: Vector2 = Vector2.ZERO
+
 # Medford, Oregon as default — will be replaced by GPS on mobile
 var observer_lat: float = 42.3265
 var observer_lon: float = -122.8756

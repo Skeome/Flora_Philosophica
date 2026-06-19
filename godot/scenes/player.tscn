@@ -203,3 +203,9 @@ position = Vector2(0, -13)
 sprite_frames = SubResource("SpriteFrames_u8vuu")
 animation = &"idle_up"
 frame_progress = 0.5609521
+
+[node name="Camera2D" type="Camera2D" parent="." unique_id=1350242419]
+limit_left = 0
+limit_top = 0
+limit_right = 1920
+limit_bottom = 1088
