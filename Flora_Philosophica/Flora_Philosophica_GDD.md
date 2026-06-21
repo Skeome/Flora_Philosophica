@@ -211,9 +211,9 @@ Item names update dynamically as the material changes state. The player's invent
 |---|---|---|---|
 | 1 | **Spent [Plant] / Residue** | Fibrous matter remaining after liquid extraction. Dried and ready for the furnace. | Many players discard to the compost bin here — this is the "trap." |
 | 2 | **Caput Mortuum** | Residue scorched black in the crucible. First burn stage. | No warning if heat is poorly managed — vessel may crack. |
-| 3 | **Calx of [Plant] (Ash)** | Continued calcination to white ash. Full burn achieved. | Colour shift to white is the visual cue of completion. |
-| 4 | **Calx of [Plant] (Alkali)** | First leaching with distilled water and subsequent precipitation. | Repeat until precipitate is clear; water quality matters. |
-| 5 | **Calx of [Plant] (Salt)** | Further leaching and precipitation to clarify matter. | Item name updates automatically in inventory. |
+| 3 | **[Plant] Calx (Grey)** | Continued calcination to white ash. Full burn achieved. | Colour shift to light_grey is the visual cue of completion. |
+| 4 | **[Plant] Calx (Light Grey)** | First leaching with distilled water, subsequent precipitation, and calcination. | Repeat until precipitate is clear; water quality matters. |
+| 5 | **[Plant] Calx (White)** | Further leaching, precipitation, and calcination to clarify matter. | Item name updates automatically in inventory. |
 | 6 | **Salt of [Plant]** | Final calcination yields pure crystalline salt, permanent. | Ready to recombine with tincture for Spagyric completion. |
 
 ---
@@ -227,7 +227,7 @@ Players with no prior knowledge begin at the bottom. Players with existing opera
 | **Basic Tincture** | Maceration of herb in alcohol. ~1 real hour. | Entry level. Most early customers request these. |
 | **Spagyric Tincture** | Basic tincture + purified Salt of [Plant] recombined. | Requires completing the full residue purification pipeline. |
 | **Elixirs & Magisteries** | Advanced distillation using retort apparatus. | Unlocks Alchemist and Noble customers. |
-| **Ens Tincture** | Essence extracted using deliquesced salts (Sal Tartar). | High-value mail orders; rare and time-intensive. |
+| **Ens Tincture & Primum Ens** | Essence extracted using deliquesced salts (Sal Tartar). | High-value mail orders; rare and time-intensive. |
 | **Plant Stone** | Ultimate masterwork via cohobation in a Pelican flask. | One per plant; permanent. Required for Seven Oblations completion. |
 
 ### 6.1 The Plant Stone
@@ -540,14 +540,6 @@ The alchemical processes described in this document are drawn from the operative
 The planetary attributions of herbs follow Culpeper's documented system throughout. This system is operatively recognised within the spagyric tradition and is not a game invention.
 
 The Tria Prima — Mercurius, Sulphur, Sal — are the foundational three-principle model of Paracelsian alchemy and forms the educational backbone of the entire product progression pipeline.
-
----
-
-*☉ ☽ ♂ ☿ ♃ ♀ ♄*
-
-*Solve Et Coagula*
-t Coagula*
-kbone of the entire product progression pipeline.
 
 ---
 
