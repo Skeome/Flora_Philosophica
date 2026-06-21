@@ -27,6 +27,21 @@ void HarvestItem::_bind_methods() {
     BIND_CONSTANT(STAGE_SPIRITS);
     BIND_CONSTANT(STAGE_SALT);
     BIND_CONSTANT(STAGE_TINCTURE);
+    BIND_CONSTANT(STAGE_CALX_BLACK);
+    BIND_CONSTANT(STAGE_CALX_BLACK_GROUND);
+    BIND_CONSTANT(STAGE_CALX_GREY);
+    BIND_CONSTANT(STAGE_CALX_GREY_GROUND);
+    BIND_CONSTANT(STAGE_CALX_WHITE);
+    BIND_CONSTANT(STAGE_SALT_PURIFIED);
+    BIND_CONSTANT(STAGE_CALX_LIGHT_GREY);
+    BIND_CONSTANT(STAGE_CALX_LIGHT_GREY_GROUND);
+    BIND_CONSTANT(STAGE_TINCTURE_BASIC);
+    BIND_CONSTANT(STAGE_TINCTURE_SPAGYRIC);
+    BIND_CONSTANT(STAGE_ELIXIR);
+    BIND_CONSTANT(STAGE_TINCTURE_MAGISTERY);
+    BIND_CONSTANT(STAGE_TINCTURE_ENS);
+    BIND_CONSTANT(STAGE_TINCTURE_PRIMUM_ENS);
+    BIND_CONSTANT(STAGE_PLANT_STONE);
 
     // HarvestQuality enum
     BIND_CONSTANT(QUALITY_CELESTIAL);
@@ -36,7 +51,7 @@ void HarvestItem::_bind_methods() {
     BIND_CONSTANT(QUALITY_DEBASED);
 
     ADD_PROPERTY(PropertyInfo(Variant::STRING, "plant_name"), "set_plant_name", "get_plant_name");
-    ADD_PROPERTY(PropertyInfo(Variant::INT, "stage", PROPERTY_HINT_ENUM, "Fresh,Dried,Ground,Spent,Spirits,Salt,Tincture"), "set_stage", "get_stage");
+    ADD_PROPERTY(PropertyInfo(Variant::INT, "stage", PROPERTY_HINT_ENUM, "Fresh,Dried,Ground,Spent,Spirits,Salt,Tincture,CalxBlack,CalxBlackGround,CalxGrey,CalxGreyGround,CalxWhite,SaltPurified,CalxLightGrey,CalxLightGreyGround,TinctureBasic,TinctureSpagyric,Elixir,TinctureMagistery,TinctureEns,TincturePrimumEns,PlantStone"), "set_stage", "get_stage");
     ADD_PROPERTY(PropertyInfo(Variant::INT, "quality", PROPERTY_HINT_ENUM, "Celestial,Pristine,Standard,Stressed,Debased"), "set_quality", "get_quality");
 }
 
@@ -49,6 +64,21 @@ String HarvestItem::get_stage_name(PlantStage p_stage) {
         case STAGE_SPIRITS:  return "Spirits";
         case STAGE_SALT:     return "Salt";
         case STAGE_TINCTURE: return "Tincture";
+        case STAGE_CALX_BLACK: return "Calx Black";
+        case STAGE_CALX_BLACK_GROUND: return "Powdered Calx Black";
+        case STAGE_CALX_GREY: return "Calx Grey";
+        case STAGE_CALX_GREY_GROUND: return "Powdered Calx Grey";
+        case STAGE_CALX_WHITE: return "Calx White";
+        case STAGE_SALT_PURIFIED: return "Purified Salt";
+        case STAGE_CALX_LIGHT_GREY: return "Calx Light Grey";
+        case STAGE_CALX_LIGHT_GREY_GROUND: return "Powdered Calx Light Grey";
+        case STAGE_TINCTURE_BASIC: return "Basic Tincture";
+        case STAGE_TINCTURE_SPAGYRIC: return "Spagyric Tincture";
+        case STAGE_ELIXIR: return "Elixir";
+        case STAGE_TINCTURE_MAGISTERY: return "Magistery Tincture";
+        case STAGE_TINCTURE_ENS: return "Ens Tincture";
+        case STAGE_TINCTURE_PRIMUM_ENS: return "Primum Ens Tincture";
+        case STAGE_PLANT_STONE: return "Plant Stone";
     }
     return "Unknown";
 }
@@ -65,16 +95,48 @@ String HarvestItem::get_display_name() const {
     
     String name;
     if (stage == STAGE_SPIRITS) {
-        name = "Spirits of " + plant_name;
+        name = plant_name + String(" Spirits");
     } else if (stage == STAGE_SALT) {
-        name = "Salt of " + plant_name;
-    } else if (stage == STAGE_TINCTURE) {
-        name = "Tincture of " + plant_name;
+        name = plant_name + String(" Salt");
+    } else if (stage == STAGE_TINCTURE || stage == STAGE_TINCTURE_BASIC) {
+        name = "Basic " + plant_name + String(" Tincture");
+    } else if (stage == STAGE_TINCTURE_SPAGYRIC) {
+        name = "Spagyric " + plant_name + String(" Tincture");
+    } else if (stage == STAGE_ELIXIR) {
+        name = plant_name + String(" Elixir");
+    } else if (stage == STAGE_TINCTURE_MAGISTERY) {
+        name = plant_name + String(" Magistery");
+    } else if (stage == STAGE_TINCTURE_ENS) {
+        name = plant_name + String(" Ens Tincture");
+    } else if (stage == STAGE_TINCTURE_PRIMUM_ENS) {
+        name = "Primum Ens " + plant_name;
+    } else if (stage == STAGE_PLANT_STONE) {
+        name = "Cohobated " + plant_name + String(" Stone");
+    } else if (stage == STAGE_CALX_BLACK) {
+        name = plant_name + String(" Calx (Black)");
+    } else if (stage == STAGE_CALX_BLACK_GROUND) {
+        name = "Powdered " + plant_name + String(" Calx (Black)");
+    } else if (stage == STAGE_CALX_GREY) {
+        name = plant_name + String(" Calx (Grey)");
+    } else if (stage == STAGE_CALX_GREY_GROUND) {
+        name = "Powdered " + plant_name + String(" Calx (Grey)");
+    } else if (stage == STAGE_CALX_LIGHT_GREY) {
+        name = plant_name + String(" Calx (Light Grey)");
+    } else if (stage == STAGE_CALX_LIGHT_GREY_GROUND) {
+        name = "Powdered " + plant_name + String(" Calx (Light Grey)");
+    } else if (stage == STAGE_CALX_WHITE) {
+        name = plant_name + String(" Calx (White)");
+    } else if (stage == STAGE_SALT_PURIFIED) {
+        name = "Purified " + plant_name + String(" Salt");
+    } else if (stage == STAGE_SPENT) {
+        name = plant_name + String(" Residue");
+    } else if (stage == STAGE_GROUND) {
+        name = "Powdered " + plant_name;
     } else {
-        name = get_stage_name(stage) + " " + plant_name;
+        name = get_stage_name(stage) + String(" ") + plant_name;
     }
     
-    return name + " (" + qual_str + ")";
+    return name + String(" (") + qual_str + String(")");
 }
 
 Dictionary HarvestItem::to_dict() const {

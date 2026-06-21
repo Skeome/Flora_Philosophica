@@ -19,9 +19,12 @@ const URL_GOFUNDME = "https://www.gofund.me/2265dd08b"
 @onready var panel_ttao   : PanelContainer = $PanelTTAO
 @onready var panel_credits: PanelContainer = $PanelCredits
 
+var original_credits_text: String = ""
+
 func _ready() -> void:
 	panel_ttao.hide()
 	panel_credits.hide()
+	original_credits_text = $PanelCredits/VBox/CreditsLabel.text
 	# Subtle planet rotation — each planet TextureRect gets a slow spin
 	# via shader once shaders are added. Nothing to wire up here yet.
 
@@ -54,6 +57,7 @@ func _on_btn_ttao_pressed() -> void:
 
 func _on_btn_about_pressed() -> void:
 	panel_ttao.hide()
+	$PanelCredits/VBox/CreditsLabel.text = original_credits_text
 	panel_credits.visible = not panel_credits.visible
 
 func _on_btn_patreon_pressed() -> void:

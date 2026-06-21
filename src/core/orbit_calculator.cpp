@@ -8,6 +8,7 @@
 #include <godot_cpp/variant/utility_functions.hpp>
 #include <cmath>
 #include <cstring>
+#include <string>
 
 namespace {
     constexpr double PI = 3.14159265358979323846;
@@ -16,7 +17,6 @@ namespace {
     inline double radToDeg(double r) { return r * (180.0 / PI); }
     inline double degToRad(double d) { return d * (PI / 180.0); }
 
-    // Sum a VSOP87 term series at Julian millennium T
     template <size_t N>
     double sumSeries(const FloraPhilosophica::Core::VSOP87Terms::Term (&terms)[N], double T) {
         double sum = 0.0;
@@ -26,32 +26,27 @@ namespace {
         return sum;
     }
 
-    // Heliocentric longitude for a body using its L0 + L1*T series
+    // L = L0 + L1*T  (longitude, has a linear secular term)
     template <size_t N0, size_t N1>
-    double heliocentricLongitude(
+    double sumLongitudeSeries(
             const FloraPhilosophica::Core::VSOP87Terms::Term (&l0)[N0],
             const FloraPhilosophica::Core::VSOP87Terms::Term (&l1)[N1],
             double T) {
-        double L0 = sumSeries(l0, T);
-        double L1 = sumSeries(l1, T);
-        double L = L0 + L1 * T;
-        // Normalise to [0, 2π)
+        double L = sumSeries(l0, T) + sumSeries(l1, T) * T;
         L = std::fmod(L, TWO_PI);
         if (L < 0.0) L += TWO_PI;
         return L;
     }
 
-    // Approximate heliocentric radius for the inner-loop geocentric correction.
-    // Using mean semi-major axis is sufficient for a decorative animation —
-    // full radius series is not transcribed here since only longitude is used.
-    double meanDistanceAU(const char* name) {
-        if (std::strcmp(name, "Mercury") == 0) return 0.3871;
-        if (std::strcmp(name, "Venus")   == 0) return 0.7233;
-        if (std::strcmp(name, "Earth")   == 0) return 1.0000;
-        if (std::strcmp(name, "Mars")    == 0) return 1.5237;
-        if (std::strcmp(name, "Jupiter") == 0) return 5.2026;
-        if (std::strcmp(name, "Saturn")  == 0) return 9.5549;
-        return 1.0;
+    // R = R0 + R1*T  (radius, has a linear secular term for Earth specifically;
+    // the truncated planet series here use R0 only, which is sufficient at
+    // this precision level)
+    template <size_t N0, size_t N1>
+    double sumRadiusSeries(
+            const FloraPhilosophica::Core::VSOP87Terms::Term (&r0)[N0],
+            const FloraPhilosophica::Core::VSOP87Terms::Term (&r1)[N1],
+            double T) {
+        return sumSeries(r0, T) + sumSeries(r1, T) * T;
     }
 }
 
@@ -59,7 +54,8 @@ namespace godot {
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Mean daily motions (degrees/day) — classical values, public domain.
-// Source: Jean Meeus, Astronomical Algorithms, Ch. 21 (orbital elements table).
+// Source: Jean Meeus, Astronomical Algorithms, Ch. 21.
+// Used only as a GDScript-side fallback when the C++ class is unavailable.
 // ─────────────────────────────────────────────────────────────────────────────
 static const struct {
     const char* name;
@@ -80,11 +76,13 @@ PlanetaryOrbitCalculator::~PlanetaryOrbitCalculator() {}
 
 void PlanetaryOrbitCalculator::_bind_methods() {
     ClassDB::bind_method(
-        D_METHOD("get_all_positions", "utc_timestamp"),
-        &PlanetaryOrbitCalculator::get_all_positions);
+        D_METHOD("get_geocentric_position", "planet_name", "utc_timestamp", "observer_lat", "observer_lon"),
+        &PlanetaryOrbitCalculator::get_geocentric_position,
+        DEFVAL(0.0), DEFVAL(0.0));
     ClassDB::bind_method(
-        D_METHOD("get_planet_longitude", "planet_name", "utc_timestamp"),
-        &PlanetaryOrbitCalculator::get_planet_longitude);
+        D_METHOD("get_all_geocentric_positions", "utc_timestamp", "observer_lat", "observer_lon"),
+        &PlanetaryOrbitCalculator::get_all_geocentric_positions,
+        DEFVAL(0.0), DEFVAL(0.0));
     ClassDB::bind_static_method(
         "PlanetaryOrbitCalculator",
         D_METHOD("get_mean_daily_motion", "planet_name"),
@@ -94,118 +92,154 @@ void PlanetaryOrbitCalculator::_bind_methods() {
 // ── Helpers ──────────────────────────────────────────────────────────────────
 
 double PlanetaryOrbitCalculator::unix_to_julian_day(int64_t unix_ts) {
-    // Unix epoch (1970-01-01 00:00:00 UTC) = JD 2440587.5
     return 2440587.5 + static_cast<double>(unix_ts) / 86400.0;
 }
 
-double PlanetaryOrbitCalculator::compute_longitude(
-        int planet_index, double julian_day) const {
-
+PlanetaryOrbitCalculator::HeliocentricCoords
+PlanetaryOrbitCalculator::heliocentric_earth(double T) {
     using namespace FloraPhilosophica::Core::VSOP87Terms;
+    HeliocentricCoords h;
+    h.L = sumLongitudeSeries(Earth_L0, Earth_L1, T);
+    h.B = sumSeries(Earth_B0, T);
+    h.R = sumRadiusSeries(Earth_R0, Earth_R1, T);
+    return h;
+}
 
-    // Julian millennia from J2000.0 — the VSOP87 time argument
-    double T = (julian_day - 2451545.0) / 365250.0;
-
+PlanetaryOrbitCalculator::HeliocentricCoords
+PlanetaryOrbitCalculator::heliocentric_planet(int planet_index, double T) {
+    using namespace FloraPhilosophica::Core::VSOP87Terms;
     const char* name = PLANET_TABLE[planet_index].name;
-
-    // ── Sun: geocentric longitude of the Sun is Earth's heliocentric
-    //    longitude + 180° (Earth and Sun are always opposite as seen
-    //    from each other along the same line).
-    if (std::strcmp(name, "Sun") == 0) {
-        double earthLon = heliocentricLongitude(Earth_L0, Earth_L1, T);
-        double sunLon = std::fmod(earthLon + PI, TWO_PI); // +180°
-        return radToDeg(sunLon);
-    }
-
-    // ── Moon: independent low-precision lunar longitude approximation.
-    //    This is NOT ELP2000 — it is a simple two-term mean-longitude
-    //    + equation-of-centre model (Meeus Ch. 47 introduction, simplified
-    //    mean elements), sufficient for decorative animation only.
-    if (std::strcmp(name, "Moon") == 0) {
-        // Days since J2000.0
-        double d = julian_day - 2451545.0;
-
-        // Mean longitude of the Moon (degrees), public-domain mean element
-        double Lp = 218.3164591 + 13.17639648 * d;
-
-        // Mean anomaly of the Moon (degrees)
-        double Mp = 134.9634114 + 13.06499295 * d;
-
-        // Mean elongation of the Moon from the Sun (degrees)
-        double D = 297.8502042 + 12.19074912 * d;
-
-        double MpRad = degToRad(std::fmod(Mp, 360.0));
-        double DRad  = degToRad(std::fmod(D, 360.0));
-
-        // Two dominant equation-of-centre terms (simplified)
-        double correction = 6.289 * std::sin(MpRad) + 1.274 * std::sin(2.0 * DRad - MpRad);
-
-        double lon = std::fmod(Lp + correction, 360.0);
-        if (lon < 0.0) lon += 360.0;
-        return lon;
-    }
-
-    // ── Inner/outer planets: geocentric longitude via heliocentric
-    //    rectangular subtraction (Earth as origin).
-    double earthLon = heliocentricLongitude(Earth_L0, Earth_L1, T);
-    double earthR   = meanDistanceAU("Earth");
-    double earthX   = earthR * std::cos(earthLon);
-    double earthY   = earthR * std::sin(earthLon);
-
-    double planetLon = 0.0;
-    double planetR   = meanDistanceAU(name);
+    HeliocentricCoords h{0.0, 0.0, 1.0};
 
     if (std::strcmp(name, "Mercury") == 0) {
-        planetLon = heliocentricLongitude(Mercury_L0, Mercury_L1, T);
+        h.L = sumLongitudeSeries(Mercury_L0, Mercury_L1, T);
+        h.B = sumSeries(Mercury_B0, T);
+        h.R = sumSeries(Mercury_R0, T);
     } else if (std::strcmp(name, "Venus") == 0) {
-        planetLon = heliocentricLongitude(Venus_L0, Venus_L1, T);
+        h.L = sumLongitudeSeries(Venus_L0, Venus_L1, T);
+        h.B = sumSeries(Venus_B0, T);
+        h.R = sumSeries(Venus_R0, T);
     } else if (std::strcmp(name, "Mars") == 0) {
-        planetLon = heliocentricLongitude(Mars_L0, Mars_L1, T);
+        h.L = sumLongitudeSeries(Mars_L0, Mars_L1, T);
+        h.B = sumSeries(Mars_B0, T);
+        h.R = sumSeries(Mars_R0, T);
     } else if (std::strcmp(name, "Jupiter") == 0) {
-        planetLon = heliocentricLongitude(Jupiter_L0, Jupiter_L1, T);
+        h.L = sumLongitudeSeries(Jupiter_L0, Jupiter_L1, T);
+        h.B = sumSeries(Jupiter_B0, T);
+        h.R = sumSeries(Jupiter_R0, T);
     } else if (std::strcmp(name, "Saturn") == 0) {
-        planetLon = heliocentricLongitude(Saturn_L0, Saturn_L1, T);
+        h.L = sumLongitudeSeries(Saturn_L0, Saturn_L1, T);
+        h.B = sumSeries(Saturn_B0, T);
+        h.R = sumSeries(Saturn_R0, T);
     }
 
-    double planetX = planetR * std::cos(planetLon);
-    double planetY = planetR * std::sin(planetLon);
+    return h;
+}
 
-    double geoX = planetX - earthX;
-    double geoY = planetY - earthY;
-
-    double geoLonDeg = radToDeg(std::atan2(geoY, geoX));
-    geoLonDeg = std::fmod(geoLonDeg + 360.0, 360.0);
-    return geoLonDeg;
+void PlanetaryOrbitCalculator::to_rectangular(const HeliocentricCoords& h, double& x, double& y, double& z) {
+    x = h.R * std::cos(h.B) * std::cos(h.L);
+    y = h.R * std::cos(h.B) * std::sin(h.L);
+    z = h.R * std::sin(h.B);
 }
 
 // ── Public API ────────────────────────────────────────────────────────────────
 
-Dictionary PlanetaryOrbitCalculator::get_all_positions(int64_t utc_timestamp) const {
-    double jd = unix_to_julian_day(utc_timestamp);
-    Dictionary result;
+Dictionary PlanetaryOrbitCalculator::get_geocentric_position(
+        const String& planet_name, int64_t utc_timestamp,
+        double observer_lat, double observer_lon) const {
 
-    for (int i = 0; i < PLANET_COUNT; ++i) {
-        double lon = compute_longitude(i, jd);
-        result[String(PLANET_TABLE[i].name)] = lon;
+    double jd = unix_to_julian_day(utc_timestamp);
+    double T = (jd - 2451545.0) / 365250.0;
+
+    Dictionary result;
+    std::string name_str = planet_name.utf8().get_data();
+
+    // ── Sun: geocentric longitude is Earth's heliocentric longitude + 180°.
+    //    Latitude is ~0 by definition (the Sun always sits on the ecliptic
+    //    as seen from Earth, to first order).
+    if (name_str == "Sun") {
+        HeliocentricCoords earth = heliocentric_earth(T);
+        double sunLon = std::fmod(earth.L + PI, TWO_PI);
+        result["lon"] = radToDeg(sunLon);
+        result["lat"] = radToDeg(-earth.B); // Sun's apparent latitude mirrors Earth's tiny B
+        return result;
     }
 
+    // ── Moon: independent low-precision lunar approximation (NOT ELP2000).
+    //    Mean longitude + two-term equation of centre, plus a mean-latitude
+    //    term from the Moon's ~5.14° orbital inclination to the ecliptic.
+    //    Decorative-grade only.
+    if (name_str == "Moon") {
+        double d = jd - 2451545.0;
+        double Lp = 218.3164591 + 13.17639648 * d;
+        double Mp = 134.9634114 + 13.06499295 * d;
+        double D  = 297.8502042 + 12.19074912 * d;
+        double F  = 93.2720993  + 13.22935024 * d; // argument of latitude
+
+        double MpRad = degToRad(std::fmod(Mp, 360.0));
+        double DRad  = degToRad(std::fmod(D, 360.0));
+        double FRad  = degToRad(std::fmod(F, 360.0));
+
+        double lonCorrection = 6.289 * std::sin(MpRad) + 1.274 * std::sin(2.0 * DRad - MpRad);
+        double lon = std::fmod(Lp + lonCorrection, 360.0);
+        if (lon < 0.0) lon += 360.0;
+
+        // Dominant latitude term — Moon's orbital inclination ~5.13°
+        double lat = 5.128 * std::sin(FRad);
+
+        result["lon"] = lon;
+        result["lat"] = lat;
+        return result;
+    }
+
+    // ── Planets: full geocentric position via heliocentric rectangular
+    //    subtraction. This is what produces genuine apparent retrograde
+    //    loops — they emerge naturally from Earth and the planet moving
+    //    at different angular rates around the Sun, not from any synthetic
+    //    "loop" function.
+    int planet_index = -1;
+    for (int i = 0; i < PLANET_COUNT; ++i) {
+        if (name_str == PLANET_TABLE[i].name) { planet_index = i; break; }
+    }
+    if (planet_index < 0) {
+        UtilityFunctions::printerr("PlanetaryOrbitCalculator: unknown planet '", planet_name, "'");
+        result["lon"] = 0.0;
+        result["lat"] = 0.0;
+        return result;
+    }
+
+    HeliocentricCoords earth  = heliocentric_earth(T);
+    HeliocentricCoords planet = heliocentric_planet(planet_index, T);
+
+    double ex, ey, ez, px, py, pz;
+    to_rectangular(earth, ex, ey, ez);
+    to_rectangular(planet, px, py, pz);
+
+    double gx = px - ex;
+    double gy = py - ey;
+    double gz = pz - ez;
+
+    double dist = std::sqrt(gx * gx + gy * gy);
+    double lonRad = std::atan2(gy, gx);
+    double latRad = std::atan2(gz, dist);
+
+    double lonDeg = std::fmod(radToDeg(lonRad) + 360.0, 360.0);
+    double latDeg = radToDeg(latRad);
+
+    result["lon"] = lonDeg;
+    result["lat"] = latDeg;
     return result;
 }
 
-double PlanetaryOrbitCalculator::get_planet_longitude(
-        const String& planet_name, int64_t utc_timestamp) const {
+Dictionary PlanetaryOrbitCalculator::get_all_geocentric_positions(
+        int64_t utc_timestamp, double observer_lat, double observer_lon) const {
 
-    double jd = unix_to_julian_day(utc_timestamp);
-
+    Dictionary result;
     for (int i = 0; i < PLANET_COUNT; ++i) {
-        if (planet_name == PLANET_TABLE[i].name) {
-            return compute_longitude(i, jd);
-        }
+        String name = String(PLANET_TABLE[i].name);
+        result[name] = get_geocentric_position(name, utc_timestamp, observer_lat, observer_lon);
     }
-
-    UtilityFunctions::printerr(
-        "PlanetaryOrbitCalculator: unknown planet '", planet_name, "'");
-    return 0.0;
+    return result;
 }
 
 double PlanetaryOrbitCalculator::get_mean_daily_motion(const String& planet_name) {

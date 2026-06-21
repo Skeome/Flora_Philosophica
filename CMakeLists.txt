@@ -34,6 +34,8 @@ CPMAddPackage(
 # Explicitly listing sources to avoid missing new files
 set(GDE_SOURCES
     "src/alchemy/plant_db.cpp"
+    "src/alchemy/recipe.cpp"
+    "src/alchemy/station.cpp"
     "src/core/register_types.cpp"
     "src/core/clock.cpp"
     "src/core/orbit_calculator.cpp"

@@ -4,15 +4,25 @@ extends Control
 # PlanetOrbitAnimator
 # Attach to the MainMenu root Control node.
 #
-# On _ready():
-#   1. Calls PlanetaryOrbitCalculator.get_all_positions(now) once via C++
-#      to get real geocentric ecliptic longitudes for all 7 planets.
-#   2. Stores each planet's starting angle + mean daily motion.
-#   3. Each frame, advances angles by (daily_motion / 86400) * delta_seconds
-#      and repositions the planet TextureRect nodes around a visual orbit.
+# Drives the "dance of the spheres" — true geocentric apparent motion for
+# Mercury, Venus, Mars, Jupiter, and Saturn, including real retrograde loops.
+# Sun and Moon use simplified models (the Sun never retrogrades from Earth's
+# perspective; the Moon's loop pattern is dominated by monthly motion, not a
+# classic planetary retrograde).
 #
-# Visual orbit radii are artistic (not true AU scale) so all seven planets
-# are visible on screen simultaneously.
+# On _ready():
+#   1. Samples real geocentric ecliptic longitude/latitude at the 2000-01-01
+#      epoch and at "now" via the C++ PlanetaryOrbitCalculator.
+#   2. Fast-forwards from epoch to now over FAST_FORWARD_DURATION seconds by
+#      re-sampling the real calculator at proportionally advancing timestamps
+#      each frame — NOT a synthetic circular sweep — so the genuine
+#      prograde/retrograde loop shapes appear during the fast-forward.
+#   3. After the duration, continues sampling at real wall-clock time, so the
+#      animation seamlessly becomes "live."
+#
+# Player location (GameManager.observer_lat/observer_lon) is passed through
+# to the calculator on every sample, so the displayed sky is keyed to the
+# actual player rather than a hardcoded location.
 #
 # Node structure expected under this Control:
 #   Planets/Sun      (TextureRect or Sprite2D)
@@ -24,11 +34,25 @@ extends Control
 #   Planets/Saturn   (TextureRect or Sprite2D)
 # ─────────────────────────────────────────────────────────────────────────────
 
-# ── Visual orbit radii (fraction of the shorter viewport axis) ────────────────
-# Geocentric (Ptolemaic) order: Earth is the observer at centre.
-# Moon is closest, Saturn outermost. At runtime these are multiplied by
-# min(size.x, size.y) / 2 so orbits scale with any viewport resolution.
-const ORBIT_RADII = {
+const PLANET_NAMES := ["Sun", "Moon", "Mercury", "Venus", "Mars", "Jupiter", "Saturn"]
+
+# ── Visual scale ──────────────────────────────────────────────────────────────
+# Geocentric longitude/latitude are projected as a simple polar mapping
+# around an "Earth" point: angle = longitude, radius = base_radius scaled by
+# a mild per-planet multiplier (so retrograde loops are visible at a size
+# that reads on screen — true relative distances would make Saturn's loop
+# imperceptibly small next to Mercury's).
+#
+# The Sun's geocentric longitude is, by construction, Earth's heliocentric
+# longitude + 180° — a single smooth annual sweep with no latitude wobble
+# and no possibility of retrograde (the Sun can never appear to reverse
+# direction as seen from Earth). It therefore traces a perfect circle here,
+# distinct from the looping planets.
+# Ordered by the Chaldean sequence used throughout the rest of the game
+# (clock.cpp day-ruler order): Saturn, Jupiter, Mars, Sun, Venus, Mercury, Moon.
+# Saturn outermost, Moon innermost — the Sun sits in the middle of that
+# sequence, not bundled with the inner planets.
+const RADIUS_SCALE := {
 	"Moon":    0.22,
 	"Mercury": 0.38,
 	"Venus":   0.54,
@@ -38,127 +62,218 @@ const ORBIT_RADII = {
 	"Saturn":  1.35,
 }
 
-# Mean daily motions (degrees/day) — used as fallback if C++ unavailable.
-# Values from Jean Meeus, Astronomical Algorithms.
-const MEAN_DAILY_MOTION = {
-	"Sun":      0.9856,
-	"Moon":    13.1764,
-	"Mercury":  4.0923,
-	"Venus":    1.6021,
-	"Mars":     0.5240,
-	"Jupiter":  0.0831,
-	"Saturn":   0.0335,
+const PLANET_COLORS := {
+	"Sun": Color(1.0, 0.84, 0.0),      # Gold
+	"Moon": Color(0.75, 0.75, 0.75),   # Silver
+	"Venus": Color(0.31, 0.78, 0.47),  # Emerald Green
+	"Mars": Color(0.86, 0.08, 0.24),   # Crimson Red
+	"Jupiter": Color(0.25, 0.41, 0.88),# Royal Blue
+	"Saturn": Color(0.5, 0.0, 0.5),    # Purple
+	"Mercury": Color(1.0, 0.65, 0.0),  # Orange-Yellow
 }
 
-# Current ecliptic angle (degrees) for each planet, updated each frame
-var _angles: Dictionary = {}
+# Latitude is amplified visually — real ecliptic latitudes are only a few
+# degrees, which would be an imperceptible wobble at the radii above. This
+# multiplier exaggerates the loop's vertical extent for legibility while
+# preserving its true timing and direction. Per-planet values prevent inner
+# planets (like the Moon) from wildly overlapping the Chaldean order.
+const LATITUDE_VISUAL_GAIN := {
+	"Moon":    2.0,
+	"Mercury": 8.0,
+	"Venus":   10.0,
+	"Sun":     0.0,
+	"Mars":    12.0,
+	"Jupiter": 16.0,
+	"Saturn":  18.0,
+}
 
-# Degrees per second of real time for each planet
-var _deg_per_sec: Dictionary = {}
+const EPOCH_UNIX_TIMESTAMP: int = 946684800  # 2000-01-01 00:00:00 UTC
+const FAST_FORWARD_DURATION: float = 60.0    # seconds
 
-# Whether C++ backend loaded successfully
+var _calc = null
 var _calc_ready: bool = false
 
-# Reference to the calculator (keeps it alive)
-var _calc = null
+var _ff_elapsed: float = 0.0
+var _ff_active: bool = true
+var _ff_start_ts: int = EPOCH_UNIX_TIMESTAMP
+var _ff_end_ts: int = EPOCH_UNIX_TIMESTAMP
 
-# Screen centre — recalculated every frame from the Control's actual size
-var orbit_centre: Vector2 = Vector2.ZERO
+# Cached last-sampled position per planet: { "lon": float, "lat": float }
+var _positions: Dictionary = {}
 
-# External links
+const MAX_TRAIL_LENGTH: int = 1500
+var _trails: Dictionary = {}
+var _last_sample_ts: int = 0
+
+@export var orbit_centre: Vector2 = Vector2.ZERO
+
+# ── External links ────────────────────────────────────────────────────────────
 const MAIN_SCENE = "res://scenes/main.tscn"
-const URL_PATREON  = "https://www.patreon.com/Astrust"
-const URL_GOFUNDME = "https://www.gofund.me/2265dd08b"
+const URL_PATREON  = "https://www.patreon.com/"
+const URL_GOFUNDME = "https://www.gofundme.com/"
 
 @onready var panel_ttao   : PanelContainer = $PanelTTAO
 @onready var panel_credits: PanelContainer = $PanelCredits
 
-# Original credits text (saved so toasts don't permanently overwrite it)
-var _original_credits_text: String = ""
+var original_credits_text: String = ""
 
 func _ready() -> void:
 	panel_ttao.hide()
 	panel_credits.hide()
-	# Save original credits text
-	_original_credits_text = $PanelCredits/VBox/CreditsLabel.text
-	_init_positions()
+	original_credits_text = $PanelCredits/VBox/CreditsLabel.text
+	$Planets.draw.connect(_on_planets_draw)
+	_ff_end_ts = int(Time.get_unix_time_from_system())
+	_ff_start_ts = EPOCH_UNIX_TIMESTAMP
+	_last_sample_ts = EPOCH_UNIX_TIMESTAMP
+	_ff_active = true
+	_ff_elapsed = 0.0
 
-func _init_positions() -> void:
-	# Try to instantiate the C++ calculator
 	if ClassDB.class_exists("PlanetaryOrbitCalculator"):
 		_calc = PlanetaryOrbitCalculator.new()
-		var now := int(Time.get_unix_time_from_system())
-		var positions: Dictionary = _calc.get_all_positions(now)
-
-		for planet in MEAN_DAILY_MOTION.keys():
-			# Real ecliptic longitude as starting angle
-			_angles[planet] = float(positions.get(planet, 0.0))
-			# deg/day → deg/sec (static method — called on the class, not the instance)
-			var daily: float = PlanetaryOrbitCalculator.get_mean_daily_motion(planet)
-			_deg_per_sec[planet] = daily / 86400.0
-
 		_calc_ready = true
-		print("PlanetOrbitAnimator: real positions loaded.")
 	else:
-		# Fallback — start all at 0° and use mean motions only
-		push_warning("PlanetOrbitAnimator: PlanetaryOrbitCalculator not found. Using mean motion fallback.")
-		for planet in MEAN_DAILY_MOTION.keys():
-			_angles[planet] = 0.0
-			_deg_per_sec[planet] = MEAN_DAILY_MOTION[planet] / 86400.0
+		push_warning("PlanetOrbitAnimator: PlanetaryOrbitCalculator not found.")
+		_calc_ready = false
 
+	_sample_positions(_ff_start_ts)
 	_apply_positions()
 
 func _process(delta: float) -> void:
-	# Advance each planet angle by its real-time speed
-	for planet in _angles.keys():
-		_angles[planet] = fmod(_angles[planet] + _deg_per_sec[planet] * delta, 360.0)
-	_apply_positions()
+	if not _calc_ready:
+		return
+
+	var target_ts: int
+
+	if _ff_active:
+		_ff_elapsed += delta
+		var t: float = clampf(_ff_elapsed / FAST_FORWARD_DURATION, 0.0, 1.0)
+		# Ease-out so the sweep settles smoothly into real-time speed.
+		var eased_t: float = 1.0 - pow(1.0 - t, 3.0)
+		target_ts = _ff_start_ts + int(float(_ff_end_ts - _ff_start_ts) * eased_t)
+
+		if t >= 1.0:
+			_ff_active = false
+	else:
+		target_ts = int(Time.get_unix_time_from_system())
+
+	var time_step: int = 86400  # 24-hour physical steps
+	if target_ts > _last_sample_ts:
+		while _last_sample_ts + time_step < target_ts:
+			_last_sample_ts += time_step
+			_sample_positions(_last_sample_ts)
+			_apply_positions()
+		
+		_last_sample_ts = target_ts
+		_sample_positions(_last_sample_ts)
+		_apply_positions()
+	elif target_ts < _last_sample_ts:
+		_last_sample_ts = target_ts
+		_sample_positions(_last_sample_ts)
+		_apply_positions()
+	var planets_node := get_node_or_null("Planets")
+	if planets_node:
+		planets_node.queue_redraw()
+
+func _sample_positions(unix_ts: int) -> void:
+	if not _calc_ready:
+		return
+	var lat: float = GameManager.observer_lat if GameManager else 0.0
+	var lon: float = GameManager.observer_lon if GameManager else 0.0
+	_positions = _calc.get_all_geocentric_positions(unix_ts, lat, lon)
 
 func _apply_positions() -> void:
 	var planets_node := get_node_or_null("Planets")
 	if planets_node == null:
 		return
 
-	# Recalculate centre and scale from the Control's current size so orbits
-	# always stay centred on the gradient background, regardless of viewport.
-	# Position centre at bottom third of the screen
-	orbit_centre = Vector2(size.x / 2.0, size.y * 0.67)
 	var scale_basis: float = min(size.x, size.y) / 2.0
+	if orbit_centre == Vector2.ZERO:
+		orbit_centre = Vector2(size.x / 2.0, size.y * 0.67)
 
-	for planet in _angles.keys():
-		var node := planets_node.get_node_or_null(planet)
+	for planet_name in PLANET_NAMES:
+		var node := planets_node.get_node_or_null(planet_name)
 		if node == null:
 			continue
 
-		# Node size for centering
+		var radius_frac: float = RADIUS_SCALE.get(planet_name, 0.5)
+		if not _positions.has(planet_name):
+			continue
+
+		var pos: Dictionary = _positions[planet_name]
+		var lon_deg: float = float(pos.get("lon", 0.0))
+		var lat_deg: float = float(pos.get("lat", 0.0))
+
+		var lon_rad: float = deg_to_rad(lon_deg)
+		var radius_px: float = radius_frac * scale_basis
+
+		# Base orbital position from longitude (the "ring")
+		var base_offset := Vector2(
+			cos(lon_rad) * radius_px,
+			-sin(lon_rad) * radius_px
+		)
+
+		# Latitude perturbs the radial distance slightly, producing the
+		# visible loop-within-a-ring shape characteristic of true apparent
+		# retrograde motion, exaggerated by LATITUDE_VISUAL_GAIN for legibility.
+		var offset: Vector2 = base_offset
+		var lat_gain: float = LATITUDE_VISUAL_GAIN.get(planet_name, 0.0)
+		if lat_gain > 0.0:
+			var lat_offset_px: float = lat_deg * lat_gain
+			var radial_dir: Vector2 = base_offset.normalized()
+			offset = base_offset + radial_dir * lat_offset_px
+
 		var node_size: Vector2 = Vector2.ZERO
 		if node is Control:
 			node_size = node.size
 		elif node is Sprite2D:
 			node_size = node.texture.get_size() if node.texture else Vector2.ZERO
 
-		var radius_frac: float = ORBIT_RADII.get(planet, 0.35)
-		var radius_px: float = radius_frac * scale_basis
+		var center_pos: Vector2 = orbit_centre + offset
+		node.position = center_pos - node_size * 0.5
+		
+		if not _trails.has(planet_name):
+			_trails[planet_name] = PackedVector2Array()
+			_trails[planet_name].append(center_pos)
+		else:
+			var trail: PackedVector2Array = _trails[planet_name]
+			if trail.size() > 0:
+				if trail[trail.size() - 1].distance_squared_to(center_pos) > 4.0:
+					trail.append(center_pos)
+			else:
+				trail.append(center_pos)
+				
+			if trail.size() > MAX_TRAIL_LENGTH:
+				var excess: int = trail.size() - MAX_TRAIL_LENGTH
+				trail = trail.slice(excess)
+			_trails[planet_name] = trail
 
-		if radius_px <= 0.0:
+func _on_planets_draw() -> void:
+	var planets_node := get_node_or_null("Planets")
+	if not planets_node: return
+	
+	for planet_name in PLANET_NAMES:
+		if not _trails.has(planet_name):
 			continue
-
-		var angle_rad: float = deg_to_rad(_angles[planet])
-
-		# Ecliptic longitude 0° = right (3 o'clock).
-		# Godot's y-axis points down, so we negate y to get
-		# counter-clockwise motion matching real sky motion.
-		var offset := Vector2(
-			cos(angle_rad) * radius_px,
-			-sin(angle_rad) * radius_px
-		)
-
-		node.position = orbit_centre + offset - node_size * 0.5
+		var trail: PackedVector2Array = _trails[planet_name]
+		var count: int = trail.size()
+		if count < 2:
+			continue
+			
+		var base_color: Color = PLANET_COLORS.get(planet_name, Color.WHITE)
+		var colors := PackedColorArray()
+		colors.resize(count)
+		
+		for i in range(count):
+			var alpha: float = float(i) / float(count - 1)
+			var c = base_color
+			c.a = alpha * 0.8
+			colors[i] = c
+			
+		planets_node.draw_polyline_colors(trail, colors, 2.0, true)
 
 # ── Button callbacks ──────────────────────────────────────────────────────────
 
 func _on_btn_new_game_pressed() -> void:
-	# TODO: show character/world name prompt before transitioning
 	GameManager.save_game()
 	get_tree().change_scene_to_file(MAIN_SCENE)
 
@@ -167,7 +282,6 @@ func _on_btn_load_game_pressed() -> void:
 	get_tree().change_scene_to_file(MAIN_SCENE)
 
 func _on_btn_online_play_pressed() -> void:
-	# Multiplayer is a future feature — inform the player
 	_show_toast("Online Play is coming in a future update.")
 
 func _on_btn_exit_game_pressed() -> void:
@@ -175,7 +289,6 @@ func _on_btn_exit_game_pressed() -> void:
 	get_tree().quit()
 
 func _on_btn_settings_pressed() -> void:
-	# TODO: open settings panel (audio, display, GPS override)
 	_show_toast("Settings coming soon.")
 
 func _on_btn_ttao_pressed() -> void:
@@ -183,9 +296,8 @@ func _on_btn_ttao_pressed() -> void:
 	panel_ttao.visible = not panel_ttao.visible
 
 func _on_btn_about_pressed() -> void:
-	# Restore credits text before showing
-	$PanelCredits/VBox/CreditsLabel.text = _original_credits_text
 	panel_ttao.hide()
+	$PanelCredits/VBox/CreditsLabel.text = original_credits_text
 	panel_credits.visible = not panel_credits.visible
 
 func _on_btn_patreon_pressed() -> void:
@@ -203,7 +315,6 @@ func _on_btn_close_credits_pressed() -> void:
 # ── Helpers ───────────────────────────────────────────────────────────────────
 
 func _show_toast(message: String) -> void:
-	# Show toast message
 	var lbl := $PanelCredits/VBox/CreditsLabel
 	lbl.text = message
 	panel_ttao.hide()

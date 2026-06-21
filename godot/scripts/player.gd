@@ -23,10 +23,19 @@ const WORLD_H = 1080.0
 var _move_target: Vector2 = Vector2.ZERO
 var _has_target: bool = false
 var _facing: String = "down"
+var _input_locked: bool = false
 
 func _ready() -> void:
 	add_to_group("player")
 	_configure_camera()
+
+# Called by PauseMenu while it is open. Stops movement and interaction
+# input without pausing the SceneTree, so the world keeps simulating.
+func set_input_locked(locked: bool) -> void:
+	_input_locked = locked
+	if locked:
+		_has_target = false
+		velocity = Vector2.ZERO
 
 func _configure_camera() -> void:
 	if camera == null:
@@ -41,6 +50,12 @@ func _configure_camera() -> void:
 	camera.limit_bottom = 1088
 
 func _physics_process(_delta: float) -> void:
+	if _input_locked:
+		velocity = Vector2.ZERO
+		sprite.play("idle_" + _facing)
+		move_and_slide()
+		return
+
 	var direction := _get_keyboard_direction()
 
 	if direction != Vector2.ZERO:
@@ -65,6 +80,8 @@ func _physics_process(_delta: float) -> void:
 	move_and_slide()
 
 func _unhandled_input(event: InputEvent) -> void:
+	if _input_locked:
+		return
 	if event is InputEventMouseButton:
 		if event.button_index == MOUSE_BUTTON_LEFT and event.pressed:
 			_move_target = get_global_mouse_position()

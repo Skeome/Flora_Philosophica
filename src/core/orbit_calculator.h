@@ -9,20 +9,21 @@
 
 // ─────────────────────────────────────────────────────────────────────────────
 // PlanetaryOrbitCalculator
-// GDExtension wrapper around the Ephemeris/VSOP87 library.
+// GDExtension wrapper around an original clean-room VSOP87 implementation.
 //
-// Provides real geocentric ecliptic longitudes for the seven classical planets
-// (+ Sun + Moon) for use in the main menu orbit animation and any future
-// astrological chart features.
+// Provides true geocentric ecliptic longitude AND latitude for the seven
+// classical planets (+ Sun + Moon) for use in the main menu's "dance of the
+// spheres" orbit animation. Latitude is what produces genuine apparent
+// retrograde loops (Mercury/Venus/Mars/Jupiter/Saturn) rather than a flat
+// longitude-only sweep.
 //
-// Called once at menu startup:
+// Usage from GDScript:
 //   var calc = PlanetaryOrbitCalculator.new()
-//   var positions = calc.get_all_positions(unix_timestamp)
-//   # returns Dictionary: { "Sun": float, "Moon": float, "Mars": float, ... }
-//   # values are geocentric ecliptic longitude in degrees (0–360)
+//   var pos = calc.get_geocentric_position("Mars", unix_timestamp)
+//   # pos == { "lon": float (degrees, 0-360), "lat": float (degrees) }
 //
-// The GDScript orbit shader then uses these as starting angles and advances
-// each planet at its mean daily motion each frame.
+//   var all = calc.get_all_geocentric_positions(unix_timestamp)
+//   # all == { "Mars": {"lon":.., "lat":..}, "Venus": {...}, ... }
 // ─────────────────────────────────────────────────────────────────────────────
 
 namespace godot {
@@ -34,28 +35,42 @@ public:
     PlanetaryOrbitCalculator();
     ~PlanetaryOrbitCalculator();
 
-    // Returns a Dictionary of { planet_name: ecliptic_longitude_degrees }
-    // for the given UTC Unix timestamp.
-    // Planets: Sun, Moon, Mercury, Venus, Mars, Jupiter, Saturn
-    Dictionary get_all_positions(int64_t utc_timestamp) const;
+    // Returns { "lon": degrees, "lat": degrees } for a single body.
+    // observer_lat/observer_lon (degrees) are accepted for future parallax
+    // correction; at planetary distances the effect is sub-arcsecond and
+    // currently unused in the calculation, but the parameters are wired
+    // through so real player location is available when needed.
+    Dictionary get_geocentric_position(const String& planet_name, int64_t utc_timestamp,
+                                        double observer_lat = 0.0, double observer_lon = 0.0) const;
 
-    // Returns just one planet's ecliptic longitude.
-    double get_planet_longitude(const String& planet_name, int64_t utc_timestamp) const;
+    // Returns { planet_name: {"lon":.., "lat":..}, ... } for all seven bodies.
+    Dictionary get_all_geocentric_positions(int64_t utc_timestamp,
+                                             double observer_lat = 0.0, double observer_lon = 0.0) const;
 
-    // Mean daily motion in degrees/day for each classical planet.
-    // Used by GDScript to advance positions each frame without recalculating.
+    // Mean daily motion in degrees/day — used by GDScript only as a fallback
+    // when the C++ calculator can't be reached. The real animation should
+    // prefer get_geocentric_position() sampled across the fast-forward
+    // window instead of extrapolating from mean motion, since mean motion
+    // can't reproduce retrograde loops.
     static double get_mean_daily_motion(const String& planet_name);
 
 protected:
     static void _bind_methods();
 
 private:
-    // Convert Unix timestamp to Julian Day number
     static double unix_to_julian_day(int64_t unix_ts);
 
-    // Internal computation using VSOP87 via Ephemeris
-    // Returns geocentric ecliptic longitude in degrees [0, 360)
-    double compute_longitude(int planet_index, double julian_day) const;
+    struct HeliocentricCoords {
+        double L; // heliocentric ecliptic longitude, radians
+        double B; // heliocentric ecliptic latitude, radians
+        double R; // radius vector, AU
+    };
+
+    static HeliocentricCoords heliocentric_earth(double T);
+    static HeliocentricCoords heliocentric_planet(int planet_index, double T);
+
+    // Converts heliocentric L/B/R into rectangular ecliptic XYZ (AU)
+    static void to_rectangular(const HeliocentricCoords& h, double& x, double& y, double& z);
 };
 
 } // namespace godot

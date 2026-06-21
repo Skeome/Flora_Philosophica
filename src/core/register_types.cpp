@@ -7,6 +7,8 @@
 #include "world/placed_item.h"
 #include "world/room_manager.h"
 #include "alchemy/plant_db.h"
+#include "alchemy/recipe.h"
+#include "alchemy/station.h"
 
 #include <gdextension_interface.h>
 #include <godot_cpp/core/defs.hpp>
@@ -33,8 +35,11 @@ void initialize_flora_philosophica_module(ModuleInitializationLevel p_level) {
     ClassDB::register_class<RoomManager>();
 
     // Alchemy
+    // Alchemy
     ClassDB::register_class<PlantData>();
     ClassDB::register_class<PlantDatabase>();
+    ClassDB::register_class<Recipe>();
+    ClassDB::register_class<Station>();
 }
 
 void uninitialize_flora_philosophica_module(ModuleInitializationLevel p_level) {

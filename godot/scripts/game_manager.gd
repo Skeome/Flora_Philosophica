@@ -17,6 +17,9 @@ var room_manager = null
 # where to place the player on _ready().
 var pending_spawn: Vector2 = Vector2.ZERO
 
+# Player's last saved world position. Restored on load_game().
+var last_player_position: Vector2 = Vector2.ZERO
+
 # Medford, Oregon as default — will be replaced by GPS on mobile
 var observer_lat: float = 42.3265
 var observer_lon: float = -122.8756
@@ -38,12 +41,28 @@ func get_planetary_hour() -> Dictionary:
 	var now := int(Time.get_unix_time_from_system())
 	return clock.calculate_planetary_hour(observer_lat, observer_lon, now)
 
+# ── Player position tracking ───────────────────────────────────────────────────
+func set_player_position(pos: Vector2) -> void:
+	last_player_position = pos
+
+func get_saved_player_position() -> Vector2:
+	return last_player_position
+
 # ── Save / Load ───────────────────────────────────────────────────────────────
 func save_game() -> void:
+	# Pull the live player position before writing, if one exists in the tree.
+	var tree := Engine.get_main_loop()
+	if tree is SceneTree:
+		var player := (tree as SceneTree).get_first_node_in_group("player")
+		if player:
+			last_player_position = player.global_position
+
 	var data := {
-		"inventory": inventory.serialise(),
-		"rooms":     room_manager.serialise(),
-		"timestamp": int(Time.get_unix_time_from_system())
+		"inventory":    inventory.serialise(),
+		"rooms":        room_manager.serialise(),
+		"player_pos_x": last_player_position.x,
+		"player_pos_y": last_player_position.y,
+		"timestamp":    int(Time.get_unix_time_from_system())
 	}
 	var file := FileAccess.open(SAVE_PATH, FileAccess.WRITE)
 	if file:
@@ -64,3 +83,5 @@ func load_game() -> void:
 		inventory.deserialise(parsed["inventory"])
 	if parsed.has("rooms"):
 		room_manager.deserialise(parsed["rooms"])
+	if parsed.has("player_pos_x") and parsed.has("player_pos_y"):
+		last_player_position = Vector2(parsed["player_pos_x"], parsed["player_pos_y"])

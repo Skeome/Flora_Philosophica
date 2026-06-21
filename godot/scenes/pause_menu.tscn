@@ -1,0 +1,98 @@
+[gd_scene format=3 uid="uid://dstaf0c0n7hga"]
+
+[ext_resource type="Script" uid="uid://cr0alakkcm6e1" path="res://scripts/pause_menu.gd" id="1_script"]
+[ext_resource type="FontFile" uid="uid://cay4mepc0pu6l" path="res://assets/fonts/Archemy.otf" id="2_font"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_panel"]
+bg_color = Color(0.117647, 0.098039, 0.078431, 0.95)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.54902, 0.392157, 0.27451, 1)
+corner_radius_top_left = 4
+corner_radius_top_right = 4
+corner_radius_bottom_right = 4
+corner_radius_bottom_left = 4
+
+[sub_resource type="LabelSettings" id="LabelSettings_title"]
+font = ExtResource("2_font")
+font_size = 28
+outline_size = 6
+outline_color = Color(0.99215686, 0.8156863, 0.09019608, 1)
+
+[node name="PauseMenu" type="CanvasLayer" unique_id=1801144099]
+process_mode = 3
+script = ExtResource("1_script")
+
+[node name="Dim" type="ColorRect" parent="." unique_id=72014158]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+color = Color(0, 0, 0, 0.6)
+
+[node name="Panel" type="PanelContainer" parent="." unique_id=1919247742]
+anchors_preset = -1
+anchor_left = 0.3
+anchor_top = 0.05
+anchor_right = 0.70000005
+anchor_bottom = 0.95300007
+offset_right = -3.0517578e-05
+offset_bottom = -0.08001709
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_panel")
+
+[node name="VBox" type="VBoxContainer" parent="Panel" unique_id=1885168809]
+layout_mode = 2
+theme_override_constants/separation = 16
+
+[node name="Title" type="Label" parent="Panel/VBox" unique_id=1108986714]
+layout_mode = 2
+text = "Paused"
+label_settings = SubResource("LabelSettings_title")
+horizontal_alignment = 1
+
+[node name="Spacer1" type="Control" parent="Panel/VBox" unique_id=278959207]
+custom_minimum_size = Vector2(0, 8)
+layout_mode = 2
+
+[node name="BtnResume" type="Button" parent="Panel/VBox" unique_id=1698925660]
+layout_mode = 2
+theme_override_fonts/font = ExtResource("2_font")
+text = "Resume"
+
+[node name="BtnSave" type="Button" parent="Panel/VBox" unique_id=918305753]
+layout_mode = 2
+theme_override_fonts/font = ExtResource("2_font")
+text = "Save Game"
+
+[node name="BtnLoad" type="Button" parent="Panel/VBox" unique_id=1430746127]
+layout_mode = 2
+theme_override_fonts/font = ExtResource("2_font")
+text = "Load Game"
+
+[node name="SaveStatus" type="Label" parent="Panel/VBox" unique_id=2096090326]
+modulate = Color(0.6, 1, 0.6, 1)
+layout_mode = 2
+horizontal_alignment = 1
+
+[node name="Spacer2" type="Control" parent="Panel/VBox" unique_id=646891228]
+custom_minimum_size = Vector2(0, 8)
+layout_mode = 2
+
+[node name="BtnSettings" type="Button" parent="Panel/VBox" unique_id=1922620451]
+layout_mode = 2
+theme_override_fonts/font = ExtResource("2_font")
+text = "Settings"
+
+[node name="BtnMainMenu" type="Button" parent="Panel/VBox" unique_id=970655197]
+layout_mode = 2
+theme_override_fonts/font = ExtResource("2_font")
+text = "Quit to Main Menu"
+
+[connection signal="pressed" from="Panel/VBox/BtnResume" to="." method="_on_btn_resume_pressed"]
+[connection signal="pressed" from="Panel/VBox/BtnSave" to="." method="_on_btn_save_pressed"]
+[connection signal="pressed" from="Panel/VBox/BtnLoad" to="." method="_on_btn_load_pressed"]
+[connection signal="pressed" from="Panel/VBox/BtnSettings" to="." method="_on_btn_settings_pressed"]
+[connection signal="pressed" from="Panel/VBox/BtnMainMenu" to="." method="_on_btn_main_menu_pressed"]
