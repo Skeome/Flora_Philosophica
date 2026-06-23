@@ -21,7 +21,7 @@ include(${CPM_DOWNLOAD_LOCATION})
 CPMAddPackage(
     NAME godot-cpp
     GITHUB_REPOSITORY godotengine/godot-cpp
-    GIT_TAG godot-4.5-stable
+    GIT_TAG 10.0.0-rc1
 )
 
 CPMAddPackage(

@@ -74,69 +74,59 @@ mouse_filter = 2
 
 [node name="Sun" type="TextureRect" parent="Planets" unique_id=1194380248]
 layout_mode = 1
-anchors_preset = -1
-anchor_left = 0.03
-anchor_top = 0.62
-anchor_right = 0.16
-anchor_bottom = 0.95
+scale = Vector2(0.08, 0.08)
 mouse_filter = 2
 texture = ExtResource("6_sun")
 expand_mode = 1
-stretch_mode = 4
-
-[node name="Moon" type="TextureRect" parent="Planets" unique_id=823068252]
-layout_mode = 0
-offset_right = 36.0
-offset_bottom = 36.0
-mouse_filter = 2
-texture = ExtResource("7_moon")
-expand_mode = 1
-stretch_mode = 4
-
-[node name="Mercury" type="TextureRect" parent="Planets" unique_id=422271926]
-layout_mode = 0
-offset_right = 32.0
-offset_bottom = 32.0
-mouse_filter = 2
-texture = ExtResource("8_mercury")
-expand_mode = 1
-stretch_mode = 4
-
-[node name="Venus" type="TextureRect" parent="Planets" unique_id=1107311311]
-layout_mode = 0
-offset_right = 40.0
-offset_bottom = 40.0
-mouse_filter = 2
-texture = ExtResource("9_venus")
-expand_mode = 1
-stretch_mode = 4
-
-[node name="Mars" type="TextureRect" parent="Planets" unique_id=285198746]
-layout_mode = 0
-offset_right = 38.0
-offset_bottom = 38.0
-mouse_filter = 2
-texture = ExtResource("10_mars")
-expand_mode = 1
-stretch_mode = 4
+stretch_mode = 3
 
 [node name="Jupiter" type="TextureRect" parent="Planets" unique_id=546941579]
-layout_mode = 0
-offset_right = 56.0
-offset_bottom = 56.0
+layout_mode = 1
+scale = Vector2(0.05, 0.05)
 mouse_filter = 2
 texture = ExtResource("11_jupiter")
 expand_mode = 1
-stretch_mode = 4
+stretch_mode = 3
 
 [node name="Saturn" type="TextureRect" parent="Planets" unique_id=1134726065]
-layout_mode = 0
-offset_right = 64.0
-offset_bottom = 64.0
+layout_mode = 1
+scale = Vector2(0.048, 0.048)
 mouse_filter = 2
 texture = ExtResource("12_saturn")
 expand_mode = 1
-stretch_mode = 4
+stretch_mode = 3
+
+[node name="Mars" type="TextureRect" parent="Planets" unique_id=285198746]
+layout_mode = 1
+scale = Vector2(0.023, 0.023)
+mouse_filter = 2
+texture = ExtResource("10_mars")
+expand_mode = 1
+stretch_mode = 3
+
+[node name="Venus" type="TextureRect" parent="Planets" unique_id=1107311311]
+layout_mode = 1
+scale = Vector2(0.02, 0.02)
+mouse_filter = 2
+texture = ExtResource("9_venus")
+expand_mode = 1
+stretch_mode = 3
+
+[node name="Mercury" type="TextureRect" parent="Planets" unique_id=422271926]
+layout_mode = 1
+scale = Vector2(0.015, 0.015)
+mouse_filter = 2
+texture = ExtResource("8_mercury")
+expand_mode = 1
+stretch_mode = 3
+
+[node name="Moon" type="TextureRect" parent="Planets" unique_id=823068252]
+layout_mode = 1
+scale = Vector2(0.018, 0.018)
+mouse_filter = 2
+texture = ExtResource("7_moon")
+expand_mode = 1
+stretch_mode = 3
 
 [node name="Title" type="Control" parent="." unique_id=1330362326]
 layout_mode = 1
@@ -147,6 +137,7 @@ grow_horizontal = 2
 grow_vertical = 2
 
 [node name="Sign" type="TextureRect" parent="Title" unique_id=1076562975]
+modulate = Color(1, 1, 1, 0.8)
 layout_mode = 1
 anchors_preset = -1
 anchor_left = 0.24400002
@@ -158,7 +149,6 @@ offset_top = 0.11999893
 offset_right = 0.15997314
 offset_bottom = 0.07998657
 grow_horizontal = 2
-modulate = Color(1, 1, 1, 0.8)
 texture = ExtResource("10_1ajci")
 expand_mode = 1
 
@@ -287,6 +277,8 @@ layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
 text = "  🝨   🝪
 🝭"
 label_settings = SubResource("LabelSettings_gw5y6")

@@ -101,8 +101,32 @@ var _ff_end_ts: int = EPOCH_UNIX_TIMESTAMP
 # Cached last-sampled position per planet: { "lon": float, "lat": float }
 var _positions: Dictionary = {}
 
-const MAX_TRAIL_LENGTH: int = 1500
-var _trails: Dictionary = {}
+# How long each planet's trail persists, in simulated days, before old points
+# are trimmed. Sized to the real synodic period of each body (the time it
+# takes to complete its characteristic apparent loop pattern relative to
+# Earth), not an arbitrary point count — this is what lets Venus's five-
+# petal pentagram and Mars's stacked retrograde loops actually close and
+# read clearly, instead of sliding off before the pattern completes.
+#
+#   Mercury: ~3 synodic periods (115.88d each)  -> dense, fast-repeating loops
+#   Venus:   5 synodic periods (583.92d each)   -> the true 8-year pentagram
+#   Mars:    2 synodic periods (779.93d each)   -> two stacked retrograde loops
+#   Jupiter: 1 synodic period  (398.88d)        -> single gentle loop
+#   Saturn:  1 synodic period  (378.09d)        -> single gentle loop
+#   Moon:    3 lunar months    (29.53d each)    -> a few cycles of latitude wobble
+#   Sun:     1 year                              -> one full annual ring
+const TRAIL_DURATION_DAYS := {
+	"Mercury": 348,
+	"Venus":   2920,
+	"Mars":    1560,
+	"Jupiter": 399,
+	"Saturn":  378,
+	"Moon":    89,
+	"Sun":     365,
+}
+
+var _trails: Dictionary = {}        # planet_name -> PackedVector2Array (positions)
+var _trail_timestamps: Dictionary = {}  # planet_name -> PackedFloat64Array (sim days, matched 1:1 with _trails)
 var _last_sample_ts: int = 0
 
 @export var orbit_centre: Vector2 = Vector2.ZERO
@@ -230,22 +254,42 @@ func _apply_positions() -> void:
 
 		var center_pos: Vector2 = orbit_centre + offset
 		node.position = center_pos - node_size * 0.5
-		
+
+		var sim_day: float = float(_last_sample_ts) / 86400.0
+
 		if not _trails.has(planet_name):
 			_trails[planet_name] = PackedVector2Array()
-			_trails[planet_name].append(center_pos)
-		else:
-			var trail: PackedVector2Array = _trails[planet_name]
-			if trail.size() > 0:
-				if trail[trail.size() - 1].distance_squared_to(center_pos) > 4.0:
-					trail.append(center_pos)
-			else:
-				trail.append(center_pos)
-				
-			if trail.size() > MAX_TRAIL_LENGTH:
-				var excess: int = trail.size() - MAX_TRAIL_LENGTH
-				trail = trail.slice(excess)
-			_trails[planet_name] = trail
+			_trail_timestamps[planet_name] = PackedFloat64Array()
+
+		var trail: PackedVector2Array = _trails[planet_name]
+		var stamps: PackedFloat64Array = _trail_timestamps[planet_name]
+
+		var should_append: bool = true
+		if trail.size() > 0:
+			if trail[trail.size() - 1].distance_squared_to(center_pos) <= 4.0:
+				should_append = false
+
+		if should_append:
+			trail.append(center_pos)
+			stamps.append(sim_day)
+
+		# Trim by real elapsed simulated time, not point count — this is
+		# what makes each planet's trail span exactly the duration needed
+		# for its characteristic pattern (Venus's pentagram, Mars's stacked
+		# loops, etc.) to fully form, rather than an arbitrary sample window.
+		var max_age_days: float = float(TRAIL_DURATION_DAYS.get(planet_name, 365))
+		var cutoff_day: float = sim_day - max_age_days
+
+		var trim_index: int = 0
+		while trim_index < stamps.size() and stamps[trim_index] < cutoff_day:
+			trim_index += 1
+
+		if trim_index > 0:
+			trail = trail.slice(trim_index)
+			stamps = stamps.slice(trim_index)
+
+		_trails[planet_name] = trail
+		_trail_timestamps[planet_name] = stamps
 
 func _on_planets_draw() -> void:
 	var planets_node := get_node_or_null("Planets")
