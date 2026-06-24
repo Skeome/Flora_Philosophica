@@ -2,6 +2,7 @@
 #define FLORA_PHILOSOPHICA_WORLD_INVENTORY_H
 
 #include "item.h"
+#include <vector>
 #include <godot_cpp/classes/ref_counted.hpp>
 #include <godot_cpp/core/class_db.hpp>
 #include <godot_cpp/variant/typed_array.hpp>

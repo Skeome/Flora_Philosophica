@@ -162,13 +162,10 @@ Dictionary PlanetaryOrbitCalculator::get_geocentric_position(
         double sunLon = std::fmod(earth.L + PI, TWO_PI);
         result["lon"] = radToDeg(sunLon);
         result["lat"] = radToDeg(-earth.B); // Sun's apparent latitude mirrors Earth's tiny B
+        result["dist"] = earth.R; // Earth-Sun distance
         return result;
     }
 
-    // ── Moon: independent low-precision lunar approximation (NOT ELP2000).
-    //    Mean longitude + two-term equation of centre, plus a mean-latitude
-    //    term from the Moon's ~5.14° orbital inclination to the ecliptic.
-    //    Decorative-grade only.
     if (name_str == "Moon") {
         double d = jd - 2451545.0;
         double Lp = 218.3164591 + 13.17639648 * d;
@@ -184,11 +181,15 @@ Dictionary PlanetaryOrbitCalculator::get_geocentric_position(
         double lon = std::fmod(Lp + lonCorrection, 360.0);
         if (lon < 0.0) lon += 360.0;
 
-        // Dominant latitude term — Moon's orbital inclination ~5.13°
         double lat = 5.128 * std::sin(FRad);
+
+        // Approximate lunar distance in AU (1 AU = ~384400 km / 149597870.7 km = 0.00257 AU)
+        // Let's just use a constant or approximate distance since we just want the loops.
+        double dist = 0.00257 * (1.0 - 0.0549 * std::cos(MpRad));
 
         result["lon"] = lon;
         result["lat"] = lat;
+        result["dist"] = dist;
         return result;
     }
 
@@ -219,15 +220,17 @@ Dictionary PlanetaryOrbitCalculator::get_geocentric_position(
     double gy = py - ey;
     double gz = pz - ez;
 
-    double dist = std::sqrt(gx * gx + gy * gy);
+    double dist2d = std::sqrt(gx * gx + gy * gy);
+    double dist3d = std::sqrt(gx * gx + gy * gy + gz * gz);
     double lonRad = std::atan2(gy, gx);
-    double latRad = std::atan2(gz, dist);
+    double latRad = std::atan2(gz, dist2d);
 
     double lonDeg = std::fmod(radToDeg(lonRad) + 360.0, 360.0);
     double latDeg = radToDeg(latRad);
 
     result["lon"] = lonDeg;
     result["lat"] = latDeg;
+    result["dist"] = dist3d;
     return result;
 }
 

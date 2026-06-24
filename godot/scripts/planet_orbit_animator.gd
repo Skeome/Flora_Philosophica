@@ -72,19 +72,17 @@ const PLANET_COLORS := {
 	"Mercury": Color(1.0, 0.65, 0.0),  # Orange-Yellow
 }
 
-# Latitude is amplified visually — real ecliptic latitudes are only a few
-# degrees, which would be an imperceptible wobble at the radii above. This
-# multiplier exaggerates the loop's vertical extent for legibility while
-# preserving its true timing and direction. Per-planet values prevent inner
-# planets (like the Moon) from wildly overlapping the Chaldean order.
-const LATITUDE_VISUAL_GAIN := {
-	"Moon":    2.0,
-	"Mercury": 8.0,
-	"Venus":   10.0,
+# Distance variation is amplified to create visible spirograph loops while
+# keeping each planet strictly within its "lane" in the Chaldean order without
+# overlapping its neighbors.
+const DISTANCE_VISUAL_GAIN := {
+	"Moon":    0.0,   # Moon doesn't have a keplerian retrograde loop
+	"Mercury": 0.25,
+	"Venus":   0.15,
 	"Sun":     0.0,
-	"Mars":    12.0,
-	"Jupiter": 16.0,
-	"Saturn":  18.0,
+	"Mars":    0.08,
+	"Jupiter": 0.08,
+	"Saturn":  0.08,
 }
 
 const EPOCH_UNIX_TIMESTAMP: int = 946684800  # 2000-01-01 00:00:00 UTC
@@ -108,21 +106,21 @@ var _positions: Dictionary = {}
 # petal pentagram and Mars's stacked retrograde loops actually close and
 # read clearly, instead of sliding off before the pattern completes.
 #
-#   Mercury: ~3 synodic periods (115.88d each)  -> dense, fast-repeating loops
-#   Venus:   5 synodic periods (583.92d each)   -> the true 8-year pentagram
-#   Mars:    2 synodic periods (779.93d each)   -> two stacked retrograde loops
-#   Jupiter: 1 synodic period  (398.88d)        -> single gentle loop
-#   Saturn:  1 synodic period  (378.09d)        -> single gentle loop
-#   Moon:    3 lunar months    (29.53d each)    -> a few cycles of latitude wobble
-#   Sun:     1 year                              -> one full annual ring
+#   Mercury: 1 Earth year                       -> dense, fast-repeating loops
+#   Venus:   8 Earth years                      -> the true 8-year pentagram
+#   Mars:    1 sidereal period (1.88 years)     -> full 360° geocentric circuit
+#   Jupiter: 1 sidereal period (11.86 years)    -> full 360° geocentric circuit
+#   Saturn:  1 sidereal period (29.45 years)    -> full 360° geocentric circuit
+#   Moon:    1 sidereal month                   -> full geocentric orbit
+#   Sun:     1 year                             -> one full annual ring
 const TRAIL_DURATION_DAYS := {
-	"Mercury": 348,
-	"Venus":   2920,
-	"Mars":    1560,
-	"Jupiter": 399,
-	"Saturn":  378,
-	"Moon":    89,
-	"Sun":     365,
+	"Mercury": 365.25,
+	"Venus":   2922.0,
+	"Mars":    686.98,
+	"Jupiter": 4332.59,
+	"Saturn":  10759.22,
+	"Moon":    27.32,
+	"Sun":     365.25,
 }
 
 var _trails: Dictionary = {}        # planet_name -> PackedVector2Array (positions)
@@ -180,7 +178,7 @@ func _process(delta: float) -> void:
 	else:
 		target_ts = int(Time.get_unix_time_from_system())
 
-	var time_step: int = 86400  # 24-hour physical steps
+	var time_step: int = 43200  # 12-hour physical steps for smoother high-fidelity curves
 	if target_ts > _last_sample_ts:
 		while _last_sample_ts + time_step < target_ts:
 			_last_sample_ts += time_step
@@ -210,9 +208,9 @@ func _apply_positions() -> void:
 	if planets_node == null:
 		return
 
-	var scale_basis: float = min(size.x, size.y) / 2.0
+	var scale_basis: float = (min(size.x, size.y) / 2.0) * 0.75
 	if orbit_centre == Vector2.ZERO:
-		orbit_centre = Vector2(size.x / 2.0, size.y * 0.67)
+		orbit_centre = Vector2(size.x / 2.0, size.y * .67)
 
 	for planet_name in PLANET_NAMES:
 		var node := planets_node.get_node_or_null(planet_name)
@@ -225,26 +223,37 @@ func _apply_positions() -> void:
 
 		var pos: Dictionary = _positions[planet_name]
 		var lon_deg: float = float(pos.get("lon", 0.0))
-		var lat_deg: float = float(pos.get("lat", 0.0))
+		var _lat_deg: float = float(pos.get("lat", 0.0))
 
 		var lon_rad: float = deg_to_rad(lon_deg)
 		var radius_px: float = radius_frac * scale_basis
 
-		# Base orbital position from longitude (the "ring")
-		var base_offset := Vector2(
-			cos(lon_rad) * radius_px,
-			-sin(lon_rad) * radius_px
+		var dist_au: float = float(pos.get("dist", 1.0))
+		
+		var mean_dist := {
+			"Moon": 0.00257,
+			"Sun": 1.0,
+			"Mercury": 1.0, 
+			"Venus": 1.0,
+			"Mars": 1.52,   
+			"Jupiter": 5.20,
+			"Saturn": 9.58
+		}
+		
+		# Instead of scaling the entire radius by distance (which shoots Mars past Saturn),
+		# we constrain the planet to its Chaldean order base radius, and map the *deviation*
+		# in distance to a visual wiggle, scaled by DISTANCE_VISUAL_GAIN so it fits nicely
+		# between the planet lanes.
+		var base_dist: float = mean_dist.get(planet_name, 1.0)
+		var delta_au: float = dist_au - base_dist
+		var gain: float = DISTANCE_VISUAL_GAIN.get(planet_name, 0.0)
+		
+		var current_radius_px: float = radius_px + (delta_au * gain * scale_basis)
+		
+		var offset := Vector2(
+			cos(lon_rad) * current_radius_px,
+			-sin(lon_rad) * current_radius_px
 		)
-
-		# Latitude perturbs the radial distance slightly, producing the
-		# visible loop-within-a-ring shape characteristic of true apparent
-		# retrograde motion, exaggerated by LATITUDE_VISUAL_GAIN for legibility.
-		var offset: Vector2 = base_offset
-		var lat_gain: float = LATITUDE_VISUAL_GAIN.get(planet_name, 0.0)
-		if lat_gain > 0.0:
-			var lat_offset_px: float = lat_deg * lat_gain
-			var radial_dir: Vector2 = base_offset.normalized()
-			offset = base_offset + radial_dir * lat_offset_px
 
 		var node_size: Vector2 = Vector2.ZERO
 		if node is Control:
@@ -266,7 +275,9 @@ func _apply_positions() -> void:
 
 		var should_append: bool = true
 		if trail.size() > 0:
-			if trail[trail.size() - 1].distance_squared_to(center_pos) <= 4.0:
+			# Decreased distance threshold to 0.5 so we don't accidentally decimate the tight curves
+			# at the tips of the retrograde loops.
+			if trail[trail.size() - 1].distance_squared_to(center_pos) <= 0.5:
 				should_append = false
 
 		if should_append:

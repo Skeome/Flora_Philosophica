@@ -129,6 +129,7 @@ expand_mode = 1
 stretch_mode = 3
 
 [node name="Title" type="Control" parent="." unique_id=1330362326]
+modulate = Color(1, 1, 1, 0.8)
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -137,7 +138,6 @@ grow_horizontal = 2
 grow_vertical = 2
 
 [node name="Sign" type="TextureRect" parent="Title" unique_id=1076562975]
-modulate = Color(1, 1, 1, 0.8)
 layout_mode = 1
 anchors_preset = -1
 anchor_left = 0.24400002
@@ -165,6 +165,7 @@ horizontal_alignment = 1
 vertical_alignment = 1
 
 [node name="Buttons" type="Control" parent="." unique_id=1176069955]
+modulate = Color(1, 1, 1, 0.8)
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
