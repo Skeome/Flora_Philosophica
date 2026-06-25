@@ -263,7 +263,7 @@ This blueprint outlines the immediate next tasks required to build out the core 
 
 ### 3. Character Creation (Pre-Gameplay)
 - [x] Build the Character Selection screen.
-- [x] **Gender Options:** M, F, NB.
+- [x] **Character / Gender Options:** Choose between Basil (Masculine), Lavender (Feminine), and Sage (Non-Binary). The unchosen characters will automatically populate the world as NPCs.
 - [x] **Location Override:** Allow the player to input their location for the astrological engine (noting explicitly that this is strictly local, replaces the hardcoded Medford default, and is never saved externally).
 - [x] **Birth Data:** Input for date/time/place of birth to generate the player's Natal Chart (future integration with stats/lore).
 

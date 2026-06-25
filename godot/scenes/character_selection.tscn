@@ -62,11 +62,11 @@ text = "Gender"
 layout_mode = 2
 theme_override_fonts/font = ExtResource("2_font")
 item_count = 3
-popup/item_0/text = "Masculine"
+popup/item_0/text = "Basil (Masc)"
 popup/item_0/id = 0
-popup/item_1/text = "Feminine"
+popup/item_1/text = "Lavender (Fem)"
 popup/item_1/id = 1
-popup/item_2/text = "Non-Binary"
+popup/item_2/text = "Sage (NB)"
 popup/item_2/id = 2
 
 [node name="LblLocation" type="Label" parent="VBox"]
