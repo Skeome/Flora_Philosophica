@@ -21,6 +21,21 @@ font_size = 28
 outline_size = 6
 outline_color = Color(0.99215686, 0.8156863, 0.09019608, 1)
 
+[sub_resource type="LabelSettings" id="LabelSettings_section"]
+font = ExtResource("2_font")
+font_size = 18
+font_color = Color(0.929412, 0.721569, 0.505882, 1)
+
+[sub_resource type="LabelSettings" id="LabelSettings_text"]
+font = ExtResource("2_font")
+font_size = 14
+font_color = Color(0.85098, 0.823529, 0.784314, 1)
+
+[sub_resource type="LabelSettings" id="LabelSettings_trait"]
+font = ExtResource("2_font")
+font_size = 13
+font_color = Color(0.690196, 0.878431, 0.901961, 1)
+
 [node name="PauseMenu" type="CanvasLayer" unique_id=1801144099]
 process_mode = 3
 script = ExtResource("1_script")
@@ -33,66 +48,207 @@ color = Color(0, 0, 0, 0.6)
 
 [node name="Panel" type="PanelContainer" parent="." unique_id=1919247742]
 anchors_preset = -1
-anchor_left = 0.3
+anchor_left = 0.1
 anchor_top = 0.05
-anchor_right = 0.70000005
-anchor_bottom = 0.95300007
-offset_right = -3.0517578e-05
-offset_bottom = -0.08001709
+anchor_right = 0.9
+anchor_bottom = 0.95
 grow_horizontal = 2
 grow_vertical = 2
 theme_override_styles/panel = SubResource("StyleBoxFlat_panel")
 
-[node name="VBox" type="VBoxContainer" parent="Panel" unique_id=1885168809]
+[node name="HBox" type="HBoxContainer" parent="Panel"]
+layout_mode = 2
+theme_override_constants/separation = 24
+
+[node name="VBoxMenu" type="VBoxContainer" parent="Panel/HBox"]
+custom_minimum_size = Vector2(200, 0)
 layout_mode = 2
 theme_override_constants/separation = 16
 
-[node name="Title" type="Label" parent="Panel/VBox" unique_id=1108986714]
+[node name="Title" type="Label" parent="Panel/HBox/VBoxMenu" unique_id=1108986714]
 layout_mode = 2
 text = "Paused"
 label_settings = SubResource("LabelSettings_title")
 horizontal_alignment = 1
 
-[node name="Spacer1" type="Control" parent="Panel/VBox" unique_id=278959207]
+[node name="Spacer1" type="Control" parent="Panel/HBox/VBoxMenu" unique_id=278959207]
 custom_minimum_size = Vector2(0, 8)
 layout_mode = 2
 
-[node name="BtnResume" type="Button" parent="Panel/VBox" unique_id=1698925660]
+[node name="BtnResume" type="Button" parent="Panel/HBox/VBoxMenu" unique_id=1698925660]
 layout_mode = 2
 theme_override_fonts/font = ExtResource("2_font")
 text = "Resume"
 
-[node name="BtnSave" type="Button" parent="Panel/VBox" unique_id=918305753]
+[node name="BtnSave" type="Button" parent="Panel/HBox/VBoxMenu" unique_id=918305753]
 layout_mode = 2
 theme_override_fonts/font = ExtResource("2_font")
 text = "Save Game"
 
-[node name="BtnLoad" type="Button" parent="Panel/VBox" unique_id=1430746127]
+[node name="BtnLoad" type="Button" parent="Panel/HBox/VBoxMenu" unique_id=1430746127]
 layout_mode = 2
 theme_override_fonts/font = ExtResource("2_font")
 text = "Load Game"
 
-[node name="SaveStatus" type="Label" parent="Panel/VBox" unique_id=2096090326]
+[node name="SaveStatus" type="Label" parent="Panel/HBox/VBoxMenu" unique_id=2096090326]
 modulate = Color(0.6, 1, 0.6, 1)
 layout_mode = 2
 horizontal_alignment = 1
 
-[node name="Spacer2" type="Control" parent="Panel/VBox" unique_id=646891228]
+[node name="Spacer2" type="Control" parent="Panel/HBox/VBoxMenu" unique_id=646891228]
 custom_minimum_size = Vector2(0, 8)
 layout_mode = 2
 
-[node name="BtnSettings" type="Button" parent="Panel/VBox" unique_id=1922620451]
+[node name="BtnSettings" type="Button" parent="Panel/HBox/VBoxMenu" unique_id=1922620451]
 layout_mode = 2
 theme_override_fonts/font = ExtResource("2_font")
 text = "Settings"
 
-[node name="BtnMainMenu" type="Button" parent="Panel/VBox" unique_id=970655197]
+[node name="BtnMainMenu" type="Button" parent="Panel/HBox/VBoxMenu" unique_id=970655197]
 layout_mode = 2
 theme_override_fonts/font = ExtResource("2_font")
 text = "Quit to Main Menu"
 
-[connection signal="pressed" from="Panel/VBox/BtnResume" to="." method="_on_btn_resume_pressed"]
-[connection signal="pressed" from="Panel/VBox/BtnSave" to="." method="_on_btn_save_pressed"]
-[connection signal="pressed" from="Panel/VBox/BtnLoad" to="." method="_on_btn_load_pressed"]
-[connection signal="pressed" from="Panel/VBox/BtnSettings" to="." method="_on_btn_settings_pressed"]
-[connection signal="pressed" from="Panel/VBox/BtnMainMenu" to="." method="_on_btn_main_menu_pressed"]
+[node name="VSeparator" type="VSeparator" parent="Panel/HBox"]
+layout_mode = 2
+
+[node name="VBoxStats" type="VBoxContainer" parent="Panel/HBox"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 12
+
+[node name="HBoxTabs" type="HBoxContainer" parent="Panel/HBox/VBoxStats"]
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="BtnTabNatal" type="Button" parent="Panel/HBox/VBoxStats/HBoxTabs"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_fonts/font = ExtResource("2_font")
+toggle_mode = true
+button_pressed = true
+text = "Natal Chart"
+
+[node name="BtnTabFire" type="Button" parent="Panel/HBox/VBoxStats/HBoxTabs"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_fonts/font = ExtResource("2_font")
+toggle_mode = true
+text = "Analysis by Fire"
+
+[node name="ScrollContainer" type="ScrollContainer" parent="Panel/HBox/VBoxStats"]
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="TabContent" type="VBoxContainer" parent="Panel/HBox/VBoxStats/ScrollContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+
+[node name="NatalPanel" type="VBoxContainer" parent="Panel/HBox/VBoxStats/ScrollContainer/TabContent"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 10
+
+[node name="LblStatsTitle" type="Label" parent="Panel/HBox/VBoxStats/ScrollContainer/TabContent/NatalPanel"]
+layout_mode = 2
+text = "Planetary RPG Attributes"
+label_settings = SubResource("LabelSettings_section")
+
+[node name="StatsGrid" type="GridContainer" parent="Panel/HBox/VBoxStats/ScrollContainer/TabContent/NatalPanel"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_constants/h_separation = 20
+theme_override_constants/v_separation = 8
+columns = 2
+
+[node name="Spacer" type="Control" parent="Panel/HBox/VBoxStats/ScrollContainer/TabContent/NatalPanel"]
+custom_minimum_size = Vector2(0, 10)
+layout_mode = 2
+
+[node name="LblPlacementsTitle" type="Label" parent="Panel/HBox/VBoxStats/ScrollContainer/TabContent/NatalPanel"]
+layout_mode = 2
+text = "Natal Placements (Flat Bonuses)"
+label_settings = SubResource("LabelSettings_section")
+
+[node name="PlacementsText" type="Label" parent="Panel/HBox/VBoxStats/ScrollContainer/TabContent/NatalPanel"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "No birth data loaded."
+label_settings = SubResource("LabelSettings_text")
+autowrap_mode = 3
+
+[node name="Spacer2" type="Control" parent="Panel/HBox/VBoxStats/ScrollContainer/TabContent/NatalPanel"]
+custom_minimum_size = Vector2(0, 10)
+layout_mode = 2
+
+[node name="LblTraitsTitle" type="Label" parent="Panel/HBox/VBoxStats/ScrollContainer/TabContent/NatalPanel"]
+layout_mode = 2
+text = "Astrological Passive Traits"
+label_settings = SubResource("LabelSettings_section")
+
+[node name="TraitsText" type="Label" parent="Panel/HBox/VBoxStats/ScrollContainer/TabContent/NatalPanel"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "No birth traits active."
+label_settings = SubResource("LabelSettings_trait")
+autowrap_mode = 3
+
+[node name="FirePanel" type="VBoxContainer" parent="Panel/HBox/VBoxStats/ScrollContainer/TabContent"]
+unique_name_in_owner = true
+visible = false
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 12
+
+[node name="HBoxSelection" type="HBoxContainer" parent="Panel/HBox/VBoxStats/ScrollContainer/TabContent/FirePanel"]
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="LblSelect" type="Label" parent="Panel/HBox/VBoxStats/ScrollContainer/TabContent/FirePanel/HBoxSelection"]
+layout_mode = 2
+text = "Select Herb:"
+label_settings = SubResource("LabelSettings_section")
+
+[node name="OptPlant" type="OptionButton" parent="Panel/HBox/VBoxStats/ScrollContainer/TabContent/FirePanel/HBoxSelection"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_fonts/font = ExtResource("2_font")
+
+[node name="LblDistillTitle" type="Label" parent="Panel/HBox/VBoxStats/ScrollContainer/TabContent/FirePanel"]
+layout_mode = 2
+text = "Alchemical Separation of Elements"
+label_settings = SubResource("LabelSettings_section")
+horizontal_alignment = 1
+
+[node name="SheetGrid" type="GridContainer" parent="Panel/HBox/VBoxStats/ScrollContainer/TabContent/FirePanel"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_constants/h_separation = 16
+theme_override_constants/v_separation = 8
+columns = 4
+
+[node name="VSeparator" type="VSeparator" parent="Panel/HBox/VBoxStats/ScrollContainer/TabContent/FirePanel"]
+layout_mode = 2
+
+[node name="LblResultTitle" type="Label" parent="Panel/HBox/VBoxStats/ScrollContainer/TabContent/FirePanel"]
+layout_mode = 2
+text = "Calculated Temperament (Al-Kindi Geometric Scale)"
+label_settings = SubResource("LabelSettings_section")
+
+[node name="ResultText" type="Label" parent="Panel/HBox/VBoxStats/ScrollContainer/TabContent/FirePanel"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "No calculations performed."
+label_settings = SubResource("LabelSettings_text")
+autowrap_mode = 3
+
+[connection signal="pressed" from="Panel/HBox/VBoxMenu/BtnResume" to="." method="_on_btn_resume_pressed"]
+[connection signal="pressed" from="Panel/HBox/VBoxMenu/BtnSave" to="." method="_on_btn_save_pressed"]
+[connection signal="pressed" from="Panel/HBox/VBoxMenu/BtnLoad" to="." method="_on_btn_load_pressed"]
+[connection signal="pressed" from="Panel/HBox/VBoxMenu/BtnSettings" to="." method="_on_btn_settings_pressed"]
+[connection signal="pressed" from="Panel/HBox/VBoxMenu/BtnMainMenu" to="." method="_on_btn_main_menu_pressed"]

@@ -2,7 +2,7 @@
 
 namespace godot {
 
-PlantData::PlantData() : ruler(PlanetaryHourCalculator::SUN) {}
+PlantData::PlantData() : ruler(PlanetaryHourCalculator::SUN), choler(0), sanguine(0), phlegm(0), melancholy(0) {}
 PlantData::~PlantData() {}
 
 void PlantData::_bind_methods() {
@@ -17,11 +17,25 @@ void PlantData::_bind_methods() {
     ClassDB::bind_method(D_METHOD("set_sprite_path", "path"), &PlantData::set_sprite_path);
     ClassDB::bind_method(D_METHOD("get_sprite_path"), &PlantData::get_sprite_path);
 
+    ClassDB::bind_method(D_METHOD("set_choler", "val"), &PlantData::set_choler);
+    ClassDB::bind_method(D_METHOD("get_choler"), &PlantData::get_choler);
+    ClassDB::bind_method(D_METHOD("set_sanguine", "val"), &PlantData::set_sanguine);
+    ClassDB::bind_method(D_METHOD("get_sanguine"), &PlantData::get_sanguine);
+    ClassDB::bind_method(D_METHOD("set_phlegm", "val"), &PlantData::set_phlegm);
+    ClassDB::bind_method(D_METHOD("get_phlegm"), &PlantData::get_phlegm);
+    ClassDB::bind_method(D_METHOD("set_melancholy", "val"), &PlantData::set_melancholy);
+    ClassDB::bind_method(D_METHOD("get_melancholy"), &PlantData::get_melancholy);
+
     ADD_PROPERTY(PropertyInfo(Variant::STRING, "name"), "set_name", "get_name");
     ADD_PROPERTY(PropertyInfo(Variant::INT, "ruler", PROPERTY_HINT_ENUM, "Saturn,Jupiter,Mars,Sun,Venus,Mercury,Moon"), "set_ruler", "get_ruler");
     ADD_PROPERTY(PropertyInfo(Variant::STRING, "element"), "set_element", "get_element");
     ADD_PROPERTY(PropertyInfo(Variant::STRING, "properties"), "set_properties", "get_properties");
     ADD_PROPERTY(PropertyInfo(Variant::STRING, "sprite_path"), "set_sprite_path", "get_sprite_path");
+
+    ADD_PROPERTY(PropertyInfo(Variant::INT, "choler"), "set_choler", "get_choler");
+    ADD_PROPERTY(PropertyInfo(Variant::INT, "sanguine"), "set_sanguine", "get_sanguine");
+    ADD_PROPERTY(PropertyInfo(Variant::INT, "phlegm"), "set_phlegm", "get_phlegm");
+    ADD_PROPERTY(PropertyInfo(Variant::INT, "melancholy"), "set_melancholy", "get_melancholy");
 }
 
 namespace {
@@ -243,6 +257,44 @@ namespace {
             p->element = r.element;
             p->properties = r.props;
             p->sprite_path = r.sprite;
+
+            // Default humors based on element
+            p->choler = 0;
+            p->sanguine = 0;
+            p->phlegm = 0;
+            p->melancholy = 0;
+
+            if (r.element == "Fire") {
+                p->choler = 28; // Jabir 28 subdivisions
+            } else if (r.element == "Air") {
+                p->sanguine = 28;
+            } else if (r.element == "Water") {
+                p->phlegm = 28;
+            } else if (r.element == "Earth") {
+                p->melancholy = 28;
+            }
+
+            // Customize specific herbs from Robert Allen Bartlett's "The Temper of Herbs"
+            if (r.name == "Garlic") {
+                p->choler = 21;
+                p->melancholy = 14;
+            } else if (r.name == "Hemlock") {
+                p->melancholy = 28;
+                p->phlegm = 10;
+            } else if (r.name == "Camomile" || r.name == "Chamomile") {
+                p->choler = 7;
+                p->sanguine = 7;
+            } else if (r.name == "Rosemary") {
+                p->choler = 14;
+                p->sanguine = 14;
+            } else if (r.name == "Mugwort") {
+                p->choler = 14;
+                p->sanguine = 14;
+            } else if (r.name == "Wormwood") {
+                p->choler = 21;
+                p->sanguine = 14;
+            }
+
             entries.append(p);
         }
 

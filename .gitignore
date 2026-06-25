@@ -93,3 +93,11 @@ CMakeCache.txt
 cmake_install.cmake
 CMakeFiles/
 cpm-package-lock.cmake
+
+
+# aider
+.aider*
+
+# Large sources
+Bartlett*
+TemperofHerbsImages/

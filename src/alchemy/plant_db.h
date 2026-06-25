@@ -18,6 +18,10 @@ public:
     String element;
     String properties;
     String sprite_path;
+    int choler;
+    int sanguine;
+    int phlegm;
+    int melancholy;
 
     PlantData();
     ~PlantData();
@@ -36,6 +40,18 @@ public:
 
     void set_sprite_path(const String& p_path) { sprite_path = p_path; }
     String get_sprite_path() const { return sprite_path; }
+
+    void set_choler(int p_val) { choler = p_val; }
+    int get_choler() const { return choler; }
+
+    void set_sanguine(int p_val) { sanguine = p_val; }
+    int get_sanguine() const { return sanguine; }
+
+    void set_phlegm(int p_val) { phlegm = p_val; }
+    int get_phlegm() const { return phlegm; }
+
+    void set_melancholy(int p_val) { melancholy = p_val; }
+    int get_melancholy() const { return melancholy; }
 
 protected:
     static void _bind_methods();

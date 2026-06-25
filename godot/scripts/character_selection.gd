@@ -20,6 +20,7 @@ func _on_btn_start_pressed() -> void:
 			GameManager.observer_lon = parts[1].to_float()
 			
 	GameManager.player_birth_data = edit_birth.text.strip_edges()
+	GameManager.calculate_natal_chart()
 	
 	GameManager.save_game()
 	get_tree().change_scene_to_file(MAIN_SCENE)

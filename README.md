@@ -2,7 +2,7 @@
 
 A cozy alchemical apothecary sanctuary game — and a stealth-educational guide to real-world **spagyric** plant alchemy. Forage, cultivate, and craft herbal preparations guided by a real-time astrological engine. A player who follows the in-game processes can actually produce real herbal spagyric preparations in their own kitchen.
 
-Built with **Godot 4.7** and a **C++17 GDExtension** backend. Inspired by Nicholas Culpeper's *Complete Herbal* (1652) and the Western tradition of astrological herbalism.
+Built with **Godot 4.7** and a **C++17 GDExtension** backend. Inspired by Nicholas Culpeper's *Complete Herbal* (1652), Robert Allen Bartlett's *The Temper of Herbs*, and the Western tradition of astrological herbalism.
 
 ---
 
@@ -42,8 +42,36 @@ Plant quality is determined by planetary alignment at the moment of harvest:
 | **Stressed** | Hour ruler is the opposing planet |
 | **Debased** | Both day AND hour are opposing planets |
 
+### Humoral Temperament Engine
+Each plant carries four **humoral values** — Choler (Fire), Sanguine (Air), Phlegm (Water), and Melancholy (Earth) — stored as integer subdivisions (Jabir's 0–28 scale) on the C++ `PlantData` class. These values drive **Al-Kindi's geometric temper calculation**: Walter of Odington's intensity ratios (2^(n/7)) resolve each humor into parts of Hot, Cold, Wet, and Dry, then logarithmic ratios yield the classical degree (1st through 4th) along each axis. The result is the plant's true **temperament** — e.g. "Hot in the 2nd degree, Dry in the 1st degree" — matching the historical pharmacopoeia.
+
+The same calculation engine supports **compound medicines**: when multiple simples are combined, their individual humoral parts are summed and re-evaluated through Al-Kindi's ratio mathematics (as described by Ibn Biklarish and Arnald de Villanova), producing the compound's net temperament and degree.
+
+### Natal Chart & Astrological Aspects
+At character creation, the player enters their date, time, and place of birth. The VSOP87 engine calculates true geocentric ecliptic longitudes for all 7 classical planets at the birth moment, placing each planet in its zodiac sign. Zodiac placements grant **flat +2 stat bonuses** to the sign's ruling planet.
+
+Planetary aspects are computed from angular separations with traditional orbs:
+
+| Aspect | Angle | Orb | Effect |
+|---|---|---|---|
+| **Conjunction** | 0° | 8° | Synergy: +5% effectiveness to both planets' actions |
+| **Sextile** | 60° | 6° | Harmony: +10% efficiency to both planets' actions |
+| **Square** | 90° | 8° | Tension: +15% potency but +10% mental fatigue cost |
+| **Trine** | 120° | 8° | Harmony: +10% efficiency to both planets' actions |
+| **Opposition** | 180° | 8° | Tension: +15% potency but +10% mental fatigue cost |
+
+Aspects generate **passive traits** that persist throughout gameplay, influencing crafting, combat, and harvest outcomes.
+
+### Jabir's "Analysis by Fire" Data Sheet
+Accessible from the Pause Menu's **Analysis by Fire** tab, this interactive data sheet implements the classical fire analysis protocol from Bartlett's *The Temper of Herbs*. Select any herb from the database dropdown to view:
+
+- **Alchemical Separation of Elements**: A 4-row breakdown showing each fraction (Phlegm/Water, White Spirit/Air, Red Spirit/Fire, Residue/Earth) with weight percentages and dominant/secondary classical qualities
+- **Derived Humoral Balance**: The calculated Hot/Cold and Wet/Dry degree using Al-Kindi's geometric scale
+- **Primary Quality Parts**: Raw geometric parts for Hot, Cold, Wet, and Dry
+- **Jabir Subdivision Values**: The humoral values mapped back to Jabir's 28-point scale
+
 ### Plant Database
-100+ herbs sourced from Culpeper's *Complete Herbal*, each with historically accurate planetary ruler, classical element, and medicinal properties. The C++ `PlantDatabase` class alone spans 68 KB.
+100+ herbs sourced from Culpeper's *Complete Herbal*, each with historically accurate planetary ruler, classical element, medicinal properties, and four-humor temperament values (Choler, Sanguine, Phlegm, Melancholy). The C++ `PlantDatabase` class alone spans 68 KB.
 
 ### Apparatus & Stations
 19 apparatus types available for placement across 4 rooms (Exterior, Cabin Main, Cabin Loft, Garden): Fireplace, Drying Rack, Mortar & Pestle, Maceration Jar, Compost Bin, Work Bench, Copper Alembic, Glass Flask, Glassblowing Station, Distillation Train, Soxhlet Extractor, Pelican Flask, Retort Train, Terrarium, Bookshelf, Storage Chest, Mailbox Post, Furnace, and Leaching Dish. Each has tile dimensions, tier requirements, and indoor/outdoor placement flags.
@@ -52,7 +80,7 @@ Plant quality is determined by planetary alignment at the moment of harvest:
 Pixel-art tile-based overworld (1920×1080 world canvas at 16px tiles, rendered at 640×360 native resolution) with y-sorted depth rendering. Walk freely with **WASD** or **click-to-move** (tap-to-move on mobile). Scene transitions via door zones connect multiple areas. The player character, "Basil," has directional idle and walk animations.
 
 ### Combat & Meditation
-Physical combat does not exist in the overworld. Combat is initiated via **Meditation ("Guided Imagery")** at specific nodes, entering the "Spirit World." Here, players fight spiritual essences of monsters and inner shadow clones (akin to Dark Link). Combat relies on drawing sigils via touch input, with the current Planetary Hour providing massive damage multipliers (up to 4x for matching Day & Hour). Defeat results in "Mental Fatigue," lowering laboratory crafting success.
+Physical combat does not exist in the overworld. Combat is initiated via **Meditation ("Guided Imagery")** at specific nodes, entering the "Spirit World." Here, players fight spiritual essences of monsters and inner shadow clones (akin to Dark Link). Combat relies on drawing sigils via touch input, with the current Planetary Hour providing massive damage multipliers (up to 4x for matching Day & Hour). Defeat results in "Mental Fatigue," lowering laboratory crafting success. Active natal aspect traits (Synergy, Harmony, Tension) modify damage and fatigue costs during combat.
 
 ### Character Progression: The Seven Oblations
 No traditional EXP bar. Every crafted spagyric product acts as an XP book for its ruling planet's RPG stat. The ultimate goal is crafting the reusable **Plant Stone**. Consuming an Oblation during matching celestial windows grants permanent stat boosts; consuming it out of alignment yields temporary buffs or even debuffs.
@@ -75,7 +103,7 @@ The pause menu intentionally does **not** pause the SceneTree — planetary hour
 
 ## 🏗️ Architecture
 
-Core systems are written in **C++17** and compiled as a GDExtension shared library. Game logic and UI are in **GDScript**. The C++ layer registers **13 classes** into Godot's ClassDB:
+Core systems are written in **C++17** and compiled as a GDExtension shared library. Game logic, natal chart computation, Al-Kindi temper calculations, and UI are in **GDScript**. The C++ layer registers **13 classes** into Godot's ClassDB:
 
 | Category | Classes |
 |---|---|
@@ -101,6 +129,7 @@ Flora_Philosophica/
 │   │   └── room_manager               # 4 rooms: Exterior, Cabin, Loft, Garden
 │   ├── alchemy/
 │   │   ├── plant_db                    # PlantDatabase — 100+ Culpeper entries (68 KB)
+│   │   │                               #   + 4-humor temper values (choler/sanguine/phlegm/melancholy)
 │   │   ├── recipe                      # Spagyric pipeline definitions
 │   │   └── station                     # Processing nodes with real-time tick
 │   ├── entry.cpp                       # GDExtension entry point
@@ -118,14 +147,16 @@ Flora_Philosophica/
 │   │   ├── clock_hud.tscn              # Planetary hour display (♄♃♂☉♀☿☽)
 │   │   └── pause_menu.tscn             # Non-pausing overlay (real-time design)
 │   ├── scripts/
-│   │   ├── game_manager.gd             # Autoload: save/load, C++ object refs
+│   │   ├── game_manager.gd             # Autoload: save/load, C++ object refs,
+│   │   │                               #   natal chart, aspects, Al-Kindi temper calc
 │   │   ├── player.gd                   # Movement, animation, input
 │   │   ├── world.gd                    # Door transitions, auto-save
 │   │   ├── plant_node.gd               # Growth stages, astrological quality
 │   │   ├── recipe_db.gd                # 9-step spagyric pipeline
 │   │   ├── clock_hud.gd                # Planetary hour HUD w/ planet glyphs
 │   │   ├── main_menu.gd                # Menu logic, TTAO panel, credits, links
-│   │   ├── pause_menu.gd              # Pause/resume, save, load, quit
+│   │   ├── pause_menu.gd              # Pause/resume, save, natal chart tab,
+│   │   │                               #   Analysis by Fire data sheet tab
 │   │   └── planet_orbit_animator.gd    # VSOP87 orbit visualization (377 lines)
 │   ├── main.gd                         # Clock display (planetary hour ticker)
 │   ├── assets/
@@ -152,6 +183,9 @@ Flora_Philosophica/
 │   ├── build_web.sh                    # WebAssembly compilation
 │   └── run_game.sh                     # Wayland/Hyprland compatibility wrapper
 ├── Culpepers_Complete_Herbal.epub  # Primary botanical reference source
+├── BartlettTemperofHerbs.txt       # OCR text — R.A. Bartlett, The Temper of Herbs
+├── BartlettTemperofHerbs.pdf       # Source PDF
+├── TemperofHerbsImages/            # Scanned pages (142 images) — tables, diagrams
 ├── CMakeLists.txt                  # CMake + CPM build system
 └── save.json                       # Legacy save data (pre-Godot format)
 ```
@@ -233,6 +267,24 @@ var plant = db.get_plant("Chamomile")
 print(plant.planetary_ruler)  # Planet index
 print(plant.element)          # Classical element
 print(plant.properties)       # Culpeper's documented properties
+print(plant.choler)           # Humoral value: Fire (0-28)
+print(plant.sanguine)         # Humoral value: Air (0-28)
+print(plant.phlegm)           # Humoral value: Water (0-28)
+print(plant.melancholy)       # Humoral value: Earth (0-28)
+
+# Al-Kindi Temper Calculation
+var temper = GameManager.calculate_spagyric_temper(
+    plant.choler, plant.sanguine, plant.phlegm, plant.melancholy
+)
+print(temper["hot_cold_degree"])  # Positive = Hot, Negative = Cold
+print(temper["wet_dry_degree"])   # Positive = Wet, Negative = Dry
+print(temper["hot_parts"])        # Geometric parts of Hot
+print(temper["cold_parts"])       # Geometric parts of Cold
+
+# Natal Chart (computed from birth data on load)
+print(GameManager.sign_placements)  # {"Sun": "Leo", "Moon": "Cancer", ...}
+print(GameManager.active_aspects)   # [{aspect: "Trine", planet1: "Venus", ...}]
+print(GameManager.player_traits)    # [{name: "Venus Trine Jupiter", ...}]
 ```
 
 ---
@@ -241,7 +293,7 @@ print(plant.properties)       # Culpeper's documented properties
 
 Flora Philosophica presents itself as a cozy fantasy apothecary simulator, but the processes it teaches are technically accurate representations of **spagyric** preparation — the alchemical art of plant medicine. No recipe locks, no tutorial gates, no premium speed-ups. Real-world knowledge is rewarded with immediate mechanical advantage.
 
-The primary reference is **Nicholas Culpeper's *Complete Herbal*** (1652). Each in-game plant maps to Culpeper's documented planetary ruler, classical element, and medicinal properties. The planetary hour system ensures that timing matters — just as it did for the historical herbalists who gathered simples at the hour of their ruling planet.
+The primary references are **Nicholas Culpeper's *Complete Herbal*** (1652) and **Robert Allen Bartlett's *The Temper of Herbs***. Each in-game plant maps to Culpeper's documented planetary ruler, classical element, and medicinal properties, while Bartlett's work provides the mathematical framework for humoral temperament — Jabir ibn Hayyan's elemental subdivisions, Al-Kindi's geometric ratio scale, and Walter of Odington's intensity progressions. The planetary hour system ensures that timing matters — just as it did for the historical herbalists who gathered simples at the hour of their ruling planet.
 
 Design documents live in the `Flora_Philosophica/` Obsidian vault, including the master GDD v0.2, technical roadmap, location designs, and faction lore for **The Ternary Alchemical Order**.
 
@@ -254,7 +306,7 @@ This blueprint outlines the immediate next tasks required to build out the core 
 ### 1. Inventory Screen UI
 - [ ] Build a robust graphical inventory UI connecting to the 46-slot C++ `Inventory` backend.
 - [ ] Support drag-and-drop or tap-to-select for the 36 grid slots and the 10 hotbar slots.
-- [ ] Display item quality, stage, and Culpeper botanical properties on selection.
+- [ ] Display item quality, stage, Culpeper botanical properties, and humoral temperament on selection.
 
 ### 2. Main Menu & Settings
 - [x] Fully hook up the Settings screen on the Main Menu.
@@ -265,7 +317,7 @@ This blueprint outlines the immediate next tasks required to build out the core 
 - [x] Build the Character Selection screen.
 - [x] **Character / Gender Options:** Choose between Basil (Masculine), Lavender (Feminine), and Sage (Non-Binary). The unchosen characters will automatically populate the world as NPCs.
 - [x] **Location Override:** Allow the player to input their location for the astrological engine (noting explicitly that this is strictly local, replaces the hardcoded Medford default, and is never saved externally).
-- [x] **Birth Data:** Input for date/time/place of birth to generate the player's Natal Chart (future integration with stats/lore).
+- [x] **Birth Data:** Input for date/time/place of birth to generate the player's Natal Chart with stat bonuses and aspect traits.
 
 ### 4. Calendar UI
 - [x] Add an interactive Calendar interface accessible from the HUD.
@@ -275,3 +327,19 @@ This blueprint outlines the immediate next tasks required to build out the core 
 ### 5. Planetary Hour Schedule Screen
 - [x] Build a dedicated UI screen (perhaps an expanded view of the current `clock_hud`) showing the complete Planetary Hour schedule for the current day.
 - [x] Display exact start/end times for all 12 daylight and 12 nighttime hours based on the player's local sunrise/sunset calculations.
+
+### 6. Humoral Temperament & Analysis by Fire
+- [x] Add 4-humor values (choler, sanguine, phlegm, melancholy) to C++ `PlantData` class.
+- [x] Implement Al-Kindi's geometric temper calculation (`calculate_spagyric_temper()`) in GDScript.
+- [x] Build "Analysis by Fire" data sheet tab in the Pause Menu with plant selection dropdown.
+- [x] Display elemental separation fractions, weight percentages, and calculated degrees.
+- [ ] Extend compound medicine UI for multi-herb recipes (sum humoral parts, re-derive temperament).
+- [ ] Visual lab minigame for fire analysis procedure (heating stages, fraction collection).
+
+### 7. Natal Chart & Astrological Aspects
+- [x] Compute natal chart from birth data using VSOP87 geocentric positions.
+- [x] Zodiac sign placements with flat stat bonuses to ruling planet.
+- [x] Aspect detection (Conjunction, Sextile, Square, Trine, Opposition) with orb calculations.
+- [x] Passive trait generation from active aspects (Synergy, Harmony, Tension effects).
+- [x] Build "Natal Chart" tab in Pause Menu displaying stats, placements, and traits.
+- [ ] Apply aspect trait modifiers to crafting, combat, and harvest systems.
