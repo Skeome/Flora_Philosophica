@@ -15,3 +15,134 @@ script = ExtResource("1_v4min")
 offset_right = 40.0
 offset_bottom = 23.0
 label_settings = SubResource("LabelSettings_d7rib")
+
+[node name="BtnSchedule" type="Button" parent="." unique_id=739812739]
+offset_left = 5.0
+offset_top = 45.0
+offset_right = 80.0
+offset_bottom = 65.0
+theme_override_fonts/font = ExtResource("2_lvv3c")
+theme_override_font_sizes/font_size = 10
+text = "Schedule"
+
+[node name="BtnCalendar" type="Button" parent="." unique_id=912837465]
+offset_left = 85.0
+offset_top = 45.0
+offset_right = 160.0
+offset_bottom = 65.0
+theme_override_fonts/font = ExtResource("2_lvv3c")
+theme_override_font_sizes/font_size = 10
+text = "Calendar"
+
+[node name="PanelSchedule" type="PanelContainer" parent="." unique_id=987123987]
+visible = false
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -150.0
+offset_top = -120.0
+offset_right = 150.0
+offset_bottom = 120.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="VBox" type="VBoxContainer" parent="PanelSchedule" unique_id=123987123]
+layout_mode = 2
+
+[node name="Title" type="Label" parent="PanelSchedule/VBox" unique_id=564738291]
+layout_mode = 2
+text = "Planetary Hours"
+theme_override_fonts/font = ExtResource("2_lvv3c")
+horizontal_alignment = 1
+
+[node name="ScrollContainer" type="ScrollContainer" parent="PanelSchedule/VBox" unique_id=293847561]
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="ScheduleList" type="VBoxContainer" parent="PanelSchedule/VBox/ScrollContainer" unique_id=384756291]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="BtnClose" type="Button" parent="PanelSchedule/VBox" unique_id=475619283]
+layout_mode = 2
+theme_override_fonts/font = ExtResource("2_lvv3c")
+text = "Close"
+
+[node name="PanelCalendar" type="PanelContainer" parent="." unique_id=827364519]
+visible = false
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -200.0
+offset_top = -150.0
+offset_right = 200.0
+offset_bottom = 150.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="VBox" type="VBoxContainer" parent="PanelCalendar" unique_id=561928374]
+layout_mode = 2
+
+[node name="Title" type="Label" parent="PanelCalendar/VBox" unique_id=123098475]
+layout_mode = 2
+text = "Planetary Calendar"
+theme_override_fonts/font = ExtResource("2_lvv3c")
+horizontal_alignment = 1
+
+[node name="HBoxDays" type="HBoxContainer" parent="PanelCalendar/VBox" unique_id=495817263]
+layout_mode = 2
+theme_override_constants/separation = 10
+
+[node name="Sun" type="Label" parent="PanelCalendar/VBox/HBoxDays" unique_id=111111111]
+layout_mode = 2
+text = "☉ Sun"
+theme_override_fonts/font = ExtResource("2_lvv3c")
+
+[node name="Mon" type="Label" parent="PanelCalendar/VBox/HBoxDays" unique_id=222222222]
+layout_mode = 2
+text = "☽ Mon"
+theme_override_fonts/font = ExtResource("2_lvv3c")
+
+[node name="Tue" type="Label" parent="PanelCalendar/VBox/HBoxDays" unique_id=333333333]
+layout_mode = 2
+text = "♂ Tue"
+theme_override_fonts/font = ExtResource("2_lvv3c")
+
+[node name="Wed" type="Label" parent="PanelCalendar/VBox/HBoxDays" unique_id=444444444]
+layout_mode = 2
+text = "☿ Wed"
+theme_override_fonts/font = ExtResource("2_lvv3c")
+
+[node name="Thu" type="Label" parent="PanelCalendar/VBox/HBoxDays" unique_id=555555555]
+layout_mode = 2
+text = "♃ Thu"
+theme_override_fonts/font = ExtResource("2_lvv3c")
+
+[node name="Fri" type="Label" parent="PanelCalendar/VBox/HBoxDays" unique_id=666666666]
+layout_mode = 2
+text = "♀ Fri"
+theme_override_fonts/font = ExtResource("2_lvv3c")
+
+[node name="Sat" type="Label" parent="PanelCalendar/VBox/HBoxDays" unique_id=777777777]
+layout_mode = 2
+text = "♄ Sat"
+theme_override_fonts/font = ExtResource("2_lvv3c")
+
+[node name="CalendarGrid" type="GridContainer" parent="PanelCalendar/VBox" unique_id=888888888]
+layout_mode = 2
+size_flags_vertical = 3
+columns = 7
+
+[node name="BtnClose" type="Button" parent="PanelCalendar/VBox" unique_id=999999999]
+layout_mode = 2
+theme_override_fonts/font = ExtResource("2_lvv3c")
+text = "Close"
+
+[connection signal="pressed" from="BtnSchedule" to="." method="_on_btn_schedule_pressed"]
+[connection signal="pressed" from="BtnCalendar" to="." method="_on_btn_calendar_pressed"]
+[connection signal="pressed" from="PanelSchedule/VBox/BtnClose" to="." method="_on_btn_close_schedule_pressed"]
+[connection signal="pressed" from="PanelCalendar/VBox/BtnClose" to="." method="_on_btn_close_calendar_pressed"]

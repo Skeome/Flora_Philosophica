@@ -502,6 +502,70 @@ layout_mode = 2
 theme_override_fonts/font = ExtResource("5_8ln24")
 text = "Close"
 
+[node name="PanelSettings" type="PanelContainer" parent="." unique_id=561234987]
+visible = false
+layout_mode = 0
+anchor_left = 0.25
+anchor_top = 0.2
+anchor_right = 0.75
+anchor_bottom = 0.75
+
+[node name="VBox" type="VBoxContainer" parent="PanelSettings" unique_id=765123908]
+layout_mode = 2
+
+[node name="Title" type="Label" parent="PanelSettings/VBox" unique_id=890123567]
+layout_mode = 2
+text = "Settings"
+label_settings = SubResource("LabelSettings_tbmy8")
+horizontal_alignment = 1
+
+[node name="HBoxAudio" type="HBoxContainer" parent="PanelSettings/VBox" unique_id=123987456]
+layout_mode = 2
+
+[node name="LblAudio" type="Label" parent="PanelSettings/VBox/HBoxAudio" unique_id=987654321]
+layout_mode = 2
+text = "Master Volume"
+theme_override_fonts/font = ExtResource("5_8ln24")
+
+[node name="SliderAudio" type="HSlider" parent="PanelSettings/VBox/HBoxAudio" unique_id=345678912]
+layout_mode = 2
+size_flags_horizontal = 3
+max_value = 1.0
+step = 0.05
+value = 0.5
+
+[node name="HBoxDisplay" type="HBoxContainer" parent="PanelSettings/VBox" unique_id=234567891]
+layout_mode = 2
+
+[node name="LblDisplay" type="Label" parent="PanelSettings/VBox/HBoxDisplay" unique_id=876543219]
+layout_mode = 2
+text = "Fullscreen"
+theme_override_fonts/font = ExtResource("5_8ln24")
+
+[node name="CheckFullscreen" type="CheckButton" parent="PanelSettings/VBox/HBoxDisplay" unique_id=456789123]
+layout_mode = 2
+
+[node name="HBoxScale" type="HBoxContainer" parent="PanelSettings/VBox" unique_id=567891234]
+layout_mode = 2
+
+[node name="LblScale" type="Label" parent="PanelSettings/VBox/HBoxScale" unique_id=789123456]
+layout_mode = 2
+text = "UI Scale"
+theme_override_fonts/font = ExtResource("5_8ln24")
+
+[node name="SliderScale" type="HSlider" parent="PanelSettings/VBox/HBoxScale" unique_id=654321987]
+layout_mode = 2
+size_flags_horizontal = 3
+min_value = 0.5
+max_value = 2.0
+step = 0.1
+value = 1.0
+
+[node name="BtnCloseSettings" type="Button" parent="PanelSettings/VBox" unique_id=321987654]
+layout_mode = 2
+theme_override_fonts/font = ExtResource("5_8ln24")
+text = "Close"
+
 [connection signal="pressed" from="Buttons/Settings/BtnSettings" to="." method="_on_btn_settings_pressed"]
 [connection signal="pressed" from="Buttons/About/BtnAbout" to="." method="_on_btn_about_pressed"]
 [connection signal="pressed" from="Buttons/TTAO/BtnTTAO" to="." method="_on_btn_ttao_pressed"]
@@ -513,3 +577,7 @@ text = "Close"
 [connection signal="pressed" from="PanelTTAO/VBox/BtnGoFundMe" to="." method="_on_btn_gofundme_pressed"]
 [connection signal="pressed" from="PanelTTAO/VBox/BtnCloseTTAO" to="." method="_on_btn_close_ttao_pressed"]
 [connection signal="pressed" from="PanelCredits/VBox/BtnCloseCredits" to="." method="_on_btn_close_credits_pressed"]
+[connection signal="value_changed" from="PanelSettings/VBox/HBoxAudio/SliderAudio" to="." method="_on_slider_audio_value_changed"]
+[connection signal="toggled" from="PanelSettings/VBox/HBoxDisplay/CheckFullscreen" to="." method="_on_check_fullscreen_toggled"]
+[connection signal="value_changed" from="PanelSettings/VBox/HBoxScale/SliderScale" to="." method="_on_slider_scale_value_changed"]
+[connection signal="pressed" from="PanelSettings/VBox/BtnCloseSettings" to="." method="_on_btn_close_settings_pressed"]

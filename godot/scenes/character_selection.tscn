@@ -1,0 +1,107 @@
+[gd_scene format=3 uid="uid://char_sel"]
+
+[ext_resource type="Script" uid="uid://char_sel_script" path="res://scripts/character_selection.gd" id="1_char_sel"]
+[ext_resource type="FontFile" uid="uid://cay4mepc0pu6l" path="res://assets/fonts/Archemy.otf" id="2_font"]
+
+[sub_resource type="LabelSettings" id="LabelSettings_Title"]
+font = ExtResource("2_font")
+font_size = 56
+outline_size = 10
+outline_color = Color(0.992, 0.816, 0.09, 1)
+
+[node name="CharacterSelection" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_char_sel")
+
+[node name="ColorRect" type="ColorRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.129412, 0.14902, 0.180392, 1)
+
+[node name="Title" type="Label" parent="."]
+layout_mode = 1
+anchors_preset = 10
+anchor_right = 1.0
+offset_top = 40.0
+offset_bottom = 100.0
+grow_horizontal = 2
+text = "Character Creation"
+label_settings = SubResource("LabelSettings_Title")
+horizontal_alignment = 1
+
+[node name="VBox" type="VBoxContainer" parent="."]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -200.0
+offset_top = -150.0
+offset_right = 200.0
+offset_bottom = 150.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/separation = 20
+
+[node name="LblGender" type="Label" parent="VBox"]
+layout_mode = 2
+theme_override_fonts/font = ExtResource("2_font")
+text = "Gender"
+
+[node name="OptionGender" type="OptionButton" parent="VBox"]
+layout_mode = 2
+theme_override_fonts/font = ExtResource("2_font")
+item_count = 3
+popup/item_0/text = "Masculine"
+popup/item_0/id = 0
+popup/item_1/text = "Feminine"
+popup/item_1/id = 1
+popup/item_2/text = "Non-Binary"
+popup/item_2/id = 2
+
+[node name="LblLocation" type="Label" parent="VBox"]
+layout_mode = 2
+theme_override_fonts/font = ExtResource("2_font")
+text = "Location (Lat/Lon) - Replaces GPS"
+
+[node name="EditLocation" type="LineEdit" parent="VBox"]
+layout_mode = 2
+theme_override_fonts/font = ExtResource("2_font")
+placeholder_text = "e.g. 42.3265, -122.8756"
+
+[node name="LblBirth" type="Label" parent="VBox"]
+layout_mode = 2
+theme_override_fonts/font = ExtResource("2_font")
+text = "Birth Data (YYYY-MM-DD HH:MM)"
+
+[node name="EditBirth" type="LineEdit" parent="VBox"]
+layout_mode = 2
+theme_override_fonts/font = ExtResource("2_font")
+placeholder_text = "e.g. 1990-05-15 14:30"
+
+[node name="Spacer" type="Control" parent="VBox"]
+custom_minimum_size = Vector2(0, 20)
+layout_mode = 2
+
+[node name="BtnStart" type="Button" parent="VBox"]
+layout_mode = 2
+theme_override_fonts/font = ExtResource("2_font")
+text = "Begin Journey"
+
+[node name="BtnBack" type="Button" parent="VBox"]
+layout_mode = 2
+theme_override_fonts/font = ExtResource("2_font")
+text = "Back to Menu"
+
+[connection signal="pressed" from="VBox/BtnStart" to="." method="_on_btn_start_pressed"]
+[connection signal="pressed" from="VBox/BtnBack" to="." method="_on_btn_back_pressed"]

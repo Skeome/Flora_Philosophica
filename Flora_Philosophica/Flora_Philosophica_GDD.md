@@ -243,19 +243,45 @@ The Plant Stone is the endgame masterwork for each individual plant. It is achie
 
 ## 7. Character Progression: The Seven Oblations
 
-Flora Philosophica has no experience point bar. Character stats are increased exclusively through an internal alchemy system called the **Seven Oblations**. The player selects one plant for each of the Seven Planetary Rulers and refines that plant to its Plant Stone via the full spagyric pipeline, including cohobation. Consuming the masterwork product permanently increases the corresponding stat.
+Flora Philosophica has no experience point bar. Character stats are increased exclusively through an internal alchemy system called the **Seven Oblations**. The player refines plants ruled by the Seven Planets and consumes the resulting spagyric products to level up the corresponding RPG stat.
 
-The plant chosen for each Oblation is **permanent** — it cannot be changed once work has begun. This forces a meaningful early-game decision and gives each player's character a unique botanical identity.
+### 7.1 Product XP Scaling
 
-| Planetary Ruler | Associated Herbs (Culpeper) | RPG Stat | Harvest Notes |
-|---|---|---|---|
-| **☉ Sun** | Rosemary, Angelica, St. John's Wort | Vitality / Max HP | Solar herbs; harvest Sunday Solar hour |
-| **☽ Moon** | Mugwort, Willow, Cleavers | Mana / MP | Monday; lunar hour near midnight |
-| **♂ Mars** | Nettle, Basil, Garlic | Attack Power / Phys DMG | Tuesday; harvesting in iron-red glow |
-| **♀ Venus** | Yarrow, Rose, Mint | Charisma / Shop Prices | Friday; copper-green ambient light |
-| **☿ Mercury** | Lavender, Fennel, Caraway | Agility / Evasion | Wednesday; quicksilver shimmer |
-| **♃ Jupiter** | Lemon Balm, Dandelion, Sage | Luck / Crit Chance | Thursday; indigo sky tint |
-| **♄ Saturn** | Comfrey, Horsetail, Mullein | Defense / Armor | Saturday; leaden shadows lengthen |
+There is no "pledge" or lock-in; players can craft and consume products from any plant at any time. Every completed spagyric product acts as an "EXP Book" for its ruling planet's stat, scaling by the complexity of the laboratory process:
+- **Spagyric Tincture:** Extra Small XP
+- **Elixir:** Small XP
+- **Magistery:** Medium XP
+- **Ens Tincture:** Large XP
+- **Primum Ens:** Extra Large XP
+- **Plant Stone:** Extra Extra Large XP
+
+Different plants offer different base progression scaling. For example, a common Solar plant like Rosemary may be easy to cultivate but yields less XP than a rare, difficult-to-process Solar plant like Angelica.
+
+### 7.2 Astrological Consumption & Plant Stones
+
+The timing of consumption is just as critical as the harvest. The game relies on the real-time Planetary Engine to determine the effect of consuming an Oblation:
+
+| Consumption Timing | Effect on Stat |
+|---|---|
+| **Matching Day & Hour** | Maximum Permanent Stat Boost |
+| **Matching Hour Only** | Minor Permanent Stat Boost |
+| **Neutral (No Match)** | Temporary Stat Boost (No permanent XP gained) |
+| **Opposite Day/Hour** | Temporary Stat Debuff |
+
+**The Plant Stone:**
+Unlike lower-tier products which are consumed and destroyed, the **Plant Stone** is a discrete, permanent item. Only one Plant Stone can be crafted per specific plant species. When used for an Oblation, it does not disappear. However, to prevent stat-spamming, each Plant Stone has a significant real-world cooldown (e.g., 1 real week) between uses. A disciplined player must wait for the perfect celestial window to use their Stone for maximum permanent gain.
+
+### 7.3 Planetary Stat Mapping
+
+| Planetary Ruler | RPG Stat | Harvest Notes |
+|---|---|---|
+| **☉ Sun** | Vitality / Max HP | Solar herbs; harvest Sunday Solar hour |
+| **☽ Moon** | Mana / MP | Monday; lunar hour near midnight |
+| **♂ Mars** | Attack Power / Phys DMG | Tuesday; harvesting in iron-red glow |
+| **♀ Venus** | Charisma / Shop Prices | Friday; copper-green ambient light |
+| **☿ Mercury** | Agility / Evasion | Wednesday; quicksilver shimmer |
+| **♃ Jupiter** | Luck / Crit Chance | Thursday; indigo sky tint |
+| **♄ Saturn** | Defense / Armor | Saturday; leaden shadows lengthen |
 
 > *Culpeper's planetary attributions are used throughout. These are historically documented and operatively recognised within the spagyric tradition. The list given in each planetary category is not exhaustive — players may choose any Culpeper-attributed plant for that ruler.*
 
@@ -263,41 +289,41 @@ The plant chosen for each Oblation is **permanent** — it cannot be changed onc
 
 ## 8. Exploration & Combat
 
-### 8.1 The Map
+### 8.1 The Map & Meditation
 
-- The world is navigated via the Chrono Trigger-style 3/4 perspective with tap-to-move pathfinding and a virtual joystick
-- Multiple biomes are accessible as the player progresses: local meadows, dense forest, craggy mountain paths, riverbanks, overgrown ruins
-- Plant nodes are physical objects in the environment — a glowing patch of St. John's Wort nestled by a cliffside, Nettle clusters near iron-rich soil
-- The player walks their character up to a node and taps to harvest; the Culpeper botanical illustration pop-up triggers on first discovery
-- Biome availability and rare plant spawn rates are influenced by the current Planetary Hour
+- The physical world is navigated via a 3/4 top-down perspective, focusing on resource gathering, exploration, and finding rare plant nodes.
+- **There is no physical combat in the overworld.** The game maintains its grounded, peaceful atmosphere in the physical realm.
+- Combat is initiated via **Meditation ("Guided Imagery")**. The player finds specific nodes or quiet spots in the world, sits, and enters the "Spirit World" within their mind.
+- This grounds the magic system — the fantasy stays within the imagination, allowing for spectacular "real" magic without breaking the low-fantasy alchemical setting of the physical world.
 
-### 8.2 Visible Enemies
+### 8.2 The Spirit World Enemies
 
-- No random encounters. All enemies are visible on the map and can be approached or avoided.
-- The player can attempt to use the joystick to navigate around enemy patrols
-- Walking into an enemy (or being caught) initiates combat **without a transition screen**
-- The Chrono Trigger model is followed precisely: characters draw weapons and take combat stances on the map itself; the sigil-drawing UI fades in over the environment
-- Enemies shift elemental weaknesses based on the current Planetary Hour — a wolf gains significant speed and evasion during a Mercury hour, for example
+Within the meditation state, the player encounters entities that do not exist in the physical exploration:
+- **Spiritual Essences:** Literal monsters (Slimes, Wolves, Goblins, Elementals) whose spirits reside in this mental realm.
+- **Inner Demons:** Shadow clones (akin to "Dark Link") that possess the player's exact stats, skills, and sigil knowledge, serving as high-level boss encounters.
 
 ### 8.3 Sigil-Based Combat
 
-There are no Attack / Magic menu buttons. To act in combat, the player manually draws alchemical or astrological sigils on the screen using touch input.
+Combat inside the meditation state relies on drawing sigils on the screen using touch input.
+- The player's magical arsenal grows via the Seven Oblations. They unlock complex planetary sigils (e.g., compounding Mars with a Fire triangle) and entirely non-planetary alchemical symbols (like the classic Philosopher's Stone grid or complex Castlevania-style point-based glyphs).
+- **Planetary Hour Modifiers:** The current real-world planetary hour heavily influences spell efficacy, mimicking plant harvest quality:
+  - **4.0x Damage:** Matching Day and Hour
+  - **2.0x Damage:** Matching Hour only
+  - **1.0x Damage:** Neutral (no match)
+  - **0.5x Damage:** Opposite Hour only
+  - **0.25x Damage:** Opposite Day and Hour
 
-- The accuracy and speed of the drawing determine the power of the resulting strike or spell
-- Drawing ♂ (Mars) launches a physical, fire-aligned strike using the energy of Mars-ruled material
-- Drawing ☽ (Moon) releases a healing wave using Mugwort energy
-- Successfully completing a sigil triggers a high-quality combat animation, contrasting the slow methodical nature of laboratory work
-- Partially drawn or misdrawn sigils may produce weakened effects or misfire
+### 8.4 Defeat Consequences
 
-### 8.4 Enemy Types & Drops
+- If defeated in the Spirit World, the player does not die. They "wake up" immediately at their physical meditation spot.
+- **Penalties:** A loss of in-game Time and Stamina, accompanied by a **"Mental Fatigue"** debuff.
+- **Mental Fatigue:** Significantly lowers laboratory crafting success rates for a few real-time hours, reinforcing the connection between spiritual focus and operative spagyric success.
 
-| Enemy | Notable Drops | Notes |
-|---|---|---|
-| Slimes | Gelatin, base matter | Common in early biomes. Weak to most sigils. |
-| Wolves | Furs, fangs (armour crafting) | Gain speed and evasion during Mercury hours. |
-| Elementals | Elemental dust (reaction catalysts) | Type-specific drops for laboratory use. |
-| Wild Animals | Varied crafting materials | Bears, boars, deer; scale across biomes. |
-| Monsters | Rare equipment components | Classic JRPG types — goblins, wraiths, constructs. |
+### 8.5 Multiplayer Integration
+
+Multiplayer expands on the meditation state. It is a collaborative, trade, and battle-focused system.
+- Players can engage in **co-op dungeons and boss-rushes** within the Spirit World.
+- Because the planetary engine relies on the player's local device time, asynchronous advantages occur: It might be a Saturn hour for Player A (buffing defense) and a Mars hour for Player B (buffing attack) simultaneously, creating a strategic "barter system" of time zones and buffs during co-op play.
 
 ---
 
@@ -335,22 +361,29 @@ The laboratory continues processing any active preparations whether the app is o
 
 ## 10. Economy & Customer System
 
-### 10.1 Customer Types
+### 10.1 Customer Types & Delivery Methods
 
-| Customer | Request Complexity | Reward |
-|---|---|---|
-| **Villagers** (early game) | Simple remedies: *"I burned my hand — do you have St. John's Wort?"* | Modest gold |
-| **Adventurers' Guild** | Specific elemental materials and basic combat preparations | Moderate gold |
-| **Nobles** | Elixirs and Magisteries | High gold; occasional rare equipment |
-| **Visiting Alchemists** | Rare products; recognise quality Spagyric work | High gold; lore exchange |
-| **Wizards** | Ens Tinctures and Plant Stones | Massive payouts |
-| **Ternary Order** (mail only) | No gold — deliver cryptic lore hints sealed with the Order's wax seal | Lore progression |
+Customer interaction evolves as the sanctuary's reputation grows:
+1. **Mailbox Post (Early Game):** The primary interface. Villagers and distant contacts drop request letters here.
+2. **Village Message Board (Fallback):** For villagers unaware of your direct services; the player must walk to town to read these open requests.
+3. **The Storefront (Mid-to-Late Game):** A dedicated room in the cabin (or purchased outbuilding) where products are physically displayed. Customers visit directly.
 
-### 10.2 Revenue & Spending
+| Customer | Request Complexity | Reward | Notes |
+|---|---|---|---|
+| **Villagers** | Simple remedies (Tinctures) | Modest gold | Usually via mailbox or town board. |
+| **Adventurers' Guild** | Elemental materials, combat preps | Moderate gold | Steady source of radiant requests. |
+| **Nobles** | Elixirs and Magisteries | High gold | Very high affluence multiplier. |
+| **Visiting Alchemists** | Rare products, Spagyric work | High gold | Often trigger story progression. |
+| **Wizards** | Ens Tinctures and Plant Stones | Massive payouts | Endgame handcrafted requests. |
+| **Ternary Order Members** | Cryptic requests, lore hints | Lore & Secrets | "Disguised" customers; their dialogue uses the special UI font (*Archemy.otf*). |
 
-- Gold is earned through customer sales and order fulfilment
-- Gold is spent on: laboratory equipment, weapons, armour, raw materials (glassware if not blown, alcohol supply), and access to new map biomes
-- Gold **never** functions as a time-skip mechanism — no premium speed-ups exist
+### 10.2 Request Generation & Pricing
+
+**Request Generation:** The game uses a hybrid approach. Procedurally generated "radiant" requests provide a steady stream of income based on the player's current equipment tier. These are interspersed with handcrafted story requests that advance the narrative, introduce new mechanics, or unlock new customer tiers.
+
+**Pricing Model:** Products have fixed base values, but the final sale price is determined automatically by multipliers:
+`Final Price = Base Value × Harvest Quality Multiplier × Customer Affluence Multiplier`
+(e.g., A Celestial-quality tincture sold to a Noble pays out significantly more than a Standard tincture sold to a Villager.)
 
 ### 10.3 Menstruum (Alcohol) Sourcing
 

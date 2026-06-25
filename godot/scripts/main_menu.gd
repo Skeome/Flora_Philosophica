@@ -18,12 +18,14 @@ const URL_GOFUNDME = "https://www.gofund.me/2265dd08b"
 @onready var planets_rect : TextureRect = $Planets
 @onready var panel_ttao   : PanelContainer = $PanelTTAO
 @onready var panel_credits: PanelContainer = $PanelCredits
+@onready var panel_settings: PanelContainer = $PanelSettings
 
 var original_credits_text: String = ""
 
 func _ready() -> void:
 	panel_ttao.hide()
 	panel_credits.hide()
+	panel_settings.hide()
 	original_credits_text = $PanelCredits/VBox/CreditsLabel.text
 	# Subtle planet rotation — each planet TextureRect gets a slow spin
 	# via shader once shaders are added. Nothing to wire up here yet.
@@ -31,9 +33,7 @@ func _ready() -> void:
 # ── Button callbacks ──────────────────────────────────────────────────────────
 
 func _on_btn_new_game_pressed() -> void:
-	# TODO: show character/world name prompt before transitioning
-	GameManager.save_game()
-	get_tree().change_scene_to_file(MAIN_SCENE)
+	get_tree().change_scene_to_file("res://scenes/character_selection.tscn")
 
 func _on_btn_load_game_pressed() -> void:
 	GameManager.load_game()
@@ -48,8 +48,9 @@ func _on_btn_exit_game_pressed() -> void:
 	get_tree().quit()
 
 func _on_btn_settings_pressed() -> void:
-	# TODO: open settings panel (audio, display, GPS override)
-	_show_toast("Settings coming soon.")
+	panel_ttao.hide()
+	panel_credits.hide()
+	panel_settings.visible = not panel_settings.visible
 
 func _on_btn_ttao_pressed() -> void:
 	panel_credits.hide()
@@ -72,6 +73,22 @@ func _on_btn_close_ttao_pressed() -> void:
 func _on_btn_close_credits_pressed() -> void:
 	panel_credits.hide()
 
+func _on_btn_close_settings_pressed() -> void:
+	panel_settings.hide()
+
+func _on_slider_audio_value_changed(value: float) -> void:
+	var bus_idx = AudioServer.get_bus_index("Master")
+	AudioServer.set_bus_volume_db(bus_idx, linear_to_db(value))
+
+func _on_check_fullscreen_toggled(button_pressed: bool) -> void:
+	if button_pressed:
+		DisplayServer.window_set_mode(DisplayServer.WINDOW_MODE_FULLSCREEN)
+	else:
+		DisplayServer.window_set_mode(DisplayServer.WINDOW_MODE_WINDOWED)
+
+func _on_slider_scale_value_changed(value: float) -> void:
+	get_window().content_scale_factor = value
+
 # ── Helpers ───────────────────────────────────────────────────────────────────
 
 func _show_toast(message: String) -> void:
@@ -79,4 +96,5 @@ func _show_toast(message: String) -> void:
 	var lbl := $PanelCredits/VBox/CreditsLabel
 	lbl.text = message
 	panel_ttao.hide()
+	panel_settings.hide()
 	panel_credits.show()

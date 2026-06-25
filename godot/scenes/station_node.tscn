@@ -1,0 +1,40 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/station_node.gd" id="1"]
+
+[sub_resource type="PlaceholderTexture2D" id="Tex_placeholder"]
+size = Vector2(16, 16)
+
+[node name="StationNode" type="Node2D"]
+y_sort_enabled = true
+script = ExtResource("1")
+
+[node name="Sprite2D" type="Sprite2D" parent="."]
+position = Vector2(0, -6)
+texture = SubResource("Tex_placeholder")
+
+[node name="NameLabel" type="Label" parent="."]
+offset_left = -36.0
+offset_top = -26.0
+offset_right = 36.0
+offset_bottom = -14.0
+text = "Station"
+horizontal_alignment = 1
+
+[node name="StatusLabel" type="Label" parent="."]
+offset_left = -36.0
+offset_top = 5.0
+offset_right = 36.0
+offset_bottom = 15.0
+text = "Empty"
+horizontal_alignment = 1
+
+[node name="ProgressBar" type="ProgressBar" parent="."]
+offset_left = -22.0
+offset_top = 17.0
+offset_right = 22.0
+offset_bottom = 24.0
+visible = false
+min_value = 0.0
+max_value = 100.0
+value = 0.0

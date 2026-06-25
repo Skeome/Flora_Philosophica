@@ -75,6 +75,11 @@ void RoomManager::_bind_methods() {
     ClassDB::bind_method(D_METHOD("get_placed_items", "room"), &RoomManager::get_placed_items);
     ClassDB::bind_method(D_METHOD("serialise"), &RoomManager::serialise);
     ClassDB::bind_method(D_METHOD("deserialise", "json"), &RoomManager::deserialise);
+
+    BIND_ENUM_CONSTANT(ROOM_EXTERIOR);
+    BIND_ENUM_CONSTANT(ROOM_CABIN_MAIN);
+    BIND_ENUM_CONSTANT(ROOM_CABIN_LOFT);
+    BIND_ENUM_CONSTANT(ROOM_GARDEN);
 }
 
 } // namespace godot

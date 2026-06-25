@@ -48,3 +48,77 @@ func _update_clock() -> void:
 		segment,
 		mins
 	]
+
+@onready var panel_schedule: PanelContainer = $PanelSchedule
+@onready var schedule_list: VBoxContainer = $PanelSchedule/VBox/ScrollContainer/ScheduleList
+
+func get_daily_schedule() -> Array:
+	var schedule = []
+	var info = GameManager.get_planetary_hour()
+	if info.is_empty(): return schedule
+	
+	var lat = GameManager.observer_lat
+	var lon = GameManager.observer_lon
+	
+	var query_time = int(Time.get_unix_time_from_system())
+	var current_info = info
+	while current_info["hour_index"] > 0:
+		query_time = int(current_info["hour_start_utc"]) - 10
+		current_info = GameManager.clock.calculate_planetary_hour(lat, lon, query_time)
+		
+	query_time = int(current_info["hour_start_utc"]) + 10
+	for i in range(24):
+		var h_info = GameManager.clock.calculate_planetary_hour(lat, lon, query_time)
+		schedule.append(h_info)
+		query_time = int(h_info["hour_end_utc"]) + 10
+		
+	return schedule
+
+func _on_btn_schedule_pressed() -> void:
+	for child in schedule_list.get_children():
+		child.queue_free()
+		
+	var schedule = get_daily_schedule()
+	var tz_offset = Time.get_time_zone_from_system()["bias"] * 60
+	
+	for i in range(schedule.size()):
+		var info = schedule[i]
+		var glyph = PLANET_GLYPHS.get(info["ruling_planet"], "?")
+		
+		var start_dict = Time.get_time_dict_from_unix_time(info["hour_start_utc"] + tz_offset)
+		var end_dict = Time.get_time_dict_from_unix_time(info["hour_end_utc"] + tz_offset)
+		
+		var time_str = "%02d:%02d - %02d:%02d" % [start_dict.hour, start_dict.minute, end_dict.hour, end_dict.minute]
+		var segment = "Day" if info["hour_index"] < 12 else "Night"
+		
+		var text = "%s %s (%s) | %s" % [glyph, info["planet_name"], segment, time_str]
+		var lbl = Label.new()
+		lbl.text = text
+		schedule_list.add_child(lbl)
+		
+	panel_schedule.show()
+
+func _on_btn_close_schedule_pressed() -> void:
+	panel_schedule.hide()
+
+@onready var panel_calendar: PanelContainer = $PanelCalendar
+@onready var calendar_grid: GridContainer = $PanelCalendar/VBox/CalendarGrid
+
+func _on_btn_calendar_pressed() -> void:
+	for child in calendar_grid.get_children():
+		child.queue_free()
+		
+	for i in range(35):
+		var lbl = Label.new()
+		if i < 3 or i > 33:
+			lbl.text = ""
+		else:
+			lbl.text = str(i - 2)
+		lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		calendar_grid.add_child(lbl)
+		
+	panel_schedule.hide()
+	panel_calendar.show()
+
+func _on_btn_close_calendar_pressed() -> void:
+	panel_calendar.hide()

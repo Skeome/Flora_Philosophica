@@ -51,6 +51,15 @@ Plant quality is determined by planetary alignment at the moment of harvest:
 ### Overworld Exploration
 Pixel-art tile-based overworld (1920×1080 world canvas at 16px tiles, rendered at 640×360 native resolution) with y-sorted depth rendering. Walk freely with **WASD** or **click-to-move** (tap-to-move on mobile). Scene transitions via door zones connect multiple areas. The player character, "Basil," has directional idle and walk animations.
 
+### Combat & Meditation
+Physical combat does not exist in the overworld. Combat is initiated via **Meditation ("Guided Imagery")** at specific nodes, entering the "Spirit World." Here, players fight spiritual essences of monsters and inner shadow clones (akin to Dark Link). Combat relies on drawing sigils via touch input, with the current Planetary Hour providing massive damage multipliers (up to 4x for matching Day & Hour). Defeat results in "Mental Fatigue," lowering laboratory crafting success.
+
+### Character Progression: The Seven Oblations
+No traditional EXP bar. Every crafted spagyric product acts as an XP book for its ruling planet's RPG stat. The ultimate goal is crafting the reusable **Plant Stone**. Consuming an Oblation during matching celestial windows grants permanent stat boosts; consuming it out of alignment yields temporary buffs or even debuffs.
+
+### Economy & The Ternary Alchemical Order
+Sell products via the Mailbox Post (early game) or your own Storefront (late game). Pricing scales dynamically based on base value, harvest quality, and customer affluence. Elite customers include Wizards, Nobles, and disguised members of **The Ternary Alchemical Order**, who send action-triggered cryptic letters (sealed with wax) to guide players toward advanced operative alchemy.
+
 ### Persistence
 Full save/load system (JSON to `user://save.json`) tracking:
 - 46-slot inventory (10 hotbar + 36 grid)
@@ -238,16 +247,31 @@ Design documents live in the `Flora_Philosophica/` Obsidian vault, including the
 
 ---
 
-## 🗺️ Roadmap
+## 🗺️ Roadmap Blueprint & Next Steps
 
-Scaffolded directories and TODOs in the codebase indicate planned systems:
+This blueprint outlines the immediate next tasks required to build out the core game flow, UI, and character systems before expanding deeper into the laboratory and combat.
 
-- **Combat** — `src/combat/`
-- **Economy & Customers** — `src/economy/`
-- **Idle / Passive Generation** — `src/idle/`
-- **Laboratory Apparatus UI** — `src/lab/`
-- **Audio** — `godot/assets/music/`, `godot/assets/sounds/`
-- **Online Multiplayer** — referenced in main menu ("coming in a future update")
-- **Settings Panel** — GPS override, audio, display options
-- **Atmospheric Overlays** — per planetary hour visual effects
-- **Glassblowing Minigame** — referenced in GDD
+### 1. Inventory Screen UI
+- [ ] Build a robust graphical inventory UI connecting to the 46-slot C++ `Inventory` backend.
+- [ ] Support drag-and-drop or tap-to-select for the 36 grid slots and the 10 hotbar slots.
+- [ ] Display item quality, stage, and Culpeper botanical properties on selection.
+
+### 2. Main Menu & Settings
+- [x] Fully hook up the Settings screen on the Main Menu.
+- [x] Include volume sliders, display toggles, and UI scaling.
+- [x] Create the overarching state flow from Main Menu -> Settings -> Character Selection -> Gameplay.
+
+### 3. Character Creation (Pre-Gameplay)
+- [x] Build the Character Selection screen.
+- [x] **Gender Options:** M, F, NB.
+- [x] **Location Override:** Allow the player to input their location for the astrological engine (noting explicitly that this is strictly local, replaces the hardcoded Medford default, and is never saved externally).
+- [x] **Birth Data:** Input for date/time/place of birth to generate the player's Natal Chart (future integration with stats/lore).
+
+### 4. Calendar UI
+- [x] Add an interactive Calendar interface accessible from the HUD.
+- [x] Track planetary days (Sunday = Sun, Monday = Moon, etc.).
+- [x] Provide a visual way for players to plan long-term laboratory operations around celestial alignments.
+
+### 5. Planetary Hour Schedule Screen
+- [x] Build a dedicated UI screen (perhaps an expanded view of the current `clock_hud`) showing the complete Planetary Hour schedule for the current day.
+- [x] Display exact start/end times for all 12 daylight and 12 nighttime hours based on the player's local sunrise/sunset calculations.

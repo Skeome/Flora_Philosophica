@@ -20,9 +20,16 @@ var pending_spawn: Vector2 = Vector2.ZERO
 # Player's last saved world position. Restored on load_game().
 var last_player_position: Vector2 = Vector2.ZERO
 
-# Medford, Oregon as default — will be replaced by GPS on mobile
+# Active hotbar slot — read by cabin.gd to load into a station on [E].
+var selected_hotbar_slot: int = 0
+
+# Medford, Oregon as default — will be replaced by GPS on mobile or Character Creation input
 var observer_lat: float = 42.3265
 var observer_lon: float = -122.8756
+
+# Character data
+var player_gender: int = 0  # 0: Masc, 1: Fem, 2: NB
+var player_birth_data: String = ""
 
 const SAVE_PATH = "user://save.json"
 
@@ -58,11 +65,15 @@ func save_game() -> void:
 			last_player_position = player.global_position
 
 	var data := {
-		"inventory":    inventory.serialise(),
-		"rooms":        room_manager.serialise(),
-		"player_pos_x": last_player_position.x,
-		"player_pos_y": last_player_position.y,
-		"timestamp":    int(Time.get_unix_time_from_system())
+		"inventory":         inventory.serialise(),
+		"rooms":             room_manager.serialise(),
+		"player_pos_x":      last_player_position.x,
+		"player_pos_y":      last_player_position.y,
+		"observer_lat":      observer_lat,
+		"observer_lon":      observer_lon,
+		"player_gender":     player_gender,
+		"player_birth_data": player_birth_data,
+		"timestamp":         int(Time.get_unix_time_from_system())
 	}
 	var file := FileAccess.open(SAVE_PATH, FileAccess.WRITE)
 	if file:
@@ -85,3 +96,11 @@ func load_game() -> void:
 		room_manager.deserialise(parsed["rooms"])
 	if parsed.has("player_pos_x") and parsed.has("player_pos_y"):
 		last_player_position = Vector2(parsed["player_pos_x"], parsed["player_pos_y"])
+	if parsed.has("observer_lat"):
+		observer_lat = parsed["observer_lat"]
+	if parsed.has("observer_lon"):
+		observer_lon = parsed["observer_lon"]
+	if parsed.has("player_gender"):
+		player_gender = parsed["player_gender"]
+	if parsed.has("player_birth_data"):
+		player_birth_data = parsed["player_birth_data"]
