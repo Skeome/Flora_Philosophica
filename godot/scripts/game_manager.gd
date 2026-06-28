@@ -185,10 +185,10 @@ func calculate_natal_chart() -> void:
 		longitudes[p] = lon
 		
 		var sign_idx = int(lon / 30.0) % 12
-		var sign = zodiac_signs[sign_idx]
-		sign_placements[p] = sign["name"]
+		var planetary_sign = zodiac_signs[sign_idx]
+		sign_placements[p] = planetary_sign["name"]
 		
-		var ruler = sign["ruler"]
+		var ruler = planetary_sign["ruler"]
 		if player_stats.has(ruler):
 			player_stats[ruler] += 2
 			
@@ -299,4 +299,3 @@ func calculate_spagyric_temper(choler: int, sanguine: int, phlegm: int, melancho
 		"phlegm_pct": p_pct,
 		"melancholy_pct": m_pct
 	}
-

@@ -1,0 +1,87 @@
+[gd_scene format=3 uid="uid://cyxr2kp1u1oc2"]
+
+[ext_resource type="Script" uid="uid://sj60hbvwnfhs" path="res://scripts/inventory_ui.gd" id="1_inv"]
+[ext_resource type="FontFile" uid="uid://cay4mepc0pu6l" path="res://assets/fonts/Archemy.otf" id="2_font"]
+
+[sub_resource type="StyleBoxFlat" id="InfoStyle"]
+bg_color = Color(0.1, 0.07, 0.05, 0.96)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.45, 0.3, 0.18, 0.85)
+corner_radius_top_left = 2
+corner_radius_top_right = 2
+corner_radius_bottom_right = 2
+corner_radius_bottom_left = 2
+
+[sub_resource type="LabelSettings" id="LsName"]
+font = ExtResource("2_font")
+font_size = 11
+
+[sub_resource type="LabelSettings" id="LsDet"]
+font = ExtResource("2_font")
+font_size = 9
+font_color = Color(0.72, 0.72, 0.72, 1)
+
+[sub_resource type="LabelSettings" id="LsProp"]
+font = ExtResource("2_font")
+font_size = 8
+font_color = Color(0.62, 0.75, 0.62, 1)
+
+[node name="InventoryUI" type="CanvasLayer" unique_id=1048683920]
+
+[node name="Canvas" type="Control" parent="." unique_id=1338263]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 1
+script = ExtResource("1_inv")
+
+[node name="InfoBox" type="PanelContainer" parent="Canvas" unique_id=4177938]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -150.0
+offset_top = -110.0
+offset_right = 150.0
+offset_bottom = 110.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_styles/panel = SubResource("InfoStyle")
+
+[node name="VBox" type="VBoxContainer" parent="Canvas/InfoBox" unique_id=1080182491]
+layout_mode = 2
+theme_override_constants/separation = 4
+
+[node name="LblName" type="Label" parent="Canvas/InfoBox/VBox" unique_id=253525153]
+custom_minimum_size = Vector2(100, 20)
+layout_mode = 2
+label_settings = SubResource("LsName")
+horizontal_alignment = 1
+autowrap_mode = 3
+
+[node name="LblDetail" type="Label" parent="Canvas/InfoBox/VBox" unique_id=2056870493]
+layout_mode = 2
+label_settings = SubResource("LsDet")
+
+[node name="Sep" type="HSeparator" parent="Canvas/InfoBox/VBox" unique_id=1053702170]
+layout_mode = 2
+
+[node name="Scroll" type="ScrollContainer" parent="Canvas/InfoBox/VBox" unique_id=489421912]
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="LblProp" type="Label" parent="Canvas/InfoBox/VBox/Scroll" unique_id=1492831715]
+custom_minimum_size = Vector2(100, 20)
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Select an item to view its properties."
+label_settings = SubResource("LsProp")
+autowrap_mode = 3

@@ -56,17 +56,18 @@ grow_horizontal = 2
 grow_vertical = 2
 theme_override_styles/panel = SubResource("StyleBoxFlat_panel")
 
-[node name="HBox" type="HBoxContainer" parent="Panel"]
+[node name="HBox" type="HBoxContainer" parent="Panel" unique_id=1518162902]
 layout_mode = 2
 theme_override_constants/separation = 24
 
-[node name="VBoxMenu" type="VBoxContainer" parent="Panel/HBox"]
+[node name="VBoxMenu" type="VBoxContainer" parent="Panel/HBox" unique_id=1618596197]
 custom_minimum_size = Vector2(200, 0)
 layout_mode = 2
 theme_override_constants/separation = 16
 
 [node name="Title" type="Label" parent="Panel/HBox/VBoxMenu" unique_id=1108986714]
 layout_mode = 2
+theme_override_fonts/font = ExtResource("2_font")
 text = "Paused"
 label_settings = SubResource("LabelSettings_title")
 horizontal_alignment = 1
@@ -93,6 +94,7 @@ text = "Load Game"
 [node name="SaveStatus" type="Label" parent="Panel/HBox/VBoxMenu" unique_id=2096090326]
 modulate = Color(0.6, 1, 0.6, 1)
 layout_mode = 2
+theme_override_fonts/font = ExtResource("2_font")
 horizontal_alignment = 1
 
 [node name="Spacer2" type="Control" parent="Panel/HBox/VBoxMenu" unique_id=646891228]
@@ -109,19 +111,19 @@ layout_mode = 2
 theme_override_fonts/font = ExtResource("2_font")
 text = "Quit to Main Menu"
 
-[node name="VSeparator" type="VSeparator" parent="Panel/HBox"]
+[node name="VSeparator" type="VSeparator" parent="Panel/HBox" unique_id=1028631571]
 layout_mode = 2
 
-[node name="VBoxStats" type="VBoxContainer" parent="Panel/HBox"]
+[node name="VBoxStats" type="VBoxContainer" parent="Panel/HBox" unique_id=1864857789]
 layout_mode = 2
 size_flags_horizontal = 3
 theme_override_constants/separation = 12
 
-[node name="HBoxTabs" type="HBoxContainer" parent="Panel/HBox/VBoxStats"]
+[node name="HBoxTabs" type="HBoxContainer" parent="Panel/HBox/VBoxStats" unique_id=2110351980]
 layout_mode = 2
 theme_override_constants/separation = 12
 
-[node name="BtnTabNatal" type="Button" parent="Panel/HBox/VBoxStats/HBoxTabs"]
+[node name="BtnTabNatal" type="Button" parent="Panel/HBox/VBoxStats/HBoxTabs" unique_id=833609782]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
@@ -130,7 +132,7 @@ toggle_mode = true
 button_pressed = true
 text = "Natal Chart"
 
-[node name="BtnTabFire" type="Button" parent="Panel/HBox/VBoxStats/HBoxTabs"]
+[node name="BtnTabFire" type="Button" parent="Panel/HBox/VBoxStats/HBoxTabs" unique_id=875570747]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
@@ -138,111 +140,123 @@ theme_override_fonts/font = ExtResource("2_font")
 toggle_mode = true
 text = "Analysis by Fire"
 
-[node name="ScrollContainer" type="ScrollContainer" parent="Panel/HBox/VBoxStats"]
+[node name="ScrollContainer" type="ScrollContainer" parent="Panel/HBox/VBoxStats" unique_id=1987735104]
 layout_mode = 2
 size_flags_vertical = 3
 
-[node name="TabContent" type="VBoxContainer" parent="Panel/HBox/VBoxStats/ScrollContainer"]
+[node name="TabContent" type="VBoxContainer" parent="Panel/HBox/VBoxStats/ScrollContainer" unique_id=734177285]
 layout_mode = 2
 size_flags_horizontal = 3
 size_flags_vertical = 3
 
-[node name="NatalPanel" type="VBoxContainer" parent="Panel/HBox/VBoxStats/ScrollContainer/TabContent"]
+[node name="NatalPanel" type="VBoxContainer" parent="Panel/HBox/VBoxStats/ScrollContainer/TabContent" unique_id=729402249]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
 theme_override_constants/separation = 10
 
-[node name="LblStatsTitle" type="Label" parent="Panel/HBox/VBoxStats/ScrollContainer/TabContent/NatalPanel"]
+[node name="LblStatsTitle" type="Label" parent="Panel/HBox/VBoxStats/ScrollContainer/TabContent/NatalPanel" unique_id=874065073]
 layout_mode = 2
+theme_override_fonts/font = ExtResource("2_font")
 text = "Planetary RPG Attributes"
 label_settings = SubResource("LabelSettings_section")
 
-[node name="StatsGrid" type="GridContainer" parent="Panel/HBox/VBoxStats/ScrollContainer/TabContent/NatalPanel"]
+[node name="StatsGrid" type="GridContainer" parent="Panel/HBox/VBoxStats/ScrollContainer/TabContent/NatalPanel" unique_id=438050015]
 unique_name_in_owner = true
 layout_mode = 2
 theme_override_constants/h_separation = 20
 theme_override_constants/v_separation = 8
 columns = 2
 
-[node name="Spacer" type="Control" parent="Panel/HBox/VBoxStats/ScrollContainer/TabContent/NatalPanel"]
+[node name="Spacer" type="Control" parent="Panel/HBox/VBoxStats/ScrollContainer/TabContent/NatalPanel" unique_id=942515083]
 custom_minimum_size = Vector2(0, 10)
 layout_mode = 2
 
-[node name="LblPlacementsTitle" type="Label" parent="Panel/HBox/VBoxStats/ScrollContainer/TabContent/NatalPanel"]
+[node name="LblPlacementsTitle" type="Label" parent="Panel/HBox/VBoxStats/ScrollContainer/TabContent/NatalPanel" unique_id=1844408262]
 layout_mode = 2
+theme_override_fonts/font = ExtResource("2_font")
 text = "Natal Placements (Flat Bonuses)"
 label_settings = SubResource("LabelSettings_section")
 
-[node name="PlacementsText" type="Label" parent="Panel/HBox/VBoxStats/ScrollContainer/TabContent/NatalPanel"]
+[node name="PlacementsText" type="Label" parent="Panel/HBox/VBoxStats/ScrollContainer/TabContent/NatalPanel" unique_id=773617987]
 unique_name_in_owner = true
+custom_minimum_size = Vector2(100, 20)
 layout_mode = 2
+theme_override_fonts/font = ExtResource("2_font")
 text = "No birth data loaded."
 label_settings = SubResource("LabelSettings_text")
 autowrap_mode = 3
 
-[node name="Spacer2" type="Control" parent="Panel/HBox/VBoxStats/ScrollContainer/TabContent/NatalPanel"]
+[node name="Spacer2" type="Control" parent="Panel/HBox/VBoxStats/ScrollContainer/TabContent/NatalPanel" unique_id=61843906]
 custom_minimum_size = Vector2(0, 10)
 layout_mode = 2
 
-[node name="LblTraitsTitle" type="Label" parent="Panel/HBox/VBoxStats/ScrollContainer/TabContent/NatalPanel"]
+[node name="LblTraitsTitle" type="Label" parent="Panel/HBox/VBoxStats/ScrollContainer/TabContent/NatalPanel" unique_id=1528327748]
 layout_mode = 2
+theme_override_fonts/font = ExtResource("2_font")
 text = "Astrological Passive Traits"
 label_settings = SubResource("LabelSettings_section")
 
-[node name="TraitsText" type="Label" parent="Panel/HBox/VBoxStats/ScrollContainer/TabContent/NatalPanel"]
+[node name="TraitsText" type="Label" parent="Panel/HBox/VBoxStats/ScrollContainer/TabContent/NatalPanel" unique_id=1227154051]
 unique_name_in_owner = true
+custom_minimum_size = Vector2(100, 20)
 layout_mode = 2
+theme_override_fonts/font = ExtResource("2_font")
 text = "No birth traits active."
 label_settings = SubResource("LabelSettings_trait")
 autowrap_mode = 3
 
-[node name="FirePanel" type="VBoxContainer" parent="Panel/HBox/VBoxStats/ScrollContainer/TabContent"]
+[node name="FirePanel" type="VBoxContainer" parent="Panel/HBox/VBoxStats/ScrollContainer/TabContent" unique_id=1672147535]
 unique_name_in_owner = true
 visible = false
 layout_mode = 2
 size_flags_horizontal = 3
 theme_override_constants/separation = 12
 
-[node name="HBoxSelection" type="HBoxContainer" parent="Panel/HBox/VBoxStats/ScrollContainer/TabContent/FirePanel"]
+[node name="HBoxSelection" type="HBoxContainer" parent="Panel/HBox/VBoxStats/ScrollContainer/TabContent/FirePanel" unique_id=1811479785]
 layout_mode = 2
 theme_override_constants/separation = 12
 
-[node name="LblSelect" type="Label" parent="Panel/HBox/VBoxStats/ScrollContainer/TabContent/FirePanel/HBoxSelection"]
+[node name="LblSelect" type="Label" parent="Panel/HBox/VBoxStats/ScrollContainer/TabContent/FirePanel/HBoxSelection" unique_id=1711757558]
 layout_mode = 2
+theme_override_fonts/font = ExtResource("2_font")
 text = "Select Herb:"
 label_settings = SubResource("LabelSettings_section")
 
-[node name="OptPlant" type="OptionButton" parent="Panel/HBox/VBoxStats/ScrollContainer/TabContent/FirePanel/HBoxSelection"]
+[node name="OptPlant" type="OptionButton" parent="Panel/HBox/VBoxStats/ScrollContainer/TabContent/FirePanel/HBoxSelection" unique_id=216733017]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
 theme_override_fonts/font = ExtResource("2_font")
 
-[node name="LblDistillTitle" type="Label" parent="Panel/HBox/VBoxStats/ScrollContainer/TabContent/FirePanel"]
+[node name="LblDistillTitle" type="Label" parent="Panel/HBox/VBoxStats/ScrollContainer/TabContent/FirePanel" unique_id=360994514]
 layout_mode = 2
+theme_override_fonts/font = ExtResource("2_font")
 text = "Alchemical Separation of Elements"
 label_settings = SubResource("LabelSettings_section")
 horizontal_alignment = 1
 
-[node name="SheetGrid" type="GridContainer" parent="Panel/HBox/VBoxStats/ScrollContainer/TabContent/FirePanel"]
+[node name="SheetGrid" type="GridContainer" parent="Panel/HBox/VBoxStats/ScrollContainer/TabContent/FirePanel" unique_id=771142306]
 unique_name_in_owner = true
 layout_mode = 2
 theme_override_constants/h_separation = 16
 theme_override_constants/v_separation = 8
 columns = 4
 
-[node name="VSeparator" type="VSeparator" parent="Panel/HBox/VBoxStats/ScrollContainer/TabContent/FirePanel"]
+[node name="VSeparator" type="VSeparator" parent="Panel/HBox/VBoxStats/ScrollContainer/TabContent/FirePanel" unique_id=834857997]
 layout_mode = 2
 
-[node name="LblResultTitle" type="Label" parent="Panel/HBox/VBoxStats/ScrollContainer/TabContent/FirePanel"]
+[node name="LblResultTitle" type="Label" parent="Panel/HBox/VBoxStats/ScrollContainer/TabContent/FirePanel" unique_id=2110761121]
 layout_mode = 2
+theme_override_fonts/font = ExtResource("2_font")
 text = "Calculated Temperament (Al-Kindi Geometric Scale)"
 label_settings = SubResource("LabelSettings_section")
 
-[node name="ResultText" type="Label" parent="Panel/HBox/VBoxStats/ScrollContainer/TabContent/FirePanel"]
+[node name="ResultText" type="Label" parent="Panel/HBox/VBoxStats/ScrollContainer/TabContent/FirePanel" unique_id=1848441487]
 unique_name_in_owner = true
+custom_minimum_size = Vector2(100, 20)
 layout_mode = 2
+theme_override_fonts/font = ExtResource("2_font")
 text = "No calculations performed."
 label_settings = SubResource("LabelSettings_text")
 autowrap_mode = 3

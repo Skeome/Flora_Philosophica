@@ -19,15 +19,15 @@ A clean-room implementation of the VSOP87 planetary theory provides true geocent
 ### The Spagyric Pipeline
 A historically accurate 9-step alchemical process — the core gameplay loop:
 
-1. **Fresh → Dried** — Drying Rack (1 hr)
-2. **Dried → Ground** — Mortar & Pestle (5 min)
-3. **Ground → Tincture + Spent Residue** — Maceration Jar (1 day)
-4. **Residue → Calx Black** — Furnace (30 min)
-5. **Calx Black → Powdered Calx Black** — Mortar & Pestle (5 min)
-6. **Powdered Calx Black → Calx Grey** — Leaching Dish (1 hr)
-7. **Calx Grey → Calx White** — Furnace (30 min)
-8. **Calx White → Salt Standard** — Furnace (30 min)
-9. **Salt Standard → Purified Salt** — Leaching Dish (1 hr)
+1. **Fresh → Dried** — Drying Rack (12 real hours)
+2. **Dried → Ground** — Mortar & Pestle (1 real hour base, sped up via active session grinding)
+3. **Ground → Tincture + Spent Residue** — Maceration Jar (7 real days)
+4. **Residue → Calx Black** — Furnace (2.5 real hours target-curve calcination)
+5. **Calx Black → Powdered Calx Black** — Mortar & Pestle (1 real hour)
+6. **Powdered Calx Black → Calx Grey** — Leaching Dish (1 real hour)
+7. **Calx Grey → Calx White** — Furnace (2.5 real hours target-curve calcination)
+8. **Calx White → Salt Standard** — Furnace (2.5 real hours target-curve calcination)
+9. **Salt Standard → Purified Salt** — Leaching Dish (1 real hour)
 
 The "compost bin trap" — players initially discard the spent residue from Step 3, not realizing it contains the valuable Salt principle needed for the higher stages.
 
@@ -96,8 +96,15 @@ Full save/load system (JSON to `user://save.json`) tracking:
 - Planted herbs and growth stages
 - Timestamps
 
-### Real-Time Design
-The pause menu intentionally does **not** pause the SceneTree — planetary hours continue ticking and lab apparatus timers keep running, reinforcing the real-time nature of the alchemical process.
+### Real-Time 1:1 Simulation & Autonomous Stations
+The pause menu intentionally does **not** pause the SceneTree. In fact, all alchemical operations occur in **strict 1:1 real-time**. Maceration takes 7 actual days. 
+
+Apparatus stations are highly autonomous and can be configured:
+- **Strict Mode**: Only process during a specific astrological window (e.g., Sun hour for a Sun plant).
+- **Synergistic Mode**: Process when any harmonious celestial influence is active.
+- **Continuous Mode**: Run 24/7, accruing both positive and negative astrological quality modifiers over time.
+
+Players can "drop in" to active stations (like the Mortar or Furnace) for **session-based mini-games**. Engaging during aligned planetary hours injects massive quality bonuses into the `accumulated_quality` pool and applies time compression (e.g. 1 minute of active grinding speeds up the Mortar's 1-hour timer by 5 minutes). The Furnace requires following a delicate target temperature ramp (4°C/minute) without vitrifying the batch.
 
 ---
 
@@ -141,9 +148,12 @@ Flora_Philosophica/
 │   ├── scenes/
 │   │   ├── main_menu.tscn              # Title screen w/ VSOP87 planet orbits
 │   │   ├── main.tscn                   # Overworld (Ground, Walls, Rooftops,
-│   │   │                               #   Counter-tops, Player, HUD)
+│   │   │                               #   Counter-tops, Player, HUD, InventoryUI)
+│   │   ├── cabin_main.tscn             # Cabin interior (Stations, Player, HUD,
+│   │   │                               #   InventoryUI, FloorLayer)
 │   │   ├── player.tscn                 # "Basil" — CharacterBody2D, 4-dir anims
 │   │   ├── plant_node.tscn             # Harvestable plant (quality from alignment)
+│   │   ├── inventory_ui.tscn           # Hotbar + inventory panel (per-scene instance)
 │   │   ├── clock_hud.tscn              # Planetary hour display (♄♃♂☉♀☿☽)
 │   │   └── pause_menu.tscn             # Non-pausing overlay (real-time design)
 │   ├── scripts/
@@ -152,6 +162,8 @@ Flora_Philosophica/
 │   │   ├── player.gd                   # Movement, animation, input
 │   │   ├── world.gd                    # Door transitions, auto-save
 │   │   ├── plant_node.gd               # Growth stages, astrological quality
+│   │   ├── inventory_ui.gd             # Hotbar (10 slots) + grid panel (36 slots),
+│   │   │                               #   drag-drop, info box, _draw() rendering
 │   │   ├── recipe_db.gd                # 9-step spagyric pipeline
 │   │   ├── clock_hud.gd                # Planetary hour HUD w/ planet glyphs
 │   │   ├── main_menu.gd                # Menu logic, TTAO panel, credits, links
@@ -304,9 +316,10 @@ Design documents live in the `Flora_Philosophica/` Obsidian vault, including the
 This blueprint outlines the immediate next tasks required to build out the core game flow, UI, and character systems before expanding deeper into the laboratory and combat.
 
 ### 1. Inventory Screen UI
-- [ ] Build a robust graphical inventory UI connecting to the 46-slot C++ `Inventory` backend.
-- [ ] Support drag-and-drop or tap-to-select for the 36 grid slots and the 10 hotbar slots.
-- [ ] Display item quality, stage, Culpeper botanical properties, and humoral temperament on selection.
+- [x] Build a robust graphical inventory UI connecting to the 46-slot C++ `Inventory` backend.
+- [x] Support drag-and-drop or tap-to-select for the 36 grid slots and the 10 hotbar slots.
+- [x] Display item quality, stage, Culpeper botanical properties, and humoral temperament on selection.
+- [x] Instance `InventoryUI` per-scene (in `main.tscn` and `cabin_main.tscn` only) to prevent the hotbar from drawing over the main menu and other non-gameplay screens.
 
 ### 2. Main Menu & Settings
 - [x] Fully hook up the Settings screen on the Main Menu.
@@ -343,3 +356,9 @@ This blueprint outlines the immediate next tasks required to build out the core 
 - [x] Passive trait generation from active aspects (Synergy, Harmony, Tension effects).
 - [x] Build "Natal Chart" tab in Pause Menu displaying stats, placements, and traits.
 - [ ] Apply aspect trait modifiers to crafting, combat, and harvest systems.
+
+### 8. Real-Time Autonomous Stations & Distillation
+- [x] Refactor C++ `PlacedItem` to support 1:1 real-time durations (Maceration = 7 days) and `AutonomousMode` (Strict, Synergistic, Continuous).
+- [x] Implement session-based Mortar & Pestle minigame (time compression).
+- [x] Implement 20°C–600°C target-curve Furnace calcination minigame.
+- [ ] Implement Distillation Train (7-cycle spirit purification with drop counting).

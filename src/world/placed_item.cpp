@@ -4,8 +4,9 @@
 namespace godot {
 
 PlacedItem::PlacedItem() 
-    : type(ITEM_COUNT), tile_x(0), tile_y(0), discovered(false), occupied(false), 
-      process_start_utc(0), process_duration_sec(0) {}
+    : type(ITEM_COUNT), tile_x(0), tile_y(0), discovered(false), 
+      autonomous_mode(MODE_CONTINUOUS), accumulated_quality(0.0f),
+      occupied(false), process_start_utc(0), process_duration_sec(0) {}
 
 PlacedItem::~PlacedItem() {}
 
@@ -28,6 +29,16 @@ void PlacedItem::_bind_methods() {
     ClassDB::bind_method(D_METHOD("is_discovered"), &PlacedItem::is_discovered);
     ClassDB::bind_method(D_METHOD("set_discovered", "discovered"), &PlacedItem::set_discovered);
 
+    ClassDB::bind_method(D_METHOD("get_autonomous_mode"), &PlacedItem::get_autonomous_mode);
+    ClassDB::bind_method(D_METHOD("set_autonomous_mode", "mode"), &PlacedItem::set_autonomous_mode);
+    ClassDB::bind_method(D_METHOD("get_accumulated_quality"), &PlacedItem::get_accumulated_quality);
+    ClassDB::bind_method(D_METHOD("set_accumulated_quality", "quality"), &PlacedItem::set_accumulated_quality);
+    ClassDB::bind_method(D_METHOD("award_quality", "amount"), &PlacedItem::award_quality);
+    
+    BIND_ENUM_CONSTANT(MODE_STRICT);
+    BIND_ENUM_CONSTANT(MODE_SYNERGISTIC);
+    BIND_ENUM_CONSTANT(MODE_CONTINUOUS);
+
     ClassDB::bind_method(D_METHOD("to_dict"), &PlacedItem::to_dict);
     ClassDB::bind_method(D_METHOD("from_dict", "dict"), &PlacedItem::from_dict);
 }
@@ -47,9 +58,8 @@ bool PlacedItem::load_harvest_item(const Ref<HarvestItem>& p_item, int64_t p_now
         case ITEM_MORTAR_AND_PESTLE:
             if (p_item->stage != STAGE_DRIED) return false;
             loaded_item = p_item;
-            loaded_item->stage = STAGE_GROUND;
             process_start_utc = p_now_utc;
-            process_duration_sec = 0;
+            process_duration_sec = MORTAR_DURATION_SEC;
             occupied = true;
             return true;
 
@@ -81,6 +91,8 @@ Ref<HarvestItem> PlacedItem::unload_processed_item(int64_t p_now_utc) {
         out->stage = STAGE_DRIED;
     } else if (type == ITEM_MACERATION_JAR) {
         out->stage = STAGE_TINCTURE;
+    } else if (type == ITEM_MORTAR_AND_PESTLE) {
+        out->stage = STAGE_GROUND;
     }
 
     occupied = false;
@@ -145,6 +157,8 @@ Dictionary PlacedItem::to_dict() const {
     d["tile_y"] = tile_y;
     d["discovered"] = discovered;
     d["occupied"] = occupied;
+    d["autonomous_mode"] = (int)autonomous_mode;
+    d["accumulated_quality"] = accumulated_quality;
     d["process_start_utc"] = process_start_utc;
     d["process_duration_sec"] = process_duration_sec;
     if (occupied && loaded_item.is_valid()) {
@@ -159,6 +173,8 @@ void PlacedItem::from_dict(const Dictionary& p_dict) {
     tile_y = p_dict.get("tile_y", 0);
     discovered = p_dict.get("discovered", false);
     occupied = p_dict.get("occupied", false);
+    autonomous_mode = (AutonomousMode)(int)p_dict.get("autonomous_mode", (int)MODE_CONTINUOUS);
+    accumulated_quality = (float)p_dict.get("accumulated_quality", 0.0f);
     process_start_utc = p_dict.get("process_start_utc", 0);
     process_duration_sec = p_dict.get("process_duration_sec", 0);
     if (occupied && p_dict.has("loaded_item")) {

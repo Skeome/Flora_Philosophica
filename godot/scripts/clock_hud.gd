@@ -96,10 +96,10 @@ func _on_btn_schedule_pressed() -> void:
 		lbl.text = text
 		schedule_list.add_child(lbl)
 		
-	panel_schedule.show()
+	panel_schedule.visible = true
 
 func _on_btn_close_schedule_pressed() -> void:
-	panel_schedule.hide()
+	panel_schedule.visible = false
 
 @onready var panel_calendar: PanelContainer = $PanelCalendar
 @onready var calendar_grid: GridContainer = $PanelCalendar/VBox/CalendarGrid

@@ -140,14 +140,23 @@ func _effective_now() -> int:
 	return int(Time.get_unix_time_from_system()) + int(_time_bonus_sec)
 
 func _create_minigame() -> Node:
+	var now  := _effective_now()
+	var prog := _placed_item.get_progress(now)
+	if prog < 0.0: prog = 0.0
+	
 	match item_type:
 		TYPE_MORTAR_PESTLE:
 			var mg: Node = MINIGAME_MORTAR.instantiate()
 			mg.herb_name = _loaded_herb_name
+			mg.start_progress = prog
+			mg.total_duration = 3600.0 # 1 hour
 			return mg
 		TYPE_FURNACE:
 			var mg: Node = MINIGAME_FURNACE.instantiate()
 			mg.process_name = "Calcination — " + _loaded_herb_name
+			mg.start_progress = prog
+			# 600C / 4C per min = 150 min = 9000 sec
+			mg.total_duration = 9000.0
 			return mg
 		_:
 			# Passive stations (Drying Rack, Maceration Jar, etc.)

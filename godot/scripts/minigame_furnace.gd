@@ -1,39 +1,24 @@
 extends Control
 
-# ─────────────────────────────────────────────────────────────────────────────
-# MinigameFurnace
-# Furnace / Calcination mini-game.
-#
-# The player taps the Bellows button to raise temperature.
-# Heat decays naturally; remaining in the green zone awards compressed
-# game-time at GAME_SECS_PER_REAL_SEC to 1 (120× by default).
-#
-# Failure state: exceeding EXPLOSION_MAX destroys the batch, matching the
-# GDD rule — "Significant heat excess: No warning. Operation destroyed."
-#
-# Signal: minigame_finished(time_bonus: float)
-#   time_bonus > 0   → game-seconds of processing time awarded
-#   time_bonus == -1 → batch destroyed; station.award_time_bonus(-1) resets it
-# ─────────────────────────────────────────────────────────────────────────────
-
 signal minigame_finished(time_bonus: float)
 
-const HEAT_PER_PUFF            := 18.0   # Heat added per bellows press (0–100)
-const HEAT_DECAY               := 7.0    # Heat lost per real second
-const GREEN_MIN                := 35.0   # Lower bound of safe zone
-const GREEN_MAX                := 70.0   # Upper bound of safe zone
-const DANGER_MIN               := 70.0   # Warning zone begins here
-const EXPLOSION_MAX            := 100.0  # Instant batch destruction
-const GAME_SECS_PER_REAL_SEC   := 120.0  # 1 real second in green = 2 game minutes
-const MAX_SESSION_SEC          := 90.0   # Session auto-closes after this long
+const TEMP_MAX            := 600.0
+const TEMP_START          := 20.0
+const TARGET_RAMP_DEG_MIN := 4.0   # 4 degrees per minute
+const TARGET_RAMP_DEG_SEC := TARGET_RAMP_DEG_MIN / 60.0
+const HEAT_DECAY          := 5.0    # temp loss per sec
+const HEAT_PER_PUFF       := 15.0
 
 var process_name: String = "Calcination"
+var start_progress: float = 0.0
+var total_duration: float = 9000.0 # 150 minutes
 
-var _heat:    float = 15.0
-var _awarded: float = 0.0   # game-seconds earned so far this session
-var _elapsed: float = 0.0   # real seconds elapsed this session
-var _done:    bool  = false
-var _dead:    bool  = false
+var _temp: float = TEMP_START
+var _target_temp: float = TEMP_START
+var _elapsed: float = 0.0
+var _awarded_bonus: float = 0.0
+var _done: bool = false
+var _dead: bool = false
 
 @onready var _title:   Label       = $Panel/VBox/Title
 @onready var _flame:   ColorRect   = $Panel/VBox/Flame
@@ -42,31 +27,33 @@ var _dead:    bool  = false
 @onready var _tlabel:  Label       = $Panel/VBox/TimeLabel
 @onready var _bellows: Button      = $Panel/VBox/Bellows
 
-# ─────────────────────────────────────────────────────────────────────────────
-
 func _ready() -> void:
 	_title.text    = process_name
-	_bar.max_value = 100.0
+	_bar.max_value = TEMP_MAX
 	_bar.min_value = 0.0
 	_bellows.pressed.connect(_on_puff)
+	
+	_target_temp = TEMP_START + (start_progress * (TEMP_MAX - TEMP_START))
+	_temp = _target_temp
 	_refresh()
 
 func _process(delta: float) -> void:
 	if _done or _dead:
 		return
-
+		
 	_elapsed += delta
-	_heat     = maxf(_heat - HEAT_DECAY * delta, 0.0)
-
-	if _heat >= GREEN_MIN and _heat <= GREEN_MAX:
-		_awarded += GAME_SECS_PER_REAL_SEC * delta
-
-	if _heat >= EXPLOSION_MAX:
+	_awarded_bonus += delta 
+	
+	_target_temp = minf(_target_temp + (TARGET_RAMP_DEG_SEC * delta), TEMP_MAX)
+	_temp = maxf(_temp - (HEAT_DECAY * delta), TEMP_START)
+	
+	if _temp >= TEMP_MAX:
 		_explode()
 		return
-
-	if _elapsed >= MAX_SESSION_SEC:
-		_finish()
+		
+	var progress = start_progress + (_elapsed / total_duration)
+	if progress >= 1.0:
+		_finish_success()
 		return
 
 	_refresh()
@@ -74,52 +61,54 @@ func _process(delta: float) -> void:
 func _on_puff() -> void:
 	if _done or _dead:
 		return
-	_heat = minf(_heat + HEAT_PER_PUFF, 100.0)
-	_refresh()
-	if _heat >= EXPLOSION_MAX:
+	_temp += HEAT_PER_PUFF
+	if _temp >= TEMP_MAX:
 		_explode()
+	else:
+		_refresh()
 
 func _refresh() -> void:
-	_bar.value = _heat
+	_bar.value = _temp
+	
+	var diff = _temp - _target_temp
+	
+	if diff < -20.0:
+		_status.text  = "Too cold — pump the bellows!"
+		_bar.modulate = Color(0.4, 0.5, 1.0)
+	elif diff <= 20.0:
+		_status.text  = "On target ✓"
+		_bar.modulate = Color(0.2, 1.0, 0.3)
+	elif _temp < TEMP_MAX:
+		_status.text  = "⚠ Heating too fast!"
+		_bar.modulate = Color(1.0, 0.45, 0.0)
+		
+	_tlabel.text = "Target: %.1f°C | Actual: %.1f°C" % [_target_temp, _temp]
 
-	# Colour-coded status
-	if _heat < GREEN_MIN:
-		_status.text        = "Too cold — pump the bellows!"
-		_bar.modulate       = Color(0.4, 0.5, 1.0)
-	elif _heat <= GREEN_MAX:
-		_status.text        = "Perfect heat ✓ — processing"
-		_bar.modulate       = Color(0.2, 1.0, 0.3)
-	elif _heat < EXPLOSION_MAX:
-		_status.text        = "⚠ Getting too hot — ease off!"
-		_bar.modulate       = Color(1.0, 0.45, 0.0)
-	else:
-		_status.text        = "💥 OVERHEATING"
-		_bar.modulate       = Color(1.0, 0.0, 0.0)
-
-	var game_mins := int(_awarded / 60.0)
-	_tlabel.text = "Time processed: %d min" % game_mins
-
-	# Flame colour shifts cool→warm with temperature
-	var t := clampf(_heat / 100.0, 0.0, 1.0)
+	var t := clampf(_temp / TEMP_MAX, 0.0, 1.0)
 	_flame.color = Color(1.0, lerpf(0.05, 0.55, t), 0.0, lerpf(0.1, 0.9, t))
 
 func _explode() -> void:
 	if _dead:
 		return
-	_dead           = true
+	_dead = true
 	_bellows.disabled = true
-	_status.text    = "💥  Overheated!  Batch destroyed."
-	_bar.modulate   = Color(1.0, 0.0, 0.0)
-	_flame.color    = Color(1.0, 0.0, 0.0, 1.0)
+	_status.text = "💥 Vitrified! Batch destroyed."
+	_bar.modulate = Color(1.0, 0.0, 0.0)
+	_flame.color = Color(1.0, 0.0, 0.0, 1.0)
 	await get_tree().create_timer(2.0).timeout
 	emit_signal("minigame_finished", -1.0)
 
-func _finish() -> void:
+func _finish_success() -> void:
 	if _done:
 		return
-	_done             = true
+	_done = true
 	_bellows.disabled = true
-	var mins := int(_awarded / 60.0)
-	_status.text = "Session complete — +%d min processed" % mins
+	_status.text = "Process complete ✓"
 	await get_tree().create_timer(1.0).timeout
-	emit_signal("minigame_finished", _awarded)
+	emit_signal("minigame_finished", _awarded_bonus)
+
+func _unhandled_input(event: InputEvent) -> void:
+	if event.is_action_pressed("ui_cancel") and not _done and not _dead:
+		_done = true
+		_status.text = "Session Ended"
+		emit_signal("minigame_finished", _awarded_bonus)

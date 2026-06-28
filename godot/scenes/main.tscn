@@ -5,6 +5,7 @@
 [ext_resource type="PackedScene" uid="uid://dspd4c2j5tn" path="res://scenes/plant_node.tscn" id="2_jyhfs"]
 [ext_resource type="PackedScene" uid="uid://btr3fvarespcd" path="res://scenes/clock_hud.tscn" id="2_sugp2"]
 [ext_resource type="PackedScene" uid="uid://dstaf0c0n7hga" path="res://scenes/pause_menu.tscn" id="5_tbgi4"]
+[ext_resource type="PackedScene" uid="uid://cyxr2kp1u1oc2" path="res://scenes/inventory_ui.tscn" id="6_inv"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_CabinDoor"]
 size = Vector2(24, 10)
@@ -47,15 +48,17 @@ rendering_quadrant_size = 1
 z_index = 1
 collision_layer = 3
 
-[node name="ClockHUD" parent="." unique_id=400407185 instance=ExtResource("2_sugp2")]
-
-[node name="PauseMenu" parent="." unique_id=313694855 instance=ExtResource("5_tbgi4")]
-visible = false
-
-[node name="Door_Cabin" type="Area2D" parent="."]
+[node name="Door_Cabin" type="Area2D" parent="." unique_id=936383235]
 metadata/target_scene = "res://scenes/cabin_main.tscn"
 metadata/spawn_point = Vector2(240, 272)
 
-[node name="CollisionShape2D" type="CollisionShape2D" parent="Door_Cabin"]
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Door_Cabin" unique_id=61585405]
 position = Vector2(480, 96)
 shape = SubResource("RectangleShape2D_CabinDoor")
+
+[node name="ClockHUD" parent="." unique_id=400407185 instance=ExtResource("2_sugp2")]
+
+[node name="InventoryUI" parent="." unique_id=1903015067 instance=ExtResource("6_inv")]
+
+[node name="PauseMenu" parent="." unique_id=313694855 instance=ExtResource("5_tbgi4")]
+visible = false

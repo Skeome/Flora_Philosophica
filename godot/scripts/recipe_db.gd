@@ -11,7 +11,7 @@ static func generate_pipeline_for_plant() -> Array[Recipe]:
 	r1.set_required_station(ItemDB.ITEM_DRYING_RACK)
 	r1.set_inputs([{"stage": HarvestItem.STAGE_FRESH}])
 	r1.set_outputs([{"stage": HarvestItem.STAGE_DRIED}])
-	r1.set_base_processing_time(3600.0) # e.g. 1 hour
+	r1.set_base_processing_time(43200.0) # 12 hours
 	recipes.append(r1)
 	
 	# 2. Dried -> Ground (Mortar and Pestle)
@@ -19,7 +19,7 @@ static func generate_pipeline_for_plant() -> Array[Recipe]:
 	r2.set_required_station(ItemDB.ITEM_MORTAR_AND_PESTLE)
 	r2.set_inputs([{"stage": HarvestItem.STAGE_DRIED}])
 	r2.set_outputs([{"stage": HarvestItem.STAGE_GROUND}])
-	r2.set_base_processing_time(300.0) # 5 minutes
+	r2.set_base_processing_time(3600.0) # 1 hour
 	recipes.append(r2)
 	
 	# 3. Ground -> Tincture + Residue (Maceration Jar)
@@ -30,7 +30,7 @@ static func generate_pipeline_for_plant() -> Array[Recipe]:
 		{"stage": HarvestItem.STAGE_TINCTURE},
 		{"stage": HarvestItem.STAGE_SPENT} # Residue
 	])
-	r3.set_base_processing_time(86400.0) # e.g. 1 day
+	r3.set_base_processing_time(604800.0) # 7 days
 	recipes.append(r3)
 	
 	# 4. Residue -> Calx Black (Furnace)
@@ -38,7 +38,7 @@ static func generate_pipeline_for_plant() -> Array[Recipe]:
 	r4.set_required_station(ItemDB.ITEM_FURNACE)
 	r4.set_inputs([{"stage": HarvestItem.STAGE_SPENT}])
 	r4.set_outputs([{"stage": HarvestItem.STAGE_CALX_BLACK}])
-	r4.set_base_processing_time(1800.0) # 30 mins
+	r4.set_base_processing_time(9000.0) # 2.5 hours (calcination)
 	recipes.append(r4)
 	
 	# 5. Calx Black -> Powdered Calx Black (Mortar and Pestle)
@@ -46,7 +46,7 @@ static func generate_pipeline_for_plant() -> Array[Recipe]:
 	r5.set_required_station(ItemDB.ITEM_MORTAR_AND_PESTLE)
 	r5.set_inputs([{"stage": HarvestItem.STAGE_CALX_BLACK}])
 	r5.set_outputs([{"stage": HarvestItem.STAGE_CALX_BLACK_GROUND}])
-	r5.set_base_processing_time(300.0)
+	r5.set_base_processing_time(3600.0)
 	recipes.append(r5)
 	
 	# 6. Powdered Calx Black -> Calx Grey (Leaching Dish)
@@ -63,7 +63,7 @@ static func generate_pipeline_for_plant() -> Array[Recipe]:
 	r7.set_required_station(ItemDB.ITEM_FURNACE)
 	r7.set_inputs([{"stage": HarvestItem.STAGE_CALX_GREY}])
 	r7.set_outputs([{"stage": HarvestItem.STAGE_CALX_WHITE}])
-	r7.set_base_processing_time(1800.0)
+	r7.set_base_processing_time(9000.0) # 2.5 hours
 	recipes.append(r7)
 	
 	# 8. Calx White -> Salt Standard (Furnace)
@@ -71,7 +71,7 @@ static func generate_pipeline_for_plant() -> Array[Recipe]:
 	r8.set_required_station(ItemDB.ITEM_FURNACE)
 	r8.set_inputs([{"stage": HarvestItem.STAGE_CALX_WHITE}])
 	r8.set_outputs([{"stage": HarvestItem.STAGE_SALT}])
-	r8.set_base_processing_time(1800.0)
+	r8.set_base_processing_time(9000.0) # 2.5 hours
 	recipes.append(r8)
 	
 	# 9. Salt Standard -> Purified Salt (Leaching Dish)

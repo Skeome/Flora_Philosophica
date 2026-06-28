@@ -6,6 +6,7 @@
 [ext_resource type="PackedScene" uid="uid://btr3fvarespcd" path="res://scenes/clock_hud.tscn" id="4_hud"]
 [ext_resource type="PackedScene" uid="uid://dstaf0c0n7hga" path="res://scenes/pause_menu.tscn" id="5_pause"]
 [ext_resource type="PackedScene" path="res://scenes/station_node.tscn" id="6_station"]
+[ext_resource type="PackedScene" path="res://scenes/inventory_ui.tscn" id="7_inv"]
 
 [sub_resource type="RectangleShape2D" id="DoorShape"]
 size = Vector2(24, 10)
@@ -96,3 +97,31 @@ offset_bottom = 66.0
 visible = false
 text = "[E]  Interact"
 horizontal_alignment = 1
+
+; ── cabin_main.tscn patch ────────────────────────────────────────────────────
+; Append these nodes to the END of cabin_main.tscn, before the final blank line.
+;
+; Why a CanvasLayer instead of a Node2D child?
+;   The cabin camera is clamped to 0–480 × 0–320 world pixels.
+;   A CanvasLayer at layer = -5 renders in screen space and is always
+;   behind everything, giving a fixed warm-wood floor that fills the viewport
+;   regardless of camera position.  When actual wood-floor tiles are painted
+;   onto the Ground TileMapLayer in the editor, this ColorRect can be removed.
+
+[node name="FloorLayer" type="CanvasLayer" parent="."]
+layer = -5
+
+[node name="FloorBG" type="ColorRect" parent="FloorLayer"]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.627, 0.431, 0.255, 1)
+
+; Color(0.627, 0.431, 0.255) == rgb(160, 110, 65) — the "lighter plank"
+; value from the original Raylib map.cpp WoodFloor rendering code.
+; The darker plank alternation (140, 95, 55) can be added once real
+; TileMapLayer data is in place.
+
+[node name="InventoryUI" parent="." instance=ExtResource("7_inv")]

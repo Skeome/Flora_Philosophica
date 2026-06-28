@@ -17,6 +17,12 @@ enum InteractionResult {
     INTERACT_OPEN_MAILBOX
 };
 
+enum AutonomousMode {
+    MODE_STRICT = 0,
+    MODE_SYNERGISTIC = 1,
+    MODE_CONTINUOUS = 2
+};
+
 class PlacedItem : public RefCounted {
     GDCLASS(PlacedItem, RefCounted)
 
@@ -36,6 +42,13 @@ public:
     String get_inspection_message() const;
 
     // --- Getters/Setters ---
+    AutonomousMode get_autonomous_mode() const { return autonomous_mode; }
+    void set_autonomous_mode(AutonomousMode p_mode) { autonomous_mode = p_mode; }
+    
+    float get_accumulated_quality() const { return accumulated_quality; }
+    void set_accumulated_quality(float p_quality) { accumulated_quality = p_quality; }
+    void award_quality(float amount) { accumulated_quality += amount; }
+
     ItemType get_item_type() const { return type; }
     int get_tile_x() const { return tile_x; }
     int get_tile_y() const { return tile_y; }
@@ -54,6 +67,9 @@ private:
     int tile_x;
     int tile_y;
     bool discovered;
+    
+    AutonomousMode autonomous_mode;
+    float accumulated_quality;
 
     // Apparatus state
     bool occupied;
@@ -62,12 +78,14 @@ private:
     int64_t process_duration_sec;
 
     // Duration constants (seconds)
-    static constexpr int64_t DRYING_DURATION_SEC     = 2 * 3600;
-    static constexpr int64_t MACERATION_DURATION_SEC = 1 * 3600;
+    static constexpr int64_t DRYING_DURATION_SEC     = 12 * 3600;
+    static constexpr int64_t MACERATION_DURATION_SEC = 7 * 24 * 3600;
+    static constexpr int64_t MORTAR_DURATION_SEC     = 3600;
 };
 
 } // namespace godot
 
 VARIANT_ENUM_CAST(godot::InteractionResult);
+VARIANT_ENUM_CAST(godot::AutonomousMode);
 
 #endif // FLORA_PHILOSOPHICA_WORLD_PLACED_ITEM_H
