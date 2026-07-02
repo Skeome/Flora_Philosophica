@@ -22,6 +22,11 @@ func _ready() -> void:
 		if child is Area2D and child.name.begins_with("Door_"):
 			child.body_entered.connect(_on_door_entered.bind(child))
 
+	var player = get_tree().get_first_node_in_group("player")
+	if player and GameManager.pending_spawn != Vector2.ZERO:
+		player.global_position = GameManager.pending_spawn
+		GameManager.pending_spawn = Vector2.ZERO
+
 func _on_door_entered(body: Node2D, door: Area2D) -> void:
 	if not body.is_in_group("player"):
 		return

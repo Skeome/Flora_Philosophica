@@ -11,7 +11,7 @@
 [ext_resource type="Texture2D" uid="uid://gwt3nymxxa0a" path="res://assets/sprites/character/Basil_walk_up.png" id="9_3v2ag"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_u8vuu"]
-size = Vector2(12, 4)
+size = Vector2(12, 14)
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_a38lo"]
 atlas = ExtResource("2_tuyoq")
@@ -1405,6 +1405,7 @@ y_sort_enabled = true
 script = ExtResource("1_3vyb7")
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=1917262461]
+position = Vector2(0, -4)
 shape = SubResource("RectangleShape2D_u8vuu")
 
 [node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="." unique_id=1809401407]

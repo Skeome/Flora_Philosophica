@@ -9,6 +9,7 @@ font = ExtResource("2_lvv3c")
 font_size = 10
 
 [node name="ClockHUD" type="CanvasLayer" unique_id=400407185]
+layer = 2
 script = ExtResource("1_v4min")
 
 [node name="ClockLabel" type="Label" parent="." unique_id=867457161]
@@ -106,21 +107,21 @@ theme_override_fonts/font = ExtResource("2_lvv3c")
 text = "Close"
 
 [node name="PanelCalendar" type="PanelContainer" parent="." unique_id=827364519]
-visible = false
-anchors_preset = 8
-anchor_left = 0.5
-anchor_top = 0.5
-anchor_right = 0.5
-anchor_bottom = 0.5
-offset_left = -200.0
-offset_top = -150.0
-offset_right = 200.0
-offset_bottom = 150.0
+anchors_preset = -1
+anchor_left = 0.187
+anchor_top = 0.083000004
+anchor_right = 0.81200004
+anchor_bottom = 0.91700006
+offset_left = 0.31999207
+offset_top = 0.11999893
+offset_right = 0.3199463
+offset_bottom = -0.120025635
 grow_horizontal = 2
 grow_vertical = 2
 
 [node name="VBox" type="VBoxContainer" parent="PanelCalendar" unique_id=561928374]
 layout_mode = 2
+alignment = 1
 
 [node name="Planetary Calendar" type="Label" parent="PanelCalendar/VBox" unique_id=123098475]
 layout_mode = 2
@@ -131,6 +132,7 @@ horizontal_alignment = 1
 [node name="HBoxDays" type="HBoxContainer" parent="PanelCalendar/VBox" unique_id=495817263]
 layout_mode = 2
 theme_override_constants/separation = 10
+alignment = 1
 
 [node name="Sun" type="Label" parent="PanelCalendar/VBox/HBoxDays" unique_id=111111111]
 layout_mode = 2
@@ -169,7 +171,12 @@ text = "♄ Sat"
 
 [node name="CalendarGrid" type="GridContainer" parent="PanelCalendar/VBox" unique_id=888888888]
 layout_mode = 2
-size_flags_vertical = 3
+size_flags_horizontal = 4
+size_flags_vertical = 6
+offset_transform_position_ratio = Vector2(0.55, 0.4)
+offset_transform_scale = Vector2(1.8, 1.8)
+theme_override_constants/h_separation = 30
+theme_override_constants/v_separation = 21
 columns = 7
 
 [node name="BtnClose" type="Button" parent="PanelCalendar/VBox" unique_id=999999999]
