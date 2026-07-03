@@ -16,9 +16,13 @@ var room_manager = null
 # Set by world.gd before a scene transition so the incoming scene knows
 # where to place the player on _ready().
 var pending_spawn: Vector2 = Vector2.ZERO
+# 3D spawn position for HD-2D overworld scenes.
+var pending_spawn_3d: Vector3 = Vector3.ZERO
 
 # Player's last saved world position. Restored on load_game().
 var last_player_position: Vector2 = Vector2.ZERO
+# Last saved 3D position for HD-2D overworld.
+var last_player_position_3d: Vector3 = Vector3.ZERO
 
 # Active hotbar slot — read by cabin.gd to load into a station on [E].
 var selected_hotbar_slot: int = 0
@@ -63,8 +67,12 @@ func get_planetary_hour() -> Dictionary:
 	return clock.calculate_planetary_hour(observer_lat, observer_lon, now)
 
 # ── Player position tracking ───────────────────────────────────────────────────
-func set_player_position(pos: Vector2) -> void:
-	last_player_position = pos
+func set_player_position(pos) -> void:
+	if pos is Vector3:
+		last_player_position_3d = pos
+		last_player_position = Vector2(pos.x, pos.z)
+	elif pos is Vector2:
+		last_player_position = pos
 
 func get_saved_player_position() -> Vector2:
 	return last_player_position
@@ -76,13 +84,20 @@ func save_game() -> void:
 	if tree is SceneTree:
 		var player := (tree as SceneTree).get_first_node_in_group("player")
 		if player:
-			last_player_position = player.global_position
+			if player is CharacterBody3D:
+				last_player_position_3d = player.global_position
+				last_player_position = Vector2(player.global_position.x, player.global_position.z)
+			else:
+				last_player_position = player.global_position
 
 	var data := {
 		"inventory":         inventory.serialise(),
 		"rooms":             room_manager.serialise(),
 		"player_pos_x":      last_player_position.x,
 		"player_pos_y":      last_player_position.y,
+		"player_pos_3d_x":   last_player_position_3d.x,
+		"player_pos_3d_y":   last_player_position_3d.y,
+		"player_pos_3d_z":   last_player_position_3d.z,
 		"observer_lat":      observer_lat,
 		"observer_lon":      observer_lon,
 		"player_gender":     player_gender,
@@ -110,6 +125,12 @@ func load_game() -> void:
 		room_manager.deserialise(parsed["rooms"])
 	if parsed.has("player_pos_x") and parsed.has("player_pos_y"):
 		last_player_position = Vector2(parsed["player_pos_x"], parsed["player_pos_y"])
+	if parsed.has("player_pos_3d_x"):
+		last_player_position_3d = Vector3(
+			parsed["player_pos_3d_x"],
+			parsed["player_pos_3d_y"],
+			parsed["player_pos_3d_z"]
+		)
 	if parsed.has("observer_lat"):
 		observer_lat = parsed["observer_lat"]
 	if parsed.has("observer_lon"):

@@ -2,7 +2,7 @@
 
 A cozy alchemical apothecary sanctuary game — and a stealth-educational guide to real-world **spagyric** plant alchemy. Forage, cultivate, and craft herbal preparations guided by a real-time astrological engine. A player who follows the in-game processes can actually produce real herbal spagyric preparations in their own kitchen.
 
-Built with **Godot 4.7** and a **C++17 GDExtension** backend. Inspired by Nicholas Culpeper's *Complete Herbal* (1652), Robert Allen Bartlett's *The Temper of Herbs*, and the Western tradition of astrological herbalism.
+Built with **Godot 4.7** (HD-2D renderer — Octopath Traveller-style 3D world with Y-axis billboarded pixel-art sprites) and a **C++17 GDExtension** backend. Inspired by Nicholas Culpeper's *Complete Herbal* (1652), Robert Allen Bartlett's *The Temper of Herbs*, and the Western tradition of astrological herbalism.
 
 ---
 
@@ -76,8 +76,8 @@ Accessible from the Pause Menu's **Analysis by Fire** tab, this interactive data
 ### Apparatus & Stations
 19 apparatus types available for placement across 4 rooms (Exterior, Cabin Main, Cabin Loft, Garden): Fireplace, Drying Rack, Mortar & Pestle, Maceration Jar, Compost Bin, Work Bench, Copper Alembic, Glass Flask, Glassblowing Station, Distillation Train, Soxhlet Extractor, Pelican Flask, Retort Train, Terrarium, Bookshelf, Storage Chest, Mailbox Post, Furnace, and Leaching Dish. Each has tile dimensions, tier requirements, and indoor/outdoor placement flags.
 
-### Overworld Exploration
-Pixel-art tile-based overworld (1920×1080 world canvas at 16px tiles, rendered at 640×360 native resolution) with y-sorted depth rendering. Walk freely with **WASD** or **click-to-move** (tap-to-move on mobile). Scene transitions via door zones connect multiple areas. The player character, "Basil," has directional idle and walk animations.
+### Overworld Exploration (HD-2D)
+Octopath Traveller-style HD-2D overworld: 3D terrain with real depth, DirectionalLight3D shadows, and Y-axis billboarded pixel-art sprites. Fixed diorama camera (38° FOV, 28° downtilt) with smooth player tracking, depth-of-field tilt-shift blur, bloom, and ACES filmic tonemapping. Planetary-hour-driven lighting rig tints the world's directional light, ambient, and fog in real time. Walk freely with **WASD** or **click-to-move** (raycast to XZ ground plane). Scene transitions via Area3D door zones connect multiple areas. The player character, "Basil," uses a CharacterBody3D with 4-directional AnimatedSprite3D animations. Plant sprites are Y-axis billboarded and fully shaded.
 
 ### Combat & Meditation
 Physical combat does not exist in the overworld. Combat is initiated via **Meditation ("Guided Imagery")** at specific nodes, entering the "Spirit World." Here, players fight spiritual essences of monsters and inner shadow clones (akin to Dark Link). Combat relies on drawing sigils via touch input, with the current Planetary Hour providing massive damage multipliers (up to 4x for matching Day & Hour). Defeat results in "Mental Fatigue," lowering laboratory crafting success. Active natal aspect traits (Synergy, Harmony, Tension) modify damage and fatigue costs during combat.
@@ -147,11 +147,13 @@ Flora_Philosophica/
 ├── godot/                          # Godot 4.7 project (GL Compatibility)
 │   ├── scenes/
 │   │   ├── main_menu.tscn              # Title screen w/ VSOP87 planet orbits
-│   │   ├── main.tscn                   # Overworld (Ground, Walls, Rooftops,
-│   │   │                               #   Counter-tops, Player, HUD, InventoryUI)
+│   │   ├── main.tscn                   # Legacy 2D overworld (deprecated)
+│   │   ├── overworld_3d.tscn           # HD-2D overworld (3D terrain + billboarded sprites)
 │   │   ├── cabin_main.tscn             # Cabin interior (Stations, Player, HUD,
 │   │   │                               #   InventoryUI, FloorLayer)
-│   │   ├── player.tscn                 # "Basil" — CharacterBody2D, 4-dir anims
+│   │   ├── player.tscn                 # "Basil" — CharacterBody2D, 4-dir anims (legacy)
+│   │   ├── player_3d.tscn              # "Basil" — CharacterBody3D, HD-2D billboarded
+│   │   ├── plant_node_3d.tscn          # HD-2D harvestable plant (Area3D, billboarded)
 │   │   ├── plant_node.tscn             # Harvestable plant (quality from alignment)
 │   │   ├── inventory_ui.tscn           # Hotbar + inventory panel (per-scene instance)
 │   │   ├── clock_hud.tscn              # Planetary hour display (♄♃♂☉♀☿☽)
@@ -159,8 +161,12 @@ Flora_Philosophica/
 │   ├── scripts/
 │   │   ├── game_manager.gd             # Autoload: save/load, C++ object refs,
 │   │   │                               #   natal chart, aspects, Al-Kindi temper calc
-│   │   ├── player.gd                   # Movement, animation, input
-│   │   ├── world.gd                    # Door transitions, auto-save
+│   │   ├── player.gd                   # Movement, animation, input (legacy 2D)
+│   │   ├── player_3d.gd                # HD-2D CharacterBody3D player
+│   │   ├── overworld_3d.gd             # HD-2D overworld root (door transitions, plants)
+│   │   ├── plant_node_3d.gd            # HD-2D plant node (Area3D harvesting)
+│   │   ├── billboard_sprite.gd         # 4-directional sprite facing from camera angle
+│   │   ├── world.gd                    # Door transitions, auto-save (legacy 2D)
 │   │   ├── plant_node.gd               # Growth stages, astrological quality
 │   │   ├── inventory_ui.gd             # Hotbar (10 slots) + grid panel (36 slots),
 │   │   │                               #   drag-drop, info box, _draw() rendering
@@ -362,3 +368,15 @@ This blueprint outlines the immediate next tasks required to build out the core 
 - [x] Implement session-based Mortar & Pestle minigame (time compression).
 - [x] Implement 20°C–600°C target-curve Furnace calcination minigame.
 - [ ] Implement Distillation Train (7-cycle spirit purification with drop counting).
+
+### 9. HD-2D Visual Pivot
+- [x] Prototype HD-2D lighting concept (planetary-hour-driven DirectionalLight3D + Environment).
+- [x] Build CharacterBody3D player with AnimatedSprite3D (4-directional, Y-axis billboard).
+- [x] Create HD-2D overworld scene with 3D terrain, diorama camera, and door transitions.
+- [x] Convert PlantNode to Area3D with Sprite3D billboard and Label3D.
+- [x] Add BillboardSprite utility for camera-relative 4-directional facing.
+- [ ] Convert cabin interior to HD-2D (3D floor/walls, Area3D doors, StationNode3D).
+- [ ] Replace placeholder meshes with textured 3D terrain and props.
+- [ ] Port existing Basil sprite sheets to AnimatedSprite3D SpriteFrames.
+- [ ] Add particle effects (fireflies, pollen, fog wisps) tied to planetary hours.
+- [ ] NPC sprites with BillboardSprite 4-directional facing.

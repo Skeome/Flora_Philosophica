@@ -1,0 +1,29 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scripts/plant_node_3d.gd" id="1_script"]
+
+[sub_resource type="SphereShape3D" id="SphereShape3D_1"]
+radius = 0.8
+
+[node name="PlantNode3D" type="Area3D"]
+script = ExtResource("1_script")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="."]
+shape = SubResource("SphereShape3D_1")
+
+[node name="Sprite3D" type="Sprite3D" parent="."]
+position = Vector3(0, 0.55, 0)
+billboard = 2
+shaded = true
+alpha_cut = 1
+pixel_size = 0.015
+texture_filter = 0
+
+[node name="Label3D" type="Label3D" parent="."]
+position = Vector3(0, 1.2, 0)
+billboard = 1
+pixel_size = 0.01
+font_size = 24
+text = "Plant"
+modulate = Color(1, 1, 1, 0.9)
+outline_size = 4
